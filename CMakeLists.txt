@@ -5,6 +5,8 @@ project(GibEngine CXX)
 option(BUILD_EDITOR "Builds the GibEditor" ON)
 option(BUILD_TESTS "Build the test suite" OFF)
 
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}/include)
@@ -20,13 +22,17 @@ set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 include_directories("${PROJECT_INCLUDE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}")
 
+if(BUILD_TESTS)
+  enable_testing()
+
+  include(ListCombinations)
+  include(MSVCStaticRuntime)
+
+  add_subdirectory(Tests/)
+endif(BUILD_TESTS)
+
 add_subdirectory(Engine/)
 
 if(BUILD_EDITOR)
   add_subdirectory(Editor/)
 endif(BUILD_EDITOR)
-
-if(BUILD_TESTS)
-  enable_testing()
-  add_subdirectory(Tests/)
-endif(BUILD_TESTS)

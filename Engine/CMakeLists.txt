@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(GibEngine CXX)
+project(GibEngine C CXX)
 
 set(ENGINE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
@@ -52,6 +52,17 @@ set(ENGINE_INCLUDE_DIRS ${ENGINE_INCLUDE_DIRS}
 include_directories(${ENGINE_INCLUDE_DIRS})
 
 add_library(GibEngine
+  include/CameraBase.h
+  include/Entity.h
+  include/File.h
+  include/FreeCamera.h
+  include/Game.h
+  include/Input.h
+  include/Logger.h
+  include/Model.h
+  include/Shader.h
+  include/Texture.h
+  src/gl3w/gl3w.c
   src/CameraBase.cpp
   src/Entity.cpp
   src/File.cpp
@@ -62,7 +73,8 @@ add_library(GibEngine
   src/Model.cpp
   src/Shader.cpp
   src/Texture.cpp
-  ${GibEngine_INCLUDE_DIRS}
 )
+
+target_link_libraries(GibEngine opengl32)
 
 add_dependencies(GibEngine assimp glm glfw spdlog)

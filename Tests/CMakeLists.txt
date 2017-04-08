@@ -1,13 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(Tests CXX)
 
-enable_testing()
-
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-
 include(ExternalProject)
-include(ListCombinations)
-include(MSVCStaticRuntime)
 
 # Google Test
 set(GTEST_BUILD_DIR ${CMAKE_BINARY_DIR}/lib/googletest)
@@ -35,11 +29,18 @@ include_directories(${TESTS_INCLUDE_DIRS})
 link_directories(${GOOGLETEST_LIB_DIR})
 
 add_executable(Tests
+  include/FileTest.h
+  src/FileTest.cpp
+  include/FreeCameraTest.h
+  src/FreeCameraTest.cpp
   include/Main.h
   src/Main.cpp)
 
-target_link_libraries(Tests gtest)
+target_link_libraries(Tests gtest GibEngine)
 
-add_dependencies(Tests googletest)
+add_dependencies(Tests GibEngine googletest)
 
-add_test(NAME all COMMAND "Tests")
+add_test(
+    NAME all
+    COMMAND $<TARGET_FILE:Tests>
+    )
