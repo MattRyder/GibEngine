@@ -23,12 +23,16 @@ set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 include_directories("${PROJECT_INCLUDE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}")
 
+
+if(MSVC)
+  include(ListCombinations)
+  include(MSVCStaticRuntime)
+endif(MSVC)
+
+add_subdirectory(Engine/)
+
 if(BUILD_TESTS)
   enable_testing()
-
-  #include(ListCombinations)
-  #include(MSVCStaticRuntime)
-
   add_subdirectory(Tests/)
 endif(BUILD_TESTS)
 
