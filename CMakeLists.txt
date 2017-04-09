@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.6)
-project(GibEngine CXX)
+project(GibEngine C CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11) # C++11...
+set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
+set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 
 option(BUILD_EDITOR "Builds the GibEditor" OFF)
 option(BUILD_TESTS "Build the test suite" ON)
@@ -23,7 +25,6 @@ set(PROJECT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 include_directories("${PROJECT_INCLUDE_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}")
 
-
 if(MSVC)
   include(ListCombinations)
   include(MSVCStaticRuntime)
@@ -35,8 +36,6 @@ if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(Tests/)
 endif(BUILD_TESTS)
-
-add_subdirectory(Engine/)
 
 if(BUILD_EDITOR)
   add_subdirectory(Editor/)

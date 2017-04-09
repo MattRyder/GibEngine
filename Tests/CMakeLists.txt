@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(GibTest CXX)
+project(GibTest C CXX)
 
 include(ExternalProject)
 
@@ -28,11 +28,10 @@ set(TESTS_INCLUDE_DIRS
   ${PROJECT_SOURCE_DIR}/include;
   ${GOOGLETEST_INCLUDE_DIR};
   ${GOOGLEMOCK_INCLUDE_DIR};
-  ${ENGINE_INCLUDE_DIRS};
   CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE
 )
 
-include_directories(${TESTS_INCLUDE_DIRS})
+include_directories(${TESTS_INCLUDE_DIRS} ${ENGINE_INCLUDE_DIRS})
 
 link_directories(${GOOGLETEST_LIB_DIR})
 
