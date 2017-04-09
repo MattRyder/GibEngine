@@ -1,7 +1,7 @@
 # GibEngine
 A 3D game engine.
 
-![Build Status](https://travis-ci.org/MattRyder/GibEngine.svg?branch=master)
+[![Build Status](https://travis-ci.org/MattRyder/GibEngine.svg?branch=master)](https://travis-ci.org/MattRyder/GibEngine)
 
 # Requirements
  * cmake > 2.6
