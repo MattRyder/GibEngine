@@ -1,7 +1,13 @@
 cmake_minimum_required(VERSION 2.6)
-project(Tests CXX)
+project(GibTest CXX)
 
 include(ExternalProject)
+
+find_package(Threads REQUIRED)
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+    add_definitions(-Wall -ansi -Wno-deprecated -pthread)
+endif()
 
 # Google Test
 set(GTEST_BUILD_DIR ${CMAKE_BINARY_DIR}/lib/googletest)
@@ -16,11 +22,13 @@ set(GOOGLEMOCK_INCLUDE_DIR ${source_dir}/googlemock/include)
 
 set(GOOGLETEST_LIB_DIR ${GTEST_BUILD_DIR}/lib)
 
+set(OUTPUT_NAME Tests)
+
 set(TESTS_INCLUDE_DIRS
-  ${PROJECT_SOURCE_DIR}/include
-  ${GOOGLETEST_INCLUDE_DIR}
-  ${GOOGLEMOCK_INCLUDE_DIR}
-  ${ENGINE_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/include;
+  ${GOOGLETEST_INCLUDE_DIR};
+  ${GOOGLEMOCK_INCLUDE_DIR};
+  ${ENGINE_INCLUDE_DIRS};
   CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE
 )
 
@@ -28,7 +36,7 @@ include_directories(${TESTS_INCLUDE_DIRS})
 
 link_directories(${GOOGLETEST_LIB_DIR})
 
-add_executable(Tests
+add_executable(GibTest
   include/FileTest.h
   src/FileTest.cpp
   include/FreeCameraTest.h
@@ -36,11 +44,11 @@ add_executable(Tests
   include/Main.h
   src/Main.cpp)
 
-target_link_libraries(Tests gtest GibEngine)
+target_link_libraries(GibTest GibEngine gtest ${CMAKE_THREAD_LIBS_INIT})
 
-add_dependencies(Tests GibEngine googletest)
+add_dependencies(GibTest GibEngine googletest)
 
 add_test(
     NAME all
-    COMMAND $<TARGET_FILE:Tests>
+    COMMAND $<TARGET_FILE:GibTest>
     )

@@ -1,6 +1,12 @@
 #pragma once
 
-#include <Windows.h>
+#ifdef WIN32
+    #include <Windows.h>
+#elif __linux__
+    #include <unistd.h>
+    #include <linux/limits.h>
+#endif
+
 #include <string>
 #include <fstream>
 

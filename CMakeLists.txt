@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.6)
 project(GibEngine CXX)
 
+set(CMAKE_CXX_STANDARD 11)
 
-option(BUILD_EDITOR "Builds the GibEditor" ON)
-option(BUILD_TESTS "Build the test suite" OFF)
+option(BUILD_EDITOR "Builds the GibEditor" OFF)
+option(BUILD_TESTS "Build the test suite" ON)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -25,8 +26,8 @@ include_directories("${PROJECT_SOURCE_DIR}")
 if(BUILD_TESTS)
   enable_testing()
 
-  include(ListCombinations)
-  include(MSVCStaticRuntime)
+  #include(ListCombinations)
+  #include(MSVCStaticRuntime)
 
   add_subdirectory(Tests/)
 endif(BUILD_TESTS)

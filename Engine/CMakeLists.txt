@@ -75,6 +75,12 @@ add_library(GibEngine
   src/Texture.cpp
 )
 
-target_link_libraries(GibEngine opengl32)
+if(WIN32)
+  message(STATUS "Linking for Windows OS")
+  target_link_libraries(GibEngine opengl32)
+elseif(UNIX)
+  message(STATUS "Linking for Linux")
+  target_link_libraries(GibEngine dl)
+endif()
 
 add_dependencies(GibEngine assimp glm glfw spdlog)

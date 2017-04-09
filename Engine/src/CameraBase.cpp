@@ -1,7 +1,7 @@
 #include "CameraBase.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb\stb_image_write.h>
+#include <stb/stb_image_write.h>
 
 #define PI  3.14159265358979323846
 #define ONE_DEG_IN_RAD (2.0 * PI) / 360.0 // 0.017444444
@@ -23,7 +23,7 @@ void GibEngine::CameraBase::TakeScreenshot(int framebufferWidth, int framebuffer
 
     // Prepend Date to the log message:
     strftime(date, 64, "%F-%H-%M-%S", timeinfo);
-    sprintf_s(name, "GibEngine_%s.png", date);
+    sprintf(name, "GibEngine_%s.png", date);
     File *screenshotFile = File::GetAssetPath(std::string("\\Screenshots\\").append(name).c_str());
     delete[] date;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GL\gl3w.h"
+#include "GL/gl3w.h"
 
 #include "Logger.h"
 #include "Model.h"

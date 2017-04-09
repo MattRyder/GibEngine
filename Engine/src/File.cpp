@@ -2,8 +2,17 @@
 
 std::string GibEngine::File::GetWorkingDirectory()
 {
-    char buffer[MAX_PATH];
-    GetModuleFileName(NULL, buffer, MAX_PATH);
+    #ifdef WIN32
+        char buffer[MAX_PATH];
+        GetModuleFileName(NULL, buffer, MAX_PATH);
+    #elif __linux__
+        char buffer[PATH_MAX];
+        if(getcwd(buffer, sizeof(buffer)) == NULL) 
+        {
+            return NULL;
+        }
+    #endif
+
     std::string::size_type position = std::string(buffer).find_last_of("\\/");
     return std::string(buffer).substr(0, position);
 }

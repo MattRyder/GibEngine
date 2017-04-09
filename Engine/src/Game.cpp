@@ -1,62 +1,28 @@
-﻿#include "../include/Game.h"
+﻿#include "Game.h"
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
 
-void APIENTRY GLDebugCallback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
+void APIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
     std::string errString;
 
-    switch (source​)
+    switch(source)
     {
-    case 0x8246: errString = "API"; break;
-    case 0x8247: errString = "WINDOW_SYSTEM"; break;
-    case 0x8248: errString = "SHADER_COMPILER"; break;
-    case 0x8249: errString = "THIRD_PARTY"; break;
-    case 0x824A: errString = "APPLICATION"; break;
-    case 0x824B: errString = "OTHER"; break;
-    default: errString = "undefined"; break;
-    }
-
-    errString += " ";
-    switch (type​)
-    {
-    case 0x824C: errString += "ERROR"; break;
-    case 0x824D: errString += "DEPRECATED_BEHAVIOUR"; break;
-    case 0x824E: errString += "UNDEFINED_BEHAVIOR"; break;
-    case 0x824F: errString += "PORTABILITY"; break;
-    case 0x8250: errString += "PERFORMANCE"; break;
-    case 0x8251: errString += "OTHER"; break;
-    case 0x8268: errString += "MARKER"; break;
-    case 0x8269: errString += "PUSH_GROUP"; break;
-    case 0x826A: errString += "POP_GROUP"; break;
-    default: errString += "undefined"; break;
-    }
-
-    errString += " ";
-    switch (severity​)
-    {
-    case 0x9146: errString += "HIGH"; GibEngine::Logger::Instance->error("{}: {}", errString.c_str(), message​); break;
-    case 0x9147: errString += "MEDIUM"; GibEngine::Logger::Instance->warn("{}: {}", errString.c_str(), message​);  break;
-    case 0x9148: errString += "LOW"; GibEngine::Logger::Instance->info("{}: {}", errString.c_str(), message​); break;
-    case 0x826B: errString += "NOTIFICATION"; GibEngine::Logger::Instance->trace("{}: {}", errString.c_str(), message​); break;
-    default: errString += "undefined"; GibEngine::Logger::Instance->info("{}: {}", errString.c_str(), message​); break;
+        case 0x8246: errString = "API"; break;
+        case 0x8247: errString = "WINDOW_SYSTEM"; break;
+        case 0x8248: errString = "SHADER_COMPILER"; break;
+        case 0x8249: errString = "THIRD_PARTY"; break;
+        case 0x824A: errString = "APPLICATION"; break;
+        case 0x824B: errString = "OTHER"; break;
+        default: errString = "undefined"; break;
     }
 }
 
-void GlfwErrorCallback(int error, const char* description) {
-    GibEngine::Logger::Instance->error("GLFW: #{}, {}", error, description);
+void GlfwErrorCallback(int error, const char* description)
+{
+    GibEngine::Logger::Instance->error("GLFW: #{} #{}", error, description);
 }
-
-//int main(int argc, char** argv)
-//{
-//    GibEngine::Game *game = new GibEngine::Game("GibEngine v0.0.0.1");
-//
-//    while (!glfwWindowShouldClose(game->GetWindow()))
-//    {
-//        game->Render();
-//    }
-//}
 
 GibEngine::Game::Game(const char *windowTitle)
 {

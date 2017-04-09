@@ -1,4 +1,4 @@
-#include "..\include\FreeCamera.h"
+#include "FreeCamera.h"
 
 GibEngine::FreeCamera::FreeCamera() : CameraBase(EntityType::CAMERA)
 {
@@ -31,7 +31,8 @@ void GibEngine::FreeCamera::Update(double deltaTime, double mouseDeltaX, double 
     UpdatePosition(deltaTime, keyState);
 
     glm::vec3 position = GetPosition();
-    this->viewMatrix = &glm::lookAt(position, position + *cameraFront, *cameraUp);
+    glm::mat4 tmpMatrix = glm::lookAt(position, position + *cameraFront, *cameraUp);
+    this->viewMatrix = new glm::mat4(tmpMatrix);
 }
 
 void GibEngine::FreeCamera::UpdatePosition(double deltaTime, int *keyState)
@@ -70,10 +71,7 @@ void GibEngine::FreeCamera::UpdateDirection(double deltaTime, double mouseDeltaX
     if (cameraPitch > 1.0f) cameraPitch = 1.0f;
     if (cameraPitch < -1.0f) cameraPitch = -1.0f;
 
-    glm::vec3 front;
-    front.x = float(cos(cameraYaw) * cos(cameraPitch));
-    front.y = float(sin(cameraPitch));
-    front.z = float(sin(cameraYaw) * cos(cameraPitch));
-
-    cameraFront = &glm::normalize(front);
+    cameraFront->x = glm::normalize(float(cos(cameraYaw) * cos(cameraPitch)));
+    cameraFront->y = glm::normalize(float(sin(cameraPitch)));
+    cameraFront->z = glm::normalize(float(sin(cameraYaw) * cos(cameraPitch)));
 }

@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "GL\gl3w.h"
-#include "glm\vec3.hpp"
+#include "GL/gl3w.h"
+#include "glm/vec3.hpp"
 
 #include "Logger.h"
 

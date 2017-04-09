@@ -1,9 +1,9 @@
 #pragma once
 
-#include "GL\gl3w.h"
-#include "GLFW\glfw3.h"
+#include "GL/gl3w.h"
+#include "GLFW/glfw3.h"
 
-#include "glm\vec2.hpp"
+#include "glm/vec2.hpp"
 
 namespace GibEngine 
 {

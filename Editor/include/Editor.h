@@ -4,13 +4,13 @@
 
 namespace GibEditor
 {
-    //class Editor : public GibEngine::Game
-    //{
-    //public:
-    //    Editor();
-    //    ~Editor();
+    class Editor : public GibEngine::Game
+    {
+    public:
+       Editor();
+       ~Editor();
 
-    //    virtual void Render() override;
-    //    virtual void Update() override;
-    //};
+       virtual void Render() override;
+       virtual void Update() override;
+    };
 }

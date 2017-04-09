@@ -14,4 +14,6 @@ add_executable(Editor
   src/Editor.cpp
   src/Main.cpp)
   
+target_link_libraries(Editor GibEngine)
+
 add_dependencies(Editor GibEngine)

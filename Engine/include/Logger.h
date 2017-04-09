@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdarg.h>
-#include "spdlog\spdlog.h"
+#include <spdlog/spdlog.h>
 
 
 namespace GibEngine

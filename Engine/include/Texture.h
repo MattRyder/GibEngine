@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "GL\gl3w.h"
+#include "GL/gl3w.h"
 
 #include "Logger.h"
 #include "File.h"

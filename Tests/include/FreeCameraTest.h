@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gtest\gtest.h"
-#include "glm\gtc\matrix_transform.hpp"
+#include "gtest/gtest.h"
+#include "glm/gtc/matrix_transform.hpp"
 
 #include "FreeCamera.h"
 

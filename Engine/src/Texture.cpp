@@ -1,7 +1,7 @@
 #include "Texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb\stb_image.h"
+#include "stb/stb_image.h"
 
 const char* GibEngine::Texture::TextureTypeStrings[4] = {
     "diffuse", "specular", "height", "normal"
