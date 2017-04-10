@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 2.6)
 project(GibEngine C CXX)
 
-set(CMAKE_CXX_STANDARD 11) # C++11...
-set(CMAKE_CXX_STANDARD_REQUIRED ON) #...is required...
-set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(ENGINE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
+
+set(LINK_TARGETS pthread)
 
 ####################################################
 #	PROJECT DEPENDENCIES
@@ -19,10 +21,14 @@ ExternalProject_Add(glfw
     -DGLFW_BUILD_EXAMPLES=OFF
     -DGLFW_BUILD_TESTS=OFF
     -DGLFW_BUILD_DOCS=OFF
+    -DBUILD_SHARED_LIBS=ON
     -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/lib/glfw
 )
 ExternalProject_Get_Property(glfw source_dir)
 list(APPEND ENGINE_INCLUDE_DIRS ${source_dir}/include)
+
+set(GLFW_LIBRARY ${CMAKE_BINARY_DIR}/lib/glfw/lib/${CMAKE_SHARED_LIBRARY_PREFIX}glfw${CMAKE_SHARED_LIBRARY_SUFFIX})
+LIST(APPEND LINK_TARGETS ${GLFW_LIBRARY})
 
 ExternalProject_Add(spdlog
   GIT_REPOSITORY https://github.com/gabime/spdlog
@@ -52,6 +58,9 @@ ExternalProject_Add(assimp
 )
 ExternalProject_Get_Property(assimp source_dir)
 list(APPEND ENGINE_INCLUDE_DIRS ${source_dir}/include)
+
+set(ASSIMP_LIBRARY ${CMAKE_BINARY_DIR}/lib/assimp/lib/${CMAKE_SHARED_LIBRARY_PREFIX}assimp${CMAKE_SHARED_LIBRARY_SUFFIX})
+LIST(APPEND LINK_TARGETS ${ASSIMP_LIBRARY})
 
 set(GibEngine_VERSION_MAJOR 1)
 set(GibEngine_VERSION_MINOR 0)
@@ -89,11 +98,11 @@ add_library(GibEngine
 )
 
 if(WIN32)
-  message(STATUS "Linking for Windows OS")
-  target_link_libraries(GibEngine opengl32)
+  LIST(APPEND LINK_TARGETS opengl32)
 elseif(UNIX)
-  message(STATUS "Linking for Linux")
-  target_link_libraries(GibEngine dl)
+  LIST(APPEND LINK_TARGETS dl)
 endif()
+
+target_link_libraries(GibEngine ${LINK_TARGETS})
 
 add_dependencies(GibEngine assimp glm glfw spdlog)
