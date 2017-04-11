@@ -19,7 +19,7 @@ std::string GibEngine::File::GetWorkingDirectory()
 
 GibEngine::File* GibEngine::File::GetAssetPath(const char *assetName)
 {
-    std::string *filePathStr = new std::string(File::GetWorkingDirectory().append("\\..\\..\\Assets\\").append(assetName));
+    std::string *filePathStr = new std::string(File::GetWorkingDirectory().append(ASSET_RELATIVE_PATH).append(assetName));
     File *fp = new File(filePathStr);
     return fp;
 }

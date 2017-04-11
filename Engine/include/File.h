@@ -12,6 +12,8 @@
 
 #include "Logger.h"
 
+#define ASSET_RELATIVE_PATH "/Assets/"
+
 namespace GibEngine
 {
     class File

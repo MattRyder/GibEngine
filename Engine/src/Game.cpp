@@ -45,8 +45,8 @@ GibEngine::Game::Game(const char *windowTitle)
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    //this->model = new Model("brickwall\\brickwall.obj");
-    //this->shader = new Shader("color_vs.glsl", "color_fs.glsl");
+    this->model = new Model("brickwall/brickwall.obj");
+    this->shader = new Shader("color_vs.glsl", "color_fs.glsl");
 
 }
 
