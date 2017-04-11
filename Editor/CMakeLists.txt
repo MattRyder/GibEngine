@@ -8,12 +8,12 @@ set(EDITOR_INCLUDE_DIRS
 
 include_directories(${EDITOR_INCLUDE_DIRS})
 
-add_executable(Editora
+add_executable(GibEditor
   include/Editor.h
   include/Main.h
   src/Editor.cpp
   src/Main.cpp)
   
-target_link_libraries(Editora GibEngine)
+target_link_libraries(GibEditor GibEngine)
 
-add_dependencies(Editora GibEngine)
+add_dependencies(GibEditor GibEngine)

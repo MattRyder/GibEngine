@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+option(COPY_DEMO_ASSETS "Copies demo assets for the Editor" OFF)
 option(BUILD_EDITOR "Builds the GibEditor" OFF)
 option(BUILD_TESTS "Build the test suite" OFF)
 
@@ -13,7 +14,6 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}/include)
-
 
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
  
@@ -34,6 +34,10 @@ add_subdirectory(Engine/)
 
 if(BUILD_EDITOR)
   add_subdirectory(Editor/)
+
+  if(COPY_DEMO_ASSETS)
+    file(COPY Assets DESTINATION ${CMAKE_BINARY_DIR}/Assets)
+  endif()
 endif()
 
 if(BUILD_TESTS)
