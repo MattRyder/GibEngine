@@ -37,6 +37,8 @@ void GibEngine::Game::Render()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     //shader->Begin();
 
     //model->Render(shader->GetShaderId(), 0);
