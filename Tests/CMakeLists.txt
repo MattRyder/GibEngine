@@ -17,16 +17,13 @@ ExternalProject_Add(googletest
   CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${GTEST_BUILD_DIR}
 )
-ExternalProject_Get_Property(googletest source_dir)
-set(GOOGLETEST_INCLUDE_DIR ${source_dir}/googletest/include)
-set(GOOGLEMOCK_INCLUDE_DIR ${source_dir}/googlemock/include)
 
+set(GOOGLETEST_INCLUDE_DIR ${GTEST_BUILD_DIR}/include)
 set(GOOGLETEST_LIB_DIR ${GTEST_BUILD_DIR}/lib)
 
 set(TESTS_INCLUDE_DIRS
   ${PROJECT_SOURCE_DIR}/include;
   ${GOOGLETEST_INCLUDE_DIR};
-  ${GOOGLEMOCK_INCLUDE_DIR};
   CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE
 )
 
@@ -39,10 +36,12 @@ add_executable(GibTest
   src/FileTest.cpp
   include/FreeCameraTest.h
   src/FreeCameraTest.cpp
+  include/ShaderTest.h
+  src/ShaderTest.cpp
   include/Main.h
   src/Main.cpp)
 
-target_link_libraries(GibTest GibEngine gtest)
+target_link_libraries(GibTest GibEngine gtest gmock)
 
 add_dependencies(GibTest GibEngine googletest)
 

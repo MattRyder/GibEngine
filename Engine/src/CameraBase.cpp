@@ -45,12 +45,12 @@ glm::mat4* GibEngine::CameraBase::ConstructProjectionMatrix(float width, float h
 	return new glm::mat4(glm::perspectiveFov(fov, width, height, zNear, zFar));
 }
 
-glm::mat4& GibEngine::CameraBase::GetProjectionMatrix()
+glm::mat4* GibEngine::CameraBase::GetProjectionMatrix()
 {
-	return *this->projectionMatrix;
+	return this->projectionMatrix;
 }
 
-glm::mat4 & GibEngine::CameraBase::GetViewMatrix()
+glm::mat4* GibEngine::CameraBase::GetViewMatrix()
 {
-	return *this->viewMatrix;
+	return this->viewMatrix;
 }

@@ -26,7 +26,7 @@ namespace GibEngine
         static void TakeScreenshot(int framebufferWidth, int framebufferHeight);
         static glm::mat4* ConstructProjectionMatrix(float width, float height, float zNear, float zFar, float fov);
 
-		virtual glm::mat4& GetProjectionMatrix();
-		virtual glm::mat4& GetViewMatrix();
+		virtual glm::mat4* GetProjectionMatrix();
+		virtual glm::mat4* GetViewMatrix();
     };
 }

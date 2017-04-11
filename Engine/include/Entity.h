@@ -48,6 +48,8 @@ namespace GibEngine
     EntityType entityType;
 
   public:
+    Entity();
+    
     Entity(EntityType entityType);
     Entity(EntityType entityType, glm::vec3& entityPosition);
     virtual ~Entity();

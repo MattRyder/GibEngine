@@ -45,8 +45,8 @@ GibEngine::Game::Game(const char *windowTitle)
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    this->model = new Model("brickwall\\brickwall.obj");
-    this->shader = new Shader("color_vs.glsl", "color_fs.glsl");
+    //this->model = new Model("brickwall\\brickwall.obj");
+    //this->shader = new Shader("color_vs.glsl", "color_fs.glsl");
 
 }
 
@@ -61,11 +61,11 @@ void GibEngine::Game::Render()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);
-    shader->Begin();
+    //shader->Begin();
 
-    model->Render(shader->GetShaderId(), 0);
+    //model->Render(shader->GetShaderId(), 0);
 
-    shader->End();
+    //shader->End();
 
     glfwSwapBuffers(window);
     Update();
@@ -88,18 +88,18 @@ bool GibEngine::Game::initializeGL()
         return false;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 16);
+    // glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    // glfwWindowHint(GLFW_SAMPLES, 16);
 
     this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, this->windowTitle->c_str(), NULL, NULL);
 
     // Setup GLFW callbacks:
-    glfwSetKeyCallback(window, GibEngine::Input::UpdateKeyboardCallback);
-    glfwSetCursorPosCallback(window, GibEngine::Input::UpdateMousePositionCallback);
-    glfwSetErrorCallback(GlfwErrorCallback);
+    //glfwSetKeyCallback(window, GibEngine::Input::UpdateKeyboardCallback);
+    //glfwSetCursorPosCallback(window, GibEngine::Input::UpdateMousePositionCallback);
+    //glfwSetErrorCallback(GlfwErrorCallback);
 
     if (!this->window)
     {
