@@ -84,6 +84,8 @@ add_library(GibEngine
   include/Model.h
   include/Shader.h
   include/Texture.h
+  include/glfw/glfw_callback.h
+  src/glfw/glfw_callback.cpp
   src/gl3w/gl3w.c
   src/CameraBase.cpp
   src/Entity.cpp

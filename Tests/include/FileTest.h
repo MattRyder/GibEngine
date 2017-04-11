@@ -4,6 +4,8 @@
 
 #include "File.h"
 
+using namespace GibEngine;
+
 class FileTest : public ::testing::Test
 {
 protected:

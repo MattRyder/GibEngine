@@ -12,7 +12,7 @@ namespace GibEngine
     public:    
         static glm::vec2 MouseState;
         static int KeyboardState[GLFW_KEY_LAST];
-
+        
         static void UpdateMousePositionCallback(GLFWwindow *window, double mouseX, double mouseY);
         static void UpdateKeyboardCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
     };
