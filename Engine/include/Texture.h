@@ -31,7 +31,7 @@ namespace GibEngine
 
             bool IsPowerOfTwo()
             {
-                return (Width & Width - 1) != 0 || (Height & Height - 1) != 0;
+                return (Width & (Width - 1)) != 0 || (Height & (Height - 1)) != 0;
             }
         } TextureData;
 

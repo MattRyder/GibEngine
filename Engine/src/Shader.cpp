@@ -1,17 +1,17 @@
 #include "Shader.h"
 
-GibEngine::Shader::Shader(const char *vertexFilename, const char *fragmentFilename)
+GibEngine::Shader::Shader(const char *vertexShaderSrc, const char *fragmentShaderSrc)
 {
-    this->vertexFile = File::GetAssetPath(std::string("Shaders\\").append(vertexFilename).c_str());
-    this->fragmentFile = File::GetAssetPath(std::string("Shaders\\").append(fragmentFilename).c_str());
+    this->vertexShaderSrc = vertexShaderSrc;
+    this->fragmentShaderSrc = fragmentShaderSrc;
 
-    this->shaderId = Load();
+    // this->shaderId = Load();
 }
 
 GibEngine::Shader::~Shader()
 {
-    delete this->vertexFile;
-    delete this->fragmentFile;
+    free((char *)this->vertexShaderSrc);
+    free((char *)this->fragmentShaderSrc);
 
     glDeleteProgram(this->shaderId);
 }
@@ -28,19 +28,13 @@ GLuint GibEngine::Shader::Load()
     GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-    std::string *vsData = this->vertexFile->ReadFile();
-    std::string *fsData = this->fragmentFile->ReadFile();
-
-    Compile(vShader, vsData->c_str());
-    Compile(fShader, fsData->c_str());
+    Compile(vShader, this->vertexShaderSrc);
+    Compile(fShader, this->fragmentShaderSrc);
 
     GLuint program = Link(vShader, fShader);
 
     glDeleteShader(vShader);
     glDeleteShader(fShader);
-
-    delete vsData;
-    delete fsData;
 
     return program;
 }

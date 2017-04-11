@@ -16,14 +16,14 @@ namespace GibEngine
 
         GLuint shaderId;
 
-        File *vertexFile;
-        File *fragmentFile;
+        const char *vertexShaderSrc;
+        const char *fragmentShaderSrc;
 
         void Compile(GLuint shaderId, const char *shaderSourceCode);
         GLuint Link(GLuint vertexShader, GLuint fragmentShader);
 
     public:
-        Shader(const char *vertexFilename, const char *fragmentFilename);
+        Shader(const char *vertexShaderSrc, const char *fragmentShaderSrc);
         ~Shader();
         
         GLuint Load();
