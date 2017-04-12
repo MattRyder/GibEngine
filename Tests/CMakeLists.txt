@@ -32,10 +32,14 @@ include_directories(${TESTS_INCLUDE_DIRS} ${ENGINE_INCLUDE_DIRS})
 link_directories(${GOOGLETEST_LIB_DIR})
 
 add_executable(GibTest
+  include/glmock.hpp
+  src/glmock.cpp
   include/FileTest.h
   src/FileTest.cpp
   include/FreeCameraTest.h
   src/FreeCameraTest.cpp
+  # include/RenderPassTest.h
+  # src/RenderPassTest.cpp
   include/ShaderTest.h
   src/ShaderTest.cpp
   include/Main.h

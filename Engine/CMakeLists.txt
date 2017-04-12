@@ -68,6 +68,9 @@ set(GibEngine_VERSION_PATCH 0)
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
+# list(APPEND ENGINE_INCLUDE_DIRS ${source_dir}/include/renderer)
+
+
 set(ENGINE_INCLUDE_DIRS ${ENGINE_INCLUDE_DIRS}
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
 
@@ -84,9 +87,13 @@ add_library(GibEngine
   include/Model.h
   include/Shader.h
   include/Texture.h
+  include/renderer/RenderPassType.h
+  include/renderer/RenderPass.h
+  include/renderer/Pipeline.h
   include/glfw/glfw_callback.h
   src/glfw/glfw_callback.cpp
   src/gl3w/gl3w.c
+  src/renderer/Pipeline.cpp
   src/CameraBase.cpp
   src/Entity.cpp
   src/File.cpp

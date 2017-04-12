@@ -2,5 +2,6 @@
 
 TEST_F(ShaderTest, CanLoad)
 {
-  ASSERT_TRUE(true);
+  // printf("%x", shader);
+  // ASSERT_EQ(1, shader->GetShaderId());
 }

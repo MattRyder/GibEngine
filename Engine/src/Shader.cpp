@@ -5,7 +5,7 @@ GibEngine::Shader::Shader(const char *vertexShaderSrc, const char *fragmentShade
     this->vertexShaderSrc = vertexShaderSrc;
     this->fragmentShaderSrc = fragmentShaderSrc;
 
-    // this->shaderId = Load();
+    this->Load();
 }
 
 GibEngine::Shader::~Shader()

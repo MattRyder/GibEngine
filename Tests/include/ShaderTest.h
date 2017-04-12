@@ -2,8 +2,6 @@
 
 #include "Shader.h"
 
-// using namespace GibEngine;
-
 class ShaderTest : public ::testing::Test
 {
 public:
@@ -25,7 +23,9 @@ public:
       out vec4 frag_colour;\
       void main () {\
         frag_colour = vec4 (1.0, 1.0, 0.0, 1.0);\
-      }";  
+      }";
+
+    // shader = new GibEngine::Shader(vertexShaderStr, fragmentShaderStr);
   }
   
   GibEngine::Shader *shader;
