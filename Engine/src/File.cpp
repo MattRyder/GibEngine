@@ -20,39 +20,40 @@ std::string GibEngine::File::GetWorkingDirectory()
 GibEngine::File* GibEngine::File::GetAssetPath(const char *assetName)
 {
     std::string *filePathStr = new std::string(File::GetWorkingDirectory().append(ASSET_RELATIVE_PATH).append(assetName));
-    File *fp = new File(filePathStr);
+    File *fp = new File(filePathStr->c_str());
     return fp;
 }
 
-GibEngine::File::File(std::string *filePath)
+GibEngine::File::File(const char *filePath)
 {
     this->path = filePath;
 }
 
 GibEngine::File::~File()
 {
-    delete this->path;
+    free((char *)this->path);
 }
 
-std::string GibEngine::File::GetDirectory()
+const char* GibEngine::File::GetDirectory()
 {
-    std::string::size_type position = path->find_last_of("\\/");
-    return path->substr(0, position);
+    std::string pathStr = std::string(pathStr);
+    std::string::size_type position = pathStr.find_last_of("\\/");
+    return pathStr.substr(0, position).c_str();
 }
 
 const char* GibEngine::File::GetPath()
 {
-    return this->path->c_str();
+    return this->path;
 }
 
-std::string* GibEngine::File::ReadFile()
+const char* GibEngine::File::ReadFile()
 {
     std::string *content, line;
-    std::ifstream fileStream(path->c_str(), std::ios::in);
+    std::ifstream fileStream(path, std::ios::in);
 
     if (!fileStream.is_open())
     {
-        Logger::Instance->error("Failed to open Shader file: {}", path->c_str());
+        Logger::Instance->error("Failed to open File for read: {}", path);
         return nullptr;
     }
 
@@ -65,5 +66,5 @@ std::string* GibEngine::File::ReadFile()
     }
 
     fileStream.close();
-    return content;
+    return content->c_str();
 }

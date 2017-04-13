@@ -168,7 +168,7 @@ std::vector<GibEngine::Texture*> GibEngine::Model::LoadMaterialTextures(aiMateri
         aiString str;
         material->GetTexture(type, i, &str);
 
-        std::string *texturePath = new std::string(this->modelFile->GetDirectory() + "/" + std::string(str.C_Str()));
+        std::string *texturePath = new std::string(std::string(this->modelFile->GetDirectory()) + "/" + std::string(str.C_Str()));
         Texture* texture = new Texture(textureType, texturePath);
         textures.push_back(texture);
     }

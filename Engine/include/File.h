@@ -18,19 +18,19 @@ namespace GibEngine
 {
     class File
     {
-        std::string *path;
+        const char *path;
 
     public:
-        File(std::string *filePath);
+        File(const char *filePath);
         ~File();
 
         static std::string GetWorkingDirectory();
         static File* GetAssetPath(const char *assetName);
 
-        std::string GetDirectory();
-        const char *GetPath();
+        const char* GetDirectory();
+        const char* GetPath();
         
-        std::string *ReadFile();
+        const char* ReadFile();
 
     };
 }
