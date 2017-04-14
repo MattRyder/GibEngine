@@ -23,19 +23,19 @@ void GibEngine::CameraBase::TakeScreenshot(int framebufferWidth, int framebuffer
 
     // Prepend Date to the log message:
     strftime(date, 64, "%F-%H-%M-%S", timeinfo);
-    sprintf(name, "GibEngine_%s.png", date);
-    File *screenshotFile = File::GetAssetPath(std::string("\\Screenshots\\").append(name).c_str());
-    delete[] date;
+    // sprintf(name, "GibEngine_%s.png", date);
+    // File *screenshotFile = std::string(File::GetScreenshotPath()).append(name).c_str());
+    // delete[] date;
 
-    unsigned char *lastRow = frameBuffer + (framebufferWidth * 3 * (framebufferHeight - 1));
-    const char *filePath = screenshotFile->GetPath();
+    // unsigned char *lastRow = frameBuffer + (framebufferWidth * 3 * (framebufferHeight - 1));
+    // const char *filePath = screenshotFile->GetPath();
 
-    if (!stbi_write_png(filePath, framebufferWidth, framebufferHeight, 3, lastRow, -3 * framebufferWidth)) {
-        Logger::Instance->error("Failed to write screenshot '{}'", filePath);
-    }
-    else {
-        Logger::Instance->info("Screenshot saved to '{}'", filePath);
-    }
+    // if (!stbi_write_png(filePath, framebufferWidth, framebufferHeight, 3, lastRow, -3 * framebufferWidth)) {
+    //     Logger::Instance->error("Failed to write screenshot '{}'", filePath);
+    // }
+    // else {
+    //     Logger::Instance->info("Screenshot saved to '{}'", filePath);
+    // }
 
     free(frameBuffer);
 }

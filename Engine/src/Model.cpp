@@ -11,7 +11,7 @@ GibEngine::Model::Model() : Entity(EntityType::MODEL)
 
 GibEngine::Model::Model(const char* modelFilename) : Model()
 {
-    this->modelFile = File::GetAssetPath(std::string("Models/").append(modelFilename).c_str());
+    this->modelFile = File::GetModelFile(modelFilename);
     this->LoadModel(this->modelFile->GetPath());
 }
 

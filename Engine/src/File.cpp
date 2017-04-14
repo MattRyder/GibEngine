@@ -17,11 +17,19 @@ std::string GibEngine::File::GetWorkingDirectory()
     return std::string(buffer).substr(0, position);
 }
 
-GibEngine::File* GibEngine::File::GetAssetPath(const char *assetName)
+const char* GibEngine::File::GetPathForType(const char* filePath)
 {
-    std::string *filePathStr = new std::string(File::GetWorkingDirectory().append(ASSET_RELATIVE_PATH).append(assetName));
-    File *fp = new File(filePathStr->c_str());
-    return fp;
+    return File::GetWorkingDirectory().append(filePath).c_str();
+}
+
+GibEngine::File* GibEngine::File::GetModelFile(const char* modelFile) 
+{
+    return new File(std::string(GetPathForType(MODEL_RELATIVE_PATH)).append(modelFile).c_str());
+}
+
+GibEngine::File* GibEngine::File::GetShaderFile(const char* shaderFile)
+{
+    return new File(std::string(GetPathForType(SHADER_RELATIVE_PATH)).append(shaderFile).c_str());
 }
 
 GibEngine::File::File(const char *filePath)
@@ -36,7 +44,7 @@ GibEngine::File::~File()
 
 const char* GibEngine::File::GetDirectory()
 {
-    std::string pathStr = std::string(pathStr);
+    std::string pathStr = path;
     std::string::size_type position = pathStr.find_last_of("\\/");
     return pathStr.substr(0, position).c_str();
 }
@@ -62,7 +70,7 @@ const char* GibEngine::File::ReadFile()
     while (!fileStream.eof())
     {
         std::getline(fileStream, line);
-        content->append(line + '\n');
+        content->append(line);
     }
 
     fileStream.close();
