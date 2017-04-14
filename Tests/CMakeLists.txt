@@ -36,6 +36,8 @@ add_executable(GibTest
   src/glmock.cpp
   include/FileTest.h
   src/FileTest.cpp
+  include/InputTest.h
+  src/InputTest.cpp
   include/FreeCameraTest.h
   src/FreeCameraTest.cpp
   # include/RenderPassTest.h
