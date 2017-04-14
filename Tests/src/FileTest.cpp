@@ -62,8 +62,7 @@ TEST_F(FileTest, ReadFile)
   
   // Then it might be an idea to read it back:
   File *file = new File(fileName);
-  
   const char *actualFileContent = file->ReadFile();
-  
+
   ASSERT_STREQ(expectedFileContent, actualFileContent);
 }

@@ -5,16 +5,14 @@ std::string GibEngine::File::GetWorkingDirectory()
     #ifdef WIN32
         char buffer[MAX_PATH];
         GetModuleFileName(NULL, buffer, MAX_PATH);
+        
+        std::string::size_type position = std::string(buffer).find_last_of("\\/");
+        return std::string(buffer).substr(0, position);
     #elif __linux__
         char buffer[PATH_MAX];
-        if(getcwd(buffer, sizeof(buffer)) == NULL) 
-        {
-            return NULL;
-        }
+        if(getcwd(buffer, sizeof(buffer)) == NULL) { return NULL; }
+        return std::string(buffer);
     #endif
-
-    std::string::size_type position = std::string(buffer).find_last_of("\\/");
-    return std::string(buffer).substr(0, position);
 }
 
 const char* GibEngine::File::GetPathForType(const char* filePath)
@@ -24,7 +22,9 @@ const char* GibEngine::File::GetPathForType(const char* filePath)
 
 GibEngine::File* GibEngine::File::GetModelFile(const char* modelFile) 
 {
-    return new File(std::string(GetPathForType(MODEL_RELATIVE_PATH)).append(modelFile).c_str());
+    const char *modelFilePath = std::string(GetPathForType(MODEL_RELATIVE_PATH)).append(modelFile).c_str();
+    File *file = new File(modelFilePath);
+    return file;
 }
 
 GibEngine::File* GibEngine::File::GetShaderFile(const char* shaderFile)
@@ -39,7 +39,7 @@ GibEngine::File::File(const char *filePath)
 
 GibEngine::File::~File()
 {
-    free((char *)this->path);
+    free((void *)path);
 }
 
 const char* GibEngine::File::GetDirectory()

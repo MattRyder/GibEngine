@@ -66,7 +66,7 @@ namespace GibEngine
             }
         } MaterialBuffer;
 
-        void LoadModel(const char *meshFilename);
+        void LoadModel(File *modelFile);
         void LoadMaterialUBO(Material *material);
 
     protected:

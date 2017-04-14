@@ -21,7 +21,7 @@ GibEngine::Game::Game(const char *windowTitle)
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    // this->model = new Model("brickwall/brickwall.obj");
+    this->model = new Model("brickwall/brickwall.obj");
 
     // GibEngine::File vertexShaderFile = GibEngine::File::
 

@@ -12,21 +12,22 @@ GibEngine::Model::Model() : Entity(EntityType::MODEL)
 GibEngine::Model::Model(const char* modelFilename) : Model()
 {
     this->modelFile = File::GetModelFile(modelFilename);
-    this->LoadModel(this->modelFile->GetPath());
+    this->LoadModel(this->modelFile);
 }
 
 GibEngine::Model::~Model()
 {
 }
 
-void GibEngine::Model::LoadModel(const char *meshFilename)
+void GibEngine::Model::LoadModel(File *modelFile)
 {
     Assimp::Importer *importer = new Assimp::Importer();
-    const aiScene *scene = importer->ReadFile(meshFilename, aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene *scene = importer->ReadFile(modelFile->GetPath(),
+                                aiProcess_Triangulate | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
-        Logger::Instance->error("Failed to find Model: {}", meshFilename);
+        Logger::Instance->error("Failed to find Model: {}", modelFile->GetPath());
         return;
     }
 

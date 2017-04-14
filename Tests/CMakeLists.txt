@@ -38,6 +38,9 @@ add_executable(GibTest
   src/FileTest.cpp
   include/InputTest.h
   src/InputTest.cpp
+  include/mock/MockCameraBase.h
+  include/CameraBaseTest.h
+  src/CameraBaseTest.cpp
   include/FreeCameraTest.h
   src/FreeCameraTest.cpp
   # include/RenderPassTest.h
