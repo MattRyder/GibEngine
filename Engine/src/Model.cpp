@@ -11,8 +11,8 @@ GibEngine::Model::Model() : Entity(EntityType::MODEL)
 
 GibEngine::Model::Model(const char* modelFilename) : Model()
 {
-    this->modelFile = File::GetModelFile(modelFilename);
-    this->LoadModel(this->modelFile);
+    modelFile = File::GetModelFile(modelFilename);
+    LoadModel(modelFile);
 }
 
 GibEngine::Model::~Model()
@@ -21,19 +21,29 @@ GibEngine::Model::~Model()
 
 void GibEngine::Model::LoadModel(File *modelFile)
 {
-    Assimp::Importer *importer = new Assimp::Importer();
-    const aiScene *scene = importer->ReadFile(modelFile->GetPath(),
+    Assimp::Importer importer;
+    const char *modelFilePath = modelFile->GetPath();
+    // printf("%s", modelFile->GetPath());
+    const aiScene *scene = importer.ReadFile(modelFile->GetPath(),
                                 aiProcess_Triangulate | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
-        Logger::Instance->error("Failed to find Model: {}", modelFile->GetPath());
+        Logger::Instance->error("Failed to find Model: {}", importer.GetErrorString());
         return;
     }
 
-    this->ProcessNode(scene->mRootNode, scene);
-    importer->FreeScene();
+    ProcessNode(scene->mRootNode, scene);
+    importer.FreeScene();
 
+    this->LoadModelData();
+    
+    // Load Material UBO:
+    this->LoadMaterialUBO(this->materials[0]);
+}
+
+void GibEngine::Model::LoadModelData()
+{
     size_t vboSize = vertices.size() * sizeof(Vertex);
 
     glBindVertexArray(VAO);
@@ -65,9 +75,6 @@ void GibEngine::Model::LoadModel(File *modelFile)
     glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, Bitangent));
 
     glBindVertexArray(0);
-
-    // Load Material UBO:
-    //this->LoadMaterialUBO(this->materials[0]);
 }
 
 void GibEngine::Model::LoadMaterialUBO(Material *material)
@@ -169,7 +176,8 @@ std::vector<GibEngine::Texture*> GibEngine::Model::LoadMaterialTextures(aiMateri
         aiString str;
         material->GetTexture(type, i, &str);
 
-        std::string *texturePath = new std::string(std::string(this->modelFile->GetDirectory()) + "/" + std::string(str.C_Str()));
+        std::string pwd = modelFile->GetPath();
+        std::string *texturePath = new std::string(std::string(modelFile->GetDirectory()) + "/" + std::string(str.C_Str()));
         Texture* texture = new Texture(textureType, texturePath);
         textures.push_back(texture);
     }

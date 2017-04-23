@@ -88,6 +88,7 @@ namespace GibEngine
         void ProcessNode(aiNode *node, const aiScene *scene);
         void ProcessMesh(aiMesh *mesh, const aiScene *scene);
 
+        void LoadModelData();
         std::vector<GibEngine::Texture*> LoadMaterialTextures(aiMaterial * material, aiTextureType type, GibEngine::TextureType textureType);
 
         virtual void Render(){}

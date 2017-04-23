@@ -90,6 +90,7 @@ add_library(GibEngine
   include/renderer/RenderPassType.h
   include/renderer/RenderPass.h
   include/renderer/Pipeline.h
+  include/renderer/ForwardRenderPass.h
   include/glfw/glfw_callback.h
   src/glfw/glfw_callback.cpp
   src/gl3w/gl3w.c
@@ -104,6 +105,8 @@ add_library(GibEngine
   src/Model.cpp
   src/Shader.cpp
   src/Texture.cpp
+  src/renderer/Pipeline.cpp
+  src/renderer/ForwardRenderPass.cpp
 )
 
 if(WIN32)

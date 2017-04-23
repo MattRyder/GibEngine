@@ -12,6 +12,7 @@
 #include "Model.h"
 #include "Shader.h"
 #include "FreeCamera.h"
+#include "renderer/Pipeline.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -23,10 +24,12 @@ namespace GibEngine
         GLFWwindow *window;
         const char *windowTitle;
 
+        // TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
         FreeCamera *playerCamera;
-
         Model *model;
         Shader *shader;
+        
+        Renderer::Pipeline *renderPipeline;
     
     public:
         Game(const char *windowTitle);

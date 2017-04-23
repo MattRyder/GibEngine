@@ -1,17 +1,17 @@
 #include "Shader.h"
 
-GibEngine::Shader::Shader(const char *vertexShaderSrc, const char *fragmentShaderSrc)
+GibEngine::Shader::Shader(File *vertexShaderFile, File *fragmentShaderFile)
 {
-    this->vertexShaderSrc = vertexShaderSrc;
-    this->fragmentShaderSrc = fragmentShaderSrc;
+    this->vertexShader = vertexShaderFile;
+    this->fragmentShader = fragmentShaderFile;
 
     this->Load();
 }
 
 GibEngine::Shader::~Shader()
 {
-    free((char *)this->vertexShaderSrc);
-    free((char *)this->fragmentShaderSrc);
+    delete this->vertexShader;
+    delete this->fragmentShader;
 
     glDeleteProgram(this->shaderId);
 }
@@ -28,8 +28,11 @@ GLuint GibEngine::Shader::Load()
     GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-    Compile(vShader, this->vertexShaderSrc);
-    Compile(fShader, this->fragmentShaderSrc);
+    const char *vertexShaderSrc = this->vertexShader->ReadFile();
+    const char *fragmentShaderSrc = this->fragmentShader->ReadFile();
+
+    Compile(vShader, vertexShader);
+    Compile(fShader, fragmentShader);
 
     GLuint program = Link(vShader, fShader);
 
@@ -76,9 +79,11 @@ void GibEngine::Shader::End()
     glUseProgram(0);
 }
 
-void GibEngine::Shader::Compile(GLuint shaderId, const char *shaderSourceCode)
+void GibEngine::Shader::Compile(GLuint shaderId, File *shaderFile)
 {
-    glShaderSource(shaderId, 1, &shaderSourceCode, NULL);
+    const char *shaderSrc = shaderFile->ReadFile();
+
+    glShaderSource(shaderId, 1, &shaderSrc, NULL);
     glCompileShader(shaderId);
     
     GLint res = GL_FALSE;
@@ -91,7 +96,7 @@ void GibEngine::Shader::Compile(GLuint shaderId, const char *shaderSourceCode)
     {
         std::vector<char> shaderErr(logLength);
         glGetShaderInfoLog(shaderId, logLength, nullptr, &shaderErr[0]);
-        Logger::Instance->error("Failed to compile shader!\nShader Log:\n{}", &shaderErr[0]);
+        Logger::Instance->error("Failed to compile shader!\nFile: {}\nShader Log:\n{}", shaderFile->GetPath(), &shaderErr[0]);
     }
 }
 

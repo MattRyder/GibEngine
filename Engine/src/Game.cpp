@@ -23,10 +23,6 @@ GibEngine::Game::Game(const char *windowTitle)
 
     this->model = new Model("brickwall/brickwall.obj");
 
-    // GibEngine::File vertexShaderFile = GibEngine::File::
-
-    // this->shader = new Shader("color_vs.glsl", "color_fs.glsl");
-
 }
 
 GibEngine::Game::~Game()
@@ -41,6 +37,8 @@ void GibEngine::Game::Render()
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    this->renderPipeline->Render();
     
     //shader->Begin();
 
@@ -94,9 +92,15 @@ bool GibEngine::Game::initializeGL()
 
     const GLubyte *renderer = glGetString(GL_RENDERER);
     const GLubyte *version = glGetString(GL_VERSION);
+    const GLubyte *glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
     Logger::Instance->info("Renderer: {}", renderer);
-    Logger::Instance->info("OpenGL Version: {}", version);
+    Logger::Instance->info("OpenGL Version: {} - GLSL Version: {}", version, glslVersion);
+
+    // Set the Render pipeline up with known OpenGL supported types:
+    this->renderPipeline = new Renderer::Pipeline(GibEngine::Renderer::ShaderLanguage::GLSL_130);
+    this->renderPipeline->AddPass(Renderer::RenderPassType::FORWARD_LIGHTING);
+
     return true;
 }
 

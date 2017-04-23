@@ -24,7 +24,7 @@ namespace GibEngine
     class File
     {
         const char *path;
-        static const char* GetPathForType(const char* filePath);
+        static std::string* GetPathForType(const char* filePath);
 
     public:
         File(const char *filePath);

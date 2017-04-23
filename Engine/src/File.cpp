@@ -15,21 +15,25 @@ std::string GibEngine::File::GetWorkingDirectory()
     #endif
 }
 
-const char* GibEngine::File::GetPathForType(const char* filePath)
+std::string* GibEngine::File::GetPathForType(const char* filePath)
 {
-    return File::GetWorkingDirectory().append(filePath).c_str();
+    std::string *pathStr = new std::string(File::GetWorkingDirectory());
+    pathStr->append(filePath);
+    return pathStr;
 }
 
 GibEngine::File* GibEngine::File::GetModelFile(const char* modelFile) 
 {
-    const char *modelFilePath = std::string(GetPathForType(MODEL_RELATIVE_PATH)).append(modelFile).c_str();
-    File *file = new File(modelFilePath);
-    return file;
+    std::string *fileBase = GetPathForType(MODEL_RELATIVE_PATH);
+    fileBase->append(modelFile);
+    return new File(fileBase->c_str());
 }
 
 GibEngine::File* GibEngine::File::GetShaderFile(const char* shaderFile)
 {
-    return new File(std::string(GetPathForType(SHADER_RELATIVE_PATH)).append(shaderFile).c_str());
+    std::string *fileBase = GetPathForType(SHADER_RELATIVE_PATH);
+    fileBase->append(shaderFile);
+    return new File(fileBase->c_str());
 }
 
 GibEngine::File::File(const char *filePath)

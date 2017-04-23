@@ -13,10 +13,10 @@ namespace GibEngine
 
       protected:
         Shader *shader;
-        std::vector<Entity *> drawables;
+        std::vector<Entity *> drawablesList;
 
       public:
-        RenderPass(Shader *shader);
+        RenderPass(Shader *shader) { this->shader = shader; }
 
         virtual void Render() = 0;
         virtual void AddDrawable(Entity *drawable) = 0;
