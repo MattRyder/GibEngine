@@ -8,7 +8,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(ENGINE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
 
-set(LINK_TARGETS pthread)
+if(UNIX)
+  set(LINK_TARGETS pthread)
+endif()
 
 ####################################################
 #	PROJECT DEPENDENCIES
@@ -27,7 +29,13 @@ ExternalProject_Add(glfw
 ExternalProject_Get_Property(glfw source_dir)
 list(APPEND ENGINE_INCLUDE_DIRS ${source_dir}/include)
 
-set(GLFW_LIBRARY ${CMAKE_BINARY_DIR}/lib/glfw/lib/${CMAKE_SHARED_LIBRARY_PREFIX}glfw${CMAKE_SHARED_LIBRARY_SUFFIX})
+if(MSVC)
+  set(GLFW_LIBRARY ${CMAKE_BINARY_DIR}/lib/glfw/lib/${CMAKE_STATIC_LIBRARY_PREFIX}glfw3dll${CMAKE_STATIC_LIBRARY_SUFFIX})
+  set(GLFW_DLL ${CMAKE_BINARY_DIR}/lib/glfw/lib/glfw3${CMAKE_SHARED_LIBRARY_SUFFIX})
+elseif()
+  set(GLFW_LIBRARY ${CMAKE_BINARY_DIR}/lib/glfw/lib/${CMAKE_SHARED_LIBRARY_PREFIX}glfw${CMAKE_SHARED_LIBRARY_SUFFIX})
+endif()
+
 LIST(APPEND LINK_TARGETS ${GLFW_LIBRARY})
 
 ExternalProject_Add(spdlog
@@ -59,17 +67,23 @@ ExternalProject_Add(assimp
 ExternalProject_Get_Property(assimp source_dir)
 list(APPEND ENGINE_INCLUDE_DIRS ${source_dir}/include)
 
-set(ASSIMP_LIBRARY ${CMAKE_BINARY_DIR}/lib/assimp/lib/${CMAKE_SHARED_LIBRARY_PREFIX}assimp${CMAKE_SHARED_LIBRARY_SUFFIX})
+if(MSVC)
+  set(ASSIMP_LIBRARY ${CMAKE_BINARY_DIR}/lib/assimp/lib/${CMAKE_STATIC_LIBRARY_PREFIX}assimp-vc140-mt${CMAKE_STATIC_LIBRARY_SUFFIX})
+elseif(UNIX)
+  set(ASSIMP_LIBRARY ${CMAKE_BINARY_DIR}/lib/assimp/lib/${CMAKE_SHARED_LIBRARY_PREFIX}assimp${CMAKE_SHARED_LIBRARY_SUFFIX})
+endif()
+
 LIST(APPEND LINK_TARGETS ${ASSIMP_LIBRARY})
+
+if(MSVC)
+  set(ASSIMP_DLL ${CMAKE_BINARY_DIR}/lib/assimp/bin/assimp-vc140-mt${CMAKE_SHARED_LIBRARY_SUFFIX})
+endif(MSVC)
 
 set(GibEngine_VERSION_MAJOR 1)
 set(GibEngine_VERSION_MINOR 0)
 set(GibEngine_VERSION_PATCH 0)
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
-# list(APPEND ENGINE_INCLUDE_DIRS ${source_dir}/include/renderer)
-
 
 set(ENGINE_INCLUDE_DIRS ${ENGINE_INCLUDE_DIRS}
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
@@ -118,3 +132,16 @@ endif()
 target_link_libraries(GibEngine ${LINK_TARGETS})
 
 add_dependencies(GibEngine assimp glm glfw spdlog)
+
+if(MSVC)
+	# I think this is MSVC only? Unix can work out so's itself or something, more research required
+	add_custom_command(TARGET GibEngine POST_BUILD					     # Adds a post-build event to MyTest
+					   COMMAND ${CMAKE_COMMAND} -E copy_if_different     # which executes "cmake - E copy_if_different..."
+					   ${GLFW_DLL}										 # <--this is in-file
+					   $<TARGET_FILE_DIR:GibEngine>)					 # <--this is out-file path
+
+	add_custom_command(TARGET GibEngine POST_BUILD					     # Adds a post-build event to MyTest
+					   COMMAND ${CMAKE_COMMAND} -E copy_if_different     # which executes "cmake - E copy_if_different..."
+					   ${ASSIMP_DLL}									 # <--this is in-file
+					   $<TARGET_FILE_DIR:GibEngine>)					 # <--this is out-file path
+endif()
