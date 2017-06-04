@@ -98,6 +98,7 @@ add_library(GibEngine
   include/Game.h
   include/Input.h
   include/Logger.h
+  include/Mesh.h
   include/Model.h
   include/Shader.h
   include/Texture.h
@@ -116,6 +117,7 @@ add_library(GibEngine
   src/Game.cpp
   src/Input.cpp
   src/Logger.cpp
+  src/Mesh.cpp
   src/Model.cpp
   src/Shader.cpp
   src/Texture.cpp

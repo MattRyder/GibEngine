@@ -14,8 +14,8 @@ class MockCameraBase : public CameraBase
     MOCK_METHOD2(UpdatePosition, void(double deltaTime, int *keyState));
     MOCK_METHOD3(UpdateDirection, void(double deltaTime, double mouseDeltaX, double mouseDeltaY));
 
-		MOCK_METHOD0(GetProjectionMatrix, glm::mat4*());
-		MOCK_METHOD0(GetViewMatrix, glm::mat4*());
+	MOCK_METHOD0(GetProjectionMatrix, glm::mat4());
+	MOCK_METHOD0(GetViewMatrix, glm::mat4());
 
     MOCK_METHOD0(Render, void());
     MOCK_METHOD1(Update, void(double deltaTime));

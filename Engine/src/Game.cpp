@@ -3,7 +3,6 @@
 GibEngine::Game::Game(const char *windowTitle)
 {
     this->windowTitle = windowTitle;
-    this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 200.0f, 90.0f);
 
     if (!initializeGL())
     {
@@ -14,15 +13,26 @@ GibEngine::Game::Game(const char *windowTitle)
     if (GL_KHR_debug)
     {
         GibEngine::Logger::Instance->info("GL_KHR_debug extension available");
-        glDebugMessageCallback(GLDebugCallback, nullptr);
+        glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         GibEngine::Logger::Instance->info("GL_KHR_debug extension enabled");
     }
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    this->model = new Model("brickwall/brickwall.obj");
+	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 1000.0f, 90.0f);
+	//this->model = new Model("teapot/teapot.obj");
+	this->model = new Model("house/house.obj");
+	//this->model = new Model("sponza/sponza.obj");
 
+
+	glm::mat4 modelMatrix = glm::mat4();
+	modelMatrix[3] = glm::vec4(0, 0, 0, 1.0);
+	this->model->AddInstance(modelMatrix);
+		
+	Renderer::RenderPass *colorPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_LIGHTING);
+	colorPass->SetCameraBase(playerCamera);
+	colorPass->AddDrawable(model);
 }
 
 GibEngine::Game::~Game()
@@ -39,12 +49,6 @@ void GibEngine::Game::Render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     this->renderPipeline->Render();
-    
-    //shader->Begin();
-
-    //model->Render(shader->GetShaderId(), 0);
-
-    //shader->End();
 
     glfwSwapBuffers(window);
     Update();
@@ -52,7 +56,9 @@ void GibEngine::Game::Render()
 
 void GibEngine::Game::Update()
 {
-    double deltaTime = glfwGetTime();
+	currentFrameTime = static_cast<float>(glfwGetTime());
+	float deltaTime = currentFrameTime - lastFrameTime;
+	lastFrameTime = currentFrameTime;
 
     this->playerCamera->Update(deltaTime, GibEngine::Input::MouseState.x, GibEngine::Input::MouseState.y, GibEngine::Input::KeyboardState);
 
@@ -66,6 +72,12 @@ bool GibEngine::Game::initializeGL()
     {
         return false;
     }
+
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_SAMPLES, 16);
 
     this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, this->windowTitle, NULL, NULL);
 
@@ -98,7 +110,7 @@ bool GibEngine::Game::initializeGL()
     Logger::Instance->info("OpenGL Version: {} - GLSL Version: {}", version, glslVersion);
 
     // Set the Render pipeline up with known OpenGL supported types:
-    this->renderPipeline = new Renderer::Pipeline(GibEngine::Renderer::ShaderLanguage::GLSL_130);
+    this->renderPipeline = new Renderer::Pipeline(GibEngine::Renderer::ShaderLanguage::GLSL_420);
     this->renderPipeline->AddPass(Renderer::RenderPassType::FORWARD_LIGHTING);
 
     return true;

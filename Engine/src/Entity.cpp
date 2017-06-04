@@ -6,7 +6,7 @@ GibEngine::Entity::Entity(EntityType type) : entityId(Id++)
 {
     this->entityType = type;
     this->entityName = new std::string(GetTypeName() + " (#" + std::to_string(entityId) + ")");
-    this->entityPosition = new glm::vec3(0);
+    this->entityPosition = glm::vec3();
 }
 
 GibEngine::Entity::Entity(EntityType entityType, glm::vec3& entityPosition) : Entity(entityType)
@@ -17,7 +17,6 @@ GibEngine::Entity::Entity(EntityType entityType, glm::vec3& entityPosition) : En
 GibEngine::Entity::~Entity()
 {
     delete this->entityName;
-    delete this->entityPosition;
 }
 
 GibEngine::EntityType GibEngine::Entity::GetType() const
@@ -30,14 +29,31 @@ std::string GibEngine::Entity::GetTypeName() const
     return GibEngine::EntityTypeStrings[static_cast<int>(this->entityType)];
 }
 
+void GibEngine::Entity::BindUBO(GLuint shaderId, GLuint uniformBlockIndex, GLuint blockBinding)
+{
+	glUniformBlockBinding(shaderId, uniformBlockIndex, blockBinding);
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlockIndex, Entity::GetUBO());
+	if (uboRequiresUpdate)
+	{
+		UpdateUBO();
+		uboRequiresUpdate = false;
+	}
+}
+
+GLuint& GibEngine::Entity::GetUBO()
+{
+	return uniformBufferObject;
+}
+
 int GibEngine::Entity::GetID() const
 {
     return this->entityId;
 }
 
-glm::vec3& GibEngine::Entity::GetPosition() const
+glm::vec3 GibEngine::Entity::GetPosition() const
 {
-    return *entityPosition;
+    return entityPosition;
 }
 
 std::string& GibEngine::Entity::GetName() const
@@ -50,7 +66,13 @@ void GibEngine::Entity::Print()
     // TODO
 }
 
-void GibEngine::Entity::SetPosition(glm::vec3& entityPosition)
+bool GibEngine::Entity::IsUBOCreated()
 {
-    this->entityPosition = &entityPosition;
+	return uboInitialized;
+}
+
+
+void GibEngine::Entity::SetPosition(glm::vec3 entityPosition)
+{
+    this->entityPosition = entityPosition;
 }

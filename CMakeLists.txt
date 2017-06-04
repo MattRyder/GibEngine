@@ -7,7 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(COPY_DEMO_ASSETS "Copies demo assets for the Editor" ON)
 option(BUILD_EDITOR "Builds the GibEditor" ON)
-option(BUILD_TESTS "Build the test suite" OFF)
+option(BUILD_TESTS "Build the test suite" ON)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -36,11 +36,15 @@ if(BUILD_EDITOR)
   add_subdirectory(Editor/)
 
   if(COPY_DEMO_ASSETS)
-    file(COPY Assets DESTINATION ${CMAKE_BINARY_DIR})
+	if(MSVC)
+		file(COPY Assets DESTINATION ${CMAKE_BINARY_DIR}/Debug)
+	elseif(UNIX)
+		file(COPY Assets DESTINATION ${CMAKE_BINARY_DIR})
+	endif()
   endif()
 endif()
 
-if(BUILD_TESTS)
+#if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(Tests/)
-endif()
+#endif()

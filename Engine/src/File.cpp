@@ -50,7 +50,8 @@ const char* GibEngine::File::GetDirectory()
 {
     std::string pathStr = path;
     std::string::size_type position = pathStr.find_last_of("\\/");
-    return pathStr.substr(0, position).c_str();
+		std::string* directory = new std::string(pathStr.substr(0, position));
+    return directory->c_str();
 }
 
 const char* GibEngine::File::GetPath()
@@ -74,7 +75,7 @@ const char* GibEngine::File::ReadFile()
     while (!fileStream.eof())
     {
         std::getline(fileStream, line);
-        content->append(line);
+				content->append(line).append("\n");
     }
 
     fileStream.close();

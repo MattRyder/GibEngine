@@ -15,7 +15,7 @@ void GibEngine::CameraBase::TakeScreenshot(int framebufferWidth, int framebuffer
     unsigned char* frameBuffer = (unsigned char*)malloc(framebufferBytes);
     glReadPixels(0, 0, framebufferWidth, framebufferHeight, GL_RGB, GL_UNSIGNED_BYTE, frameBuffer);
 
-    char name[255];
+    //char name[255];
     time_t now = time(nullptr);
     struct tm *timeinfo;
     timeinfo = localtime(&now);
@@ -40,17 +40,28 @@ void GibEngine::CameraBase::TakeScreenshot(int framebufferWidth, int framebuffer
     free(frameBuffer);
 }
 
-glm::mat4* GibEngine::CameraBase::ConstructProjectionMatrix(float width, float height, float zNear, float zFar, float fov)
+glm::mat4 GibEngine::CameraBase::ConstructProjectionMatrix(float width, float height, float zNear, float zFar, float fov)
 {
-	return new glm::mat4(glm::perspectiveFov(fov, width, height, zNear, zFar));
+	return glm::mat4(glm::perspectiveFov(fov, width, height, zNear, zFar));
 }
 
-glm::mat4* GibEngine::CameraBase::GetProjectionMatrix()
+void GibEngine::CameraBase::UpdateUBO()
+{
+	void *bufferRange = glMapBufferRange(GL_UNIFORM_BUFFER, 0, sizeof(float) * 36, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+
+	float* cameraUniformPtr = reinterpret_cast<float*>(bufferRange);
+	memcpy(&cameraUniformPtr[0], glm::value_ptr(projectionMatrix), sizeof(float) * 16);
+	memcpy(&cameraUniformPtr[16], glm::value_ptr(viewMatrix), sizeof(float) * 16);
+	memcpy(&cameraUniformPtr[32], glm::value_ptr(GetPosition()), sizeof(float) * 3);
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
+
+glm::mat4 GibEngine::CameraBase::GetProjectionMatrix()
 {
 	return this->projectionMatrix;
 }
 
-glm::mat4* GibEngine::CameraBase::GetViewMatrix()
+glm::mat4 GibEngine::CameraBase::GetViewMatrix()
 {
 	return this->viewMatrix;
 }

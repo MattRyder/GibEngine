@@ -19,7 +19,6 @@ namespace GibEngine
 
     class Texture
     {
-        static const char* TextureTypeStrings[4];
 
         typedef struct texture_data_t
         {
@@ -46,6 +45,8 @@ namespace GibEngine
     public:
         Texture(TextureType type, std::string *fileName);
         ~Texture();
+
+		static const char* TextureTypeStrings[4];
 
         GLuint GetTextureId();
     };

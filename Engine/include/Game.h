@@ -14,8 +14,8 @@
 #include "FreeCamera.h"
 #include "renderer/Pipeline.h"
 
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
 
 namespace GibEngine
 {
@@ -23,6 +23,8 @@ namespace GibEngine
     {
         GLFWwindow *window;
         const char *windowTitle;
+
+		float currentFrameTime = 0, lastFrameTime = 0;
 
         // TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
         FreeCamera *playerCamera;

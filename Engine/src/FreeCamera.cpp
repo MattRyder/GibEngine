@@ -5,8 +5,19 @@ GibEngine::FreeCamera::FreeCamera() : CameraBase(EntityType::CAMERA)
     this->cameraYaw = -90.0f;
 
     // Set default vectors:
-    this->cameraUp = new glm::vec3(0, 1.0f, 0);
-    this->cameraFront = new glm::vec3(0, 0, -1.0f);
+    this->cameraUp = glm::vec3(0, 1.0f, 0);
+    this->cameraFront = glm::vec3(0, 0, -1.0f);
+
+	SetPosition(glm::vec3(0, 5, 15));
+
+	this->viewMatrix = glm::mat4(glm::lookAt(GetPosition(), glm::vec3(GetPosition() + cameraFront), cameraUp));
+
+	glGenBuffers(1, &uniformBufferObject);
+	glBindBuffer(GL_UNIFORM_BUFFER, uniformBufferObject);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 36, NULL, GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniformBufferObject, 0, sizeof(float) * 36);
 }
 
 GibEngine::FreeCamera::FreeCamera(int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees)
@@ -17,8 +28,6 @@ GibEngine::FreeCamera::FreeCamera(int cameraWidth, int cameraHeight, float nearP
 
 GibEngine::FreeCamera::~FreeCamera()
 {
-    delete this->cameraFront;
-    delete this->cameraUp;
 }
 
 void GibEngine::FreeCamera::Render() { }
@@ -27,12 +36,21 @@ void GibEngine::FreeCamera::Update(double deltaTime) { }
 
 void GibEngine::FreeCamera::Update(double deltaTime, double mouseDeltaX, double mouseDeltaY, int *keyState)
 {
+	bool mouseMovementDetected = mouseDeltaX != lastMouseX || mouseDeltaY != lastMouseY;
+	glm::vec3 position = GetPosition();
+
+
     UpdateDirection(deltaTime, mouseDeltaX, mouseDeltaY);
     UpdatePosition(deltaTime, keyState);
 
-    glm::vec3 position = GetPosition();
-    glm::mat4 tmpMatrix = glm::lookAt(position, position + *cameraFront, *cameraUp);
-    this->viewMatrix = new glm::mat4(tmpMatrix);
+    glm::vec3 newPosition = GetPosition();
+	if (position != newPosition || mouseMovementDetected)
+	{
+		Logger::Instance->info("Mouse Delta ({}, {})", mouseDeltaX, mouseDeltaY);
+
+		this->viewMatrix = glm::lookAt(newPosition, newPosition + cameraFront, cameraUp);
+		SetUBORequiresUpdate();
+	}
 }
 
 void GibEngine::FreeCamera::UpdatePosition(double deltaTime, int *keyState)
@@ -41,13 +59,13 @@ void GibEngine::FreeCamera::UpdatePosition(double deltaTime, int *keyState)
     float movementSpeed = static_cast<float>(cameraMovementSpeed * deltaTime);
 
     if (keyState[GLFW_KEY_W])
-        position += (*cameraFront * movementSpeed);
+        position += (cameraFront + movementSpeed);
     if (keyState[GLFW_KEY_S])
-        position -= *cameraFront * movementSpeed;
+        position -= cameraFront + movementSpeed;
     if (keyState[GLFW_KEY_A])
-        position -= glm::normalize(glm::cross(*cameraFront, *cameraUp)) * movementSpeed;
+        position -= glm::normalize(glm::cross(cameraFront, cameraUp)) + movementSpeed;
     if (keyState[GLFW_KEY_D])
-        position += glm::normalize(glm::cross(*cameraFront, *cameraUp)) * movementSpeed;
+        position += glm::normalize(glm::cross(cameraFront, cameraUp)) + movementSpeed;
 
     //Logger::Instance->info("Position ({}, {}, {})", position.x, position.y, position.z);
     SetPosition(position);
@@ -71,7 +89,10 @@ void GibEngine::FreeCamera::UpdateDirection(double deltaTime, double mouseDeltaX
     if (cameraPitch > 1.0f) cameraPitch = 1.0f;
     if (cameraPitch < -1.0f) cameraPitch = -1.0f;
 
-    cameraFront->x = glm::normalize(float(cos(cameraYaw) * cos(cameraPitch)));
-    cameraFront->y = glm::normalize(float(sin(cameraPitch)));
-    cameraFront->z = glm::normalize(float(sin(cameraYaw) * cos(cameraPitch)));
+	glm::vec3 front;
+	front.x = cos(cameraYaw) * cos(cameraPitch);
+	front.y = sin(cameraPitch);
+	front.z = sin(cameraYaw) * cos(cameraPitch);
+
+	cameraFront = glm::normalize(front);
 }

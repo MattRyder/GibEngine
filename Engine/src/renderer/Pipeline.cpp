@@ -3,7 +3,7 @@
 const char* GibEngine::Renderer::Pipeline::ShaderLanguageStrings[] =
 {
   "_300_es",
-  "_450"
+  "_420"
 };
 
 GibEngine::Renderer::Pipeline::Pipeline(ShaderLanguage supportedShaderLanguage)
@@ -22,9 +22,15 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
   //   delete existingPassIter->second;
   // }
 
-  // Calculate the name of the shader to load for this RenderPass:
-  std::string shaderFileName;
-  Renderer::RenderPass *renderPass;
+	// Calculate the name of the shader to load for this RenderPass:
+	std::string shaderFileName;
+	switch (type)
+	{
+	case RenderPassType::FORWARD_LIGHTING:
+		shaderFileName = "color";
+	}
+
+  Renderer::ForwardRenderPass *renderPass;
 
   // Dynamically load the shader, for the appropriate GLSL version, for each OpenGL phase:
   File *vertexFile = GibEngine::File::GetShaderFile(
@@ -42,7 +48,6 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
   switch(type) 
   {
     case RenderPassType::FORWARD_LIGHTING:
-      shaderFileName = "color";
       renderPass = new ForwardRenderPass(shader);
       break;
   }
@@ -57,6 +62,11 @@ void GibEngine::Renderer::Pipeline::Render()
     RenderPass *rpass = pass.second;
     rpass->Render();
   }
+}
+
+GibEngine::Renderer::RenderPass* GibEngine::Renderer::Pipeline::GetRenderPass(RenderPassType type)
+{
+	return this->passes.at(type);
 }
 
 const char* GibEngine::Renderer::Pipeline::GetShaderLanguageString(ShaderLanguage language)

@@ -4,10 +4,14 @@ GibEngine::Renderer::ForwardRenderPass::ForwardRenderPass(Shader *shader) : Rend
 
 void GibEngine::Renderer::ForwardRenderPass::Render()
 {
-  
-}
+	shader->Begin();
 
-void GibEngine::Renderer::ForwardRenderPass::AddDrawable(Entity *drawableEntity)
-{
-  this->drawablesList.push_back(drawableEntity);
+	camera->BindUBO(shader->GetShaderId(), uboIndices.at(RenderPassUniform::PLAYER_CAMERA), RenderPassUniform::PLAYER_CAMERA);
+
+	for (auto model : drawablesList)
+	{
+		model->BindUBO(shader->GetShaderId(), uboIndices.at(RenderPassUniform::MATERIAL), RenderPassUniform::MATERIAL);
+		model->Render(shader->GetShaderId(), 0.0f);
+	}
+	shader->End();
 }

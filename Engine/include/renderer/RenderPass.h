@@ -1,27 +1,63 @@
 #pragma once
 
+#include <map>
 #include <vector>
+
 #include "Shader.h"
+#include "FreeCamera.h"
 
-namespace GibEngine 
+namespace GibEngine
 {
-  namespace Renderer 
-  {
-    class RenderPass 
-    {
-      bool passEnabled = true;
+	namespace Renderer
+	{
+		/* Map to uniform bindings within the shader */
+		enum RenderPassUniform
+		{
+			PLAYER_CAMERA,
+			MATERIAL
+		};
 
-      protected:
-        Shader *shader;
-        std::vector<Entity *> drawablesList;
+		class RenderPass
+		{
+			bool passEnabled = true;
 
-      public:
-        RenderPass(Shader *shader) { this->shader = shader; }
+		protected:
+			Shader *shader;
+			FreeCamera *camera;
+			std::vector<Model *> drawablesList;
+			std::map<RenderPassUniform, GLuint> uboIndices;
 
-        virtual void Render() = 0;
-        virtual void AddDrawable(Entity *drawable) = 0;
+		public:
+			RenderPass(Shader *shader) { this->shader = shader; }
 
-        void SetPassEnabled(bool value) { this->passEnabled = value; }
-    };
-  }
+			virtual void Render() = 0;
+			virtual void AddDrawable(Model *drawable)
+			{
+				this->drawablesList.push_back(drawable);
+				GLuint materialUBOIndex = glGetUniformBlockIndex(shader->GetShaderId(), "materialUBO");
+
+				if (!drawable->IsUBOCreated())
+				{
+					drawable->BindUBO(shader->GetShaderId(), materialUBOIndex, RenderPassUniform::MATERIAL);
+				}
+
+				uboIndices.insert_or_assign(RenderPassUniform::MATERIAL, materialUBOIndex);
+			}
+
+			virtual void SetCameraBase(FreeCamera *camera)
+			{
+				this->camera = camera;
+				GLuint cameraUBOIndex = glGetUniformBlockIndex(shader->GetShaderId(), "cameraUBO");
+
+				if (!camera->IsUBOCreated())
+				{
+					camera->BindUBO(shader->GetShaderId(), cameraUBOIndex, RenderPassUniform::PLAYER_CAMERA);
+				}
+
+				uboIndices.insert_or_assign(RenderPassUniform::PLAYER_CAMERA, cameraUBOIndex);
+			}
+
+			void SetPassEnabled(bool value) { this->passEnabled = value; }
+		};
+	}
 }

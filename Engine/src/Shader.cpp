@@ -5,7 +5,7 @@ GibEngine::Shader::Shader(File *vertexShaderFile, File *fragmentShaderFile)
     this->vertexShader = vertexShaderFile;
     this->fragmentShader = fragmentShaderFile;
 
-    this->Load();
+    this->shaderId = this->Load();
 }
 
 GibEngine::Shader::~Shader()
@@ -19,17 +19,14 @@ GibEngine::Shader::~Shader()
 GLuint GibEngine::Shader::Load()
 {
     // Clear old shader if we're reloading:
-    if (shaderId > 0)
-    {
-        glDeleteShader(shaderId);
-        shaderId = 0;
-    }
+    //if (shaderId > 0)
+    //{
+    //    glDeleteShader(shaderId);
+    //    shaderId = 0;
+    //}
 
     GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
-
-    const char *vertexShaderSrc = this->vertexShader->ReadFile();
-    const char *fragmentShaderSrc = this->fragmentShader->ReadFile();
 
     Compile(vShader, vertexShader);
     Compile(fShader, fragmentShader);
@@ -64,10 +61,10 @@ void GibEngine::Shader::Begin()
     glUseProgram(this->shaderId);
 }
 
-void GibEngine::Shader::Draw(Entity *drawableEntity)
-{
-    drawableEntity->Render();
-}
+//void GibEngine::Shader::Draw(Entity *drawableEntity)
+//{
+//    drawableEntity->Render();
+//}
 
 void GibEngine::Shader::Draw(Model *drawableModel)
 {
@@ -111,8 +108,8 @@ GLuint GibEngine::Shader::Link(GLuint vertexShader, GLuint fragmentShader)
     GLint res = GL_FALSE;
     int logLength;
 
-    glGetShaderiv(shaderId, GL_LINK_STATUS, &res);
-    glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &logLength);
+    glGetProgramiv(program, GL_LINK_STATUS, &res);
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
 
     if (logLength > 1)
     {

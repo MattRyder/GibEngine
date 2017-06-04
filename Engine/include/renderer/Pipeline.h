@@ -12,7 +12,7 @@ namespace GibEngine
     enum class ShaderLanguage
     {
         GLSL_130,
-        GLSL_450
+        GLSL_420
     };
 
     class Pipeline
@@ -30,6 +30,8 @@ namespace GibEngine
 
         void AddPass(RenderPassType type);
         void Render();
+
+				RenderPass* GetRenderPass(RenderPassType type);
     };
   }
 }

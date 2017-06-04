@@ -11,7 +11,7 @@ namespace GibEngine
     public:
       ForwardRenderPass(Shader *shader);
       virtual void Render();// override;
-      virtual void AddDrawable(Entity *drawableEntity);// override;
+      //virtual void AddDrawable(Model *drawableEntity) override;
     };
 
   }
