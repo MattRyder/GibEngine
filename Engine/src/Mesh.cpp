@@ -1,4 +1,4 @@
-#include "..\include\Mesh.h"
+#include "../include/Mesh.h"
 
 GibEngine::Mesh::Mesh(const char* directory, aiMesh *mesh, const aiScene* scene) : Entity(EntityType::MODEL)
 {

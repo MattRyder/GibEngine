@@ -1,9 +1,16 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(GibEngine C CXX)
 
+set(CC gcc)
+set(CXX clang)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED on)
+
+# Enable C++11 support
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
+
 
 option(COPY_DEMO_ASSETS "Copies demo assets for the Editor" ON)
 option(BUILD_EDITOR "Builds the GibEditor" ON)

@@ -41,7 +41,7 @@ namespace GibEngine
 					drawable->BindUBO(shader->GetShaderId(), materialUBOIndex, RenderPassUniform::MATERIAL);
 				}
 
-				uboIndices.insert_or_assign(RenderPassUniform::MATERIAL, materialUBOIndex);
+				uboIndices.emplace(RenderPassUniform::MATERIAL, materialUBOIndex);
 			}
 
 			virtual void SetCameraBase(FreeCamera *camera)
@@ -54,7 +54,7 @@ namespace GibEngine
 					camera->BindUBO(shader->GetShaderId(), cameraUBOIndex, RenderPassUniform::PLAYER_CAMERA);
 				}
 
-				uboIndices.insert_or_assign(RenderPassUniform::PLAYER_CAMERA, cameraUBOIndex);
+				uboIndices.emplace(RenderPassUniform::PLAYER_CAMERA, cameraUBOIndex);
 			}
 
 			void SetPassEnabled(bool value) { this->passEnabled = value; }

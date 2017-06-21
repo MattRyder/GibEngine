@@ -13,7 +13,7 @@ GibEngine::Game::Game(const char *windowTitle)
     if (GL_KHR_debug)
     {
         GibEngine::Logger::Instance->info("GL_KHR_debug extension available");
-        glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
+        //glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         GibEngine::Logger::Instance->info("GL_KHR_debug extension enabled");
     }
