@@ -59,7 +59,7 @@ namespace GibEngine
 			Opacity = material->Opacity;
 			Shininess = material->Shininess;
 
-			for (int i = 0; i < material->Textures.size(); i++)
+			for (unsigned int i = 0; i < material->Textures.size(); i++)
 			{
 				Textures[i] = material->Textures.at(i)->GetTextureId();
 			}
