@@ -26,10 +26,21 @@ layout (std140) uniform materialUBO {
   float shininess;
 };
 
-  // sampler2D texture_diffuse1;
-  // sampler2D texture_specular1;
-  // sampler2D texture_normal1;
-  // sampler2D texture_depth1;
+in VertexShader {
+  mat4 InstanceMatrix;
+  mat3 InverseTangentMatrix;
+  vec4 FragmentLightSpace;
+  vec3 Normal;
+  vec3 FragmentPosition;
+  vec3 TanViewPosition;
+  vec3 TanFragPosition;
+  vec2 TexCoords;
+} VS;
+
+layout(binding = 0) uniform sampler2D texture_diffuse1;
+layout(binding = 1) uniform sampler2D texture_specular1;
+layout(binding = 2) uniform sampler2D texture_normal1;
+uniform sampler2D texture_depth1;
 
 // layout(binding = 5) uniform sampler2D texture_depthMap;
 
@@ -47,7 +58,7 @@ out vec4 frag_color;
 
 void main() {	
 
-	frag_color = vec4(0.0, 0.0, 1.0, 1.0);
+	frag_color = texture(texture_diffuse1, VS.TexCoords);
 	
 	// gammaw
 	// float gamma = 1.0;

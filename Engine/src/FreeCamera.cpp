@@ -46,8 +46,6 @@ void GibEngine::FreeCamera::Update(double deltaTime, double mouseDeltaX, double 
     glm::vec3 newPosition = GetPosition();
 	if (position != newPosition || mouseMovementDetected)
 	{
-		Logger::Instance->info("Mouse Delta ({}, {})", mouseDeltaX, mouseDeltaY);
-
 		this->viewMatrix = glm::lookAt(newPosition, newPosition + cameraFront, cameraUp);
 		SetUBORequiresUpdate();
 	}
@@ -61,11 +59,11 @@ void GibEngine::FreeCamera::UpdatePosition(double deltaTime, int *keyState)
     if (keyState[GLFW_KEY_W])
         position += (cameraFront + movementSpeed);
     if (keyState[GLFW_KEY_S])
-        position -= cameraFront + movementSpeed;
+        position -= (cameraFront + movementSpeed);
     if (keyState[GLFW_KEY_A])
-        position -= glm::normalize(glm::cross(cameraFront, cameraUp)) + movementSpeed;
+        position -= glm::normalize(glm::cross(cameraFront, cameraUp));
     if (keyState[GLFW_KEY_D])
-        position += glm::normalize(glm::cross(cameraFront, cameraUp)) + movementSpeed;
+        position += glm::normalize(glm::cross(cameraFront, cameraUp));
 
     //Logger::Instance->info("Position ({}, {}, {})", position.x, position.y, position.z);
     SetPosition(position);

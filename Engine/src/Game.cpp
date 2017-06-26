@@ -21,8 +21,10 @@ GibEngine::Game::Game(const char *windowTitle)
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
 	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 1000.0f, 90.0f);
+	this->playerCamera->LookAt(0, 0, 0);
 	//this->model = new Model("teapot/teapot.obj");
-	this->model = new Model("house/house.obj");
+	this->model = new Model("brickwall/brickwall.obj");
+	//this->model = new Model("ruin/ruin.obj");
 	//this->model = new Model("sponza/sponza.obj");
 
 

@@ -11,11 +11,22 @@ layout(location = 5) in mat4 v_InstanceMatrix;
 uniform mat4 u_Matrix;
 uniform mat4 lightSpaceMatrix;
 
-out mat4 vs_InstanceMatrix;
-out mat3 vs_InverseTangentMatrix;
-out vec4 vs_FragmentLightSpace;
-out vec3 vs_Normal, vs_FragmentPosition, vs_TanViewPosition, vs_TanFragPosition;
-out vec2 vs_TexCoords;
+out VertexShader {
+  mat4 InstanceMatrix;
+  mat3 InverseTangentMatrix;
+  vec4 FragmentLightSpace;
+  vec3 Normal;
+  vec3 FragmentPosition;
+  vec3 TanViewPosition;
+  vec3 TanFragPosition;
+  vec2 TexCoords;
+} VS;
+
+// out mat4 vs_InstanceMatrix;
+// out mat3 vs_InverseTangentMatrix;
+// out vec4 vs_FragmentLightSpace;
+// out vec3 vs_Normal, vs_FragmentPosition, vs_TanViewPosition, vs_TanFragPosition;
+// out vec2 vs_TexCoords;
 
 layout (std140) uniform cameraUBO {
   mat4 ProjectionMatrix;
@@ -24,20 +35,20 @@ layout (std140) uniform cameraUBO {
 };
 
 void main() {
-  vs_TexCoords = v_TexCoords;
-  vs_InstanceMatrix = v_InstanceMatrix;
+  VS.TexCoords = v_TexCoords;
+  VS.InstanceMatrix = v_InstanceMatrix;
 
-  mat3 normalMatrix = transpose(inverse(mat3(vs_InstanceMatrix)));
+  mat3 normalMatrix = transpose(inverse(mat3(VS.InstanceMatrix)));
   vec3 norm_Tangent = normalize(vec3(normalMatrix * v_Tangent));
   vec3 norm_Bitangent = normalize(vec3(normalMatrix * v_Bitangent));
   vec3 norm_Normal = normalize(vec3(normalMatrix * v_Normal));
-  vs_InverseTangentMatrix = transpose(mat3(norm_Tangent, norm_Bitangent, norm_Normal));
+  VS.InverseTangentMatrix = transpose(mat3(norm_Tangent, norm_Bitangent, norm_Normal));
 
-  vs_FragmentPosition = vec3(vs_InstanceMatrix * vec4(v_Position, 1.0));
-  vs_FragmentLightSpace = lightSpaceMatrix * vec4(vs_FragmentPosition, 1.0);
+  VS.FragmentPosition = vec3(VS.InstanceMatrix * vec4(v_Position, 1.0));
+  VS.FragmentLightSpace = lightSpaceMatrix * vec4(VS.FragmentPosition, 1.0);
 
-  gl_Position = ProjectionMatrix * ViewMatrix * vs_InstanceMatrix * vec4(v_Position, 1.0);
+  gl_Position = ProjectionMatrix * ViewMatrix * VS.InstanceMatrix * vec4(v_Position, 1.0);
 
-  vs_TanViewPosition = vs_InverseTangentMatrix * CameraPosition;
-  vs_TanFragPosition = vs_InverseTangentMatrix * vs_FragmentPosition;
+  VS.TanViewPosition = VS.InverseTangentMatrix * CameraPosition;
+  VS.TanFragPosition = VS.InverseTangentMatrix * VS.FragmentPosition;
 }

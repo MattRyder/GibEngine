@@ -30,8 +30,8 @@ void GibEngine::Mesh::ProcessMesh(aiMesh *mesh, const aiScene* scene)
 			const aiVector3D* bitangent = &(mesh->mBitangents[i]);
 			const aiVector3D* normal = &(mesh->mNormals[i]);
 
-			//vertex.Tangent = glm::vec3(tangent->x, tangent->y, tangent->z);
-			//vertex.Bitangent = glm::vec3(bitangent->x, bitangent->y, bitangent->z);
+			vertex.Tangent = glm::vec3(tangent->x, tangent->y, tangent->z);
+			vertex.Bitangent = glm::vec3(bitangent->x, bitangent->y, bitangent->z);
 			vertex.Normal = glm::vec3(normal->x, normal->y, normal->z);
 			//float det = dot(cross(vertex.Normal, vertex.Tangent), vertex.Bitangent);
 			//vertex.Determinant = (det < 0.0f) ? -1.0f : 1.0f;
@@ -115,13 +115,13 @@ void GibEngine::Mesh::LoadMeshData()
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, TexCoord));
 
-	//// Setup Normals:
-	//glEnableVertexAttribArray(3);
-	//glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, Tangent));
+	//// Setup Tangents:
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, Tangent));
 
-	//// Setup Normals:
-	//glEnableVertexAttribArray(4);
-	//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, Bitangent));
+	//// Setup Bitangents:
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, Bitangent));
 
 	glBindVertexArray(0);
 }
@@ -136,9 +136,9 @@ void GibEngine::Mesh::LoadMaterial(GLuint shaderProgram)
 		{
 			const char *textureTypeStr = Texture::TextureTypeStrings[tIndex];
 
-			glActiveTexture(GL_TEXTURE0 + i);
+			glActiveTexture(GL_TEXTURE0 + tIndex);
 
-			std::string textureUniformName = std::string("texture_" + std::string(textureTypeStr) + "1");
+			std::string textureUniformName = std::string("texture_" + std::string(textureTypeStr) + std::to_string(tIndex + 1));
 			GLint textureLocation = glGetUniformLocation(shaderProgram, textureUniformName.c_str());
 			glUniform1i(textureLocation, static_cast<GLfloat>(tIndex));
 			glBindTexture(GL_TEXTURE_2D, material.Textures[tIndex]);

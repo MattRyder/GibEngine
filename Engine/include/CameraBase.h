@@ -32,5 +32,8 @@ namespace GibEngine
 
 		virtual glm::mat4 GetProjectionMatrix();
 		virtual glm::mat4 GetViewMatrix();
+
+		void LookAt(float x, float y, float z);
+		void LookAt(glm::vec3 target);
 	};
 }

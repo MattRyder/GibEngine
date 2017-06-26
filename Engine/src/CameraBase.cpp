@@ -65,3 +65,13 @@ glm::mat4 GibEngine::CameraBase::GetViewMatrix()
 {
 	return this->viewMatrix;
 }
+
+void GibEngine::CameraBase::LookAt(float x, float y, float z)
+{
+	LookAt(glm::vec3(x, y, z));
+}
+
+void GibEngine::CameraBase::LookAt(glm::vec3 target)
+{
+	this->viewMatrix = glm::mat4(glm::lookAt(GetPosition(), target, cameraUp));
+}

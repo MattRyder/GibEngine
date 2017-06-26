@@ -20,11 +20,9 @@ namespace GibEngine
 		glm::vec3 Position;
 		glm::vec3 Normal;
 		glm::vec2 TexCoord;
-		/*
 		glm::vec3 Tangent;
 		glm::vec3 Bitangent;
 		float Determinant;
-		*/
 	};
 
 	// The color and shine of the Model
@@ -49,7 +47,7 @@ namespace GibEngine
 
 		material_uniform_block_t(const Material *material)
 		{
-			for (int i = 0; i < 3; i++)
+			for (unsigned int i = 0; i < 3; i++)
 			{
 				AmbientColor[i] = material->AmbientColor[i];
 				DiffuseColor[i] = material->DiffuseColor[i];
@@ -59,7 +57,7 @@ namespace GibEngine
 			Opacity = material->Opacity;
 			Shininess = material->Shininess;
 
-			for (int i = 0; i < material->Textures.size(); i++)
+			for (unsigned int i = 0; i < material->Textures.size(); i++)
 			{
 				Textures[i] = material->Textures.at(i)->GetTextureId();
 			}
