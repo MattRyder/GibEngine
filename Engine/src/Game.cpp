@@ -13,7 +13,7 @@ GibEngine::Game::Game(const char *windowTitle)
     if (GL_KHR_debug)
     {
         GibEngine::Logger::Instance->info("GL_KHR_debug extension available");
-        glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
+        //glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         GibEngine::Logger::Instance->info("GL_KHR_debug extension enabled");
     }
@@ -74,7 +74,7 @@ bool GibEngine::Game::initializeGL()
     {
         return false;
     }
-
+    
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);

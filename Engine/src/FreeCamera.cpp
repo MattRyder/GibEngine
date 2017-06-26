@@ -53,7 +53,7 @@ void GibEngine::FreeCamera::Update(double deltaTime, double mouseDeltaX, double 
 
 void GibEngine::FreeCamera::UpdatePosition(double deltaTime, int *keyState)
 {
-    glm::vec3 &position = GetPosition();
+    glm::vec3 position = GetPosition();
     float movementSpeed = static_cast<float>(cameraMovementSpeed * deltaTime);
 
     if (keyState[GLFW_KEY_W])
