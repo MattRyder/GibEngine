@@ -8,12 +8,21 @@ set(EDITOR_INCLUDE_DIRS
 
 include_directories(${EDITOR_INCLUDE_DIRS})
 
+file(GLOB_RECURSE SHADER_FILES ${CMAKE_SOURCE_DIR}/Assets/Shaders/*.glsl)
+
 add_executable(GibEditor
   include/Editor.h
   include/Main.h
   src/Editor.cpp
-  src/Main.cpp)
-  
+  src/Main.cpp
+  ${SHADER_FILES})
+
+source_group("Shaders" FILES ${SHADER_FILES})
+
 target_link_libraries(GibEditor GibEngine)
+
+add_custom_command(TARGET GibEditor PRE_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                   ${CMAKE_SOURCE_DIR}/Assets $<TARGET_FILE_DIR:GibEditor>/Assets)
 
 add_dependencies(GibEditor GibEngine)
