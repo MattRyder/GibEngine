@@ -76,3 +76,8 @@ void GibEngine::Entity::SetPosition(glm::vec3 entityPosition)
 {
     this->entityPosition = entityPosition;
 }
+
+void GibEngine::Entity::SetName(std::string *entityName)
+{
+	this->entityName = entityName;
+}

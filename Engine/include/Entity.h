@@ -54,8 +54,6 @@ namespace GibEngine
 	public:
 		const int GL_MAP_RANGE_BUFFER_OFFSET = 0;
 
-		Entity();
-
 		Entity(EntityType entityType);
 		Entity(EntityType entityType, glm::vec3& entityPosition);
 		virtual ~Entity();
@@ -75,6 +73,7 @@ namespace GibEngine
 		void SetUBORequiresUpdate() { uboRequiresUpdate = true; }
 
 		virtual void SetPosition(glm::vec3 entityPosition);
+		void SetName(std::string *entityName);
 
 		EntityType GetType() const;
 		std::string GetTypeName() const;

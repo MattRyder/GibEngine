@@ -79,6 +79,7 @@ namespace GibEngine
 
 	public:
 		Mesh(const char* directory, aiMesh *mesh, const aiScene* scene);
+		Mesh(float* vertices, unsigned int verticesCount);
 
 		void ProcessMesh(aiMesh *mesh, const aiScene* scene);
 

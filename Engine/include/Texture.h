@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
-
-#include "GL/gl3w.h"
+#include <assimp/scene.h>
+#include <GL/gl3w.h>
 
 #include "Logger.h"
 #include "File.h"
@@ -43,8 +43,12 @@ namespace GibEngine
         TextureData* Load(std::string *fileName);
 
     public:
+		Texture();
         Texture(TextureType type, std::string *fileName);
         ~Texture();
+
+		static Texture* LoadCubemap(std::string top, std::string bottom, std::string left,
+			std::string right, std::string front, std::string back);
 
 		static const char* TextureTypeStrings[4];
 

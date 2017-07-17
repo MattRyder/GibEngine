@@ -23,6 +23,7 @@ namespace GibEngine
 	public:
 		Model();
 		Model(const char *modelFilename);
+		Model(Mesh *mesh);
 		~Model() override;
 
 		void ProcessNode(aiNode *node, const aiScene *scene);

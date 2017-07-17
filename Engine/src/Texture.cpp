@@ -7,12 +7,15 @@ const char* GibEngine::Texture::TextureTypeStrings[4] = {
     "diffuse", "specular", "height", "normal"
 };
 
-GibEngine::Texture::Texture(GibEngine::TextureType type, std::string *fileName)
+GibEngine::Texture::Texture()
+{
+	glGenTextures(1, &textureId);
+}
+
+GibEngine::Texture::Texture(GibEngine::TextureType type, std::string *fileName) : Texture()
 {
     this->type = type;
     this->fileName = fileName;
-
-    glGenTextures(1, &textureId);
 
     this->data = Load(fileName);
 
@@ -35,6 +38,50 @@ GibEngine::Texture::~Texture()
     delete this->fileName;
 }
 
+GibEngine::Texture* GibEngine::Texture::LoadCubemap(std::string top, std::string bottom, std::string left, std::string right, std::string front, std::string back)
+{
+	std::mutex mutex;
+	std::vector<std::thread> sideThreads;
+	std::vector<TextureData*> sideTextures;
+
+	Texture* texture = new Texture();
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture->GetTextureId());
+
+	auto threadFunctor = [&](GLuint cubemapSide, std::string sideFilepath) {
+		TextureData* textureData = texture->Load(&sideFilepath);
+		textureData->Target = cubemapSide;
+
+		mutex.lock();
+		sideTextures.push_back(textureData);
+		mutex.unlock();
+	};
+
+	sideThreads.push_back(std::thread(threadFunctor, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, front));
+	sideThreads.push_back(std::thread(threadFunctor, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, back));
+	sideThreads.push_back(std::thread(threadFunctor, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, bottom));
+	sideThreads.push_back(std::thread(threadFunctor, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, top));
+	sideThreads.push_back(std::thread(threadFunctor, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, left));
+	sideThreads.push_back(std::thread(threadFunctor, GL_TEXTURE_CUBE_MAP_POSITIVE_X, right));
+
+	for (unsigned int i = 0; i < sideThreads.size(); i++) {
+		sideThreads.at(i).join();
+	}
+
+	for (TextureData* sideTexture : sideTextures) {
+		glTexImage2D(sideTexture->Target, 0, GL_RGBA, sideTexture->Width, sideTexture->Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, sideTexture->Data);
+		delete[] sideTexture->Data;
+		delete sideTexture;
+	}
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+	return texture;
+}
+
 GLuint GibEngine::Texture::GetTextureId()
 {
     return textureId;
@@ -52,7 +99,7 @@ GibEngine::Texture::TextureData* GibEngine::Texture::Load(std::string *fileName)
 
     if (!textureData->IsPowerOfTwo())
     {
-        Logger::Instance->warn("Texture file `{}` is not sized as a power of two!", fileName->c_str());
+        Logger::Instance->trace("Texture file `{}` is not sized as a power of two!", fileName->c_str());
     }
 
     return textureData;

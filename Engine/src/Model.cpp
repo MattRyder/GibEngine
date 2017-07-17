@@ -10,6 +10,11 @@ GibEngine::Model::Model(const char* modelFilename) : Model()
     LoadModel(modelFile);
 }
 
+GibEngine::Model::Model(Mesh * mesh) : Model()
+{
+	this->meshes.push_back(mesh);
+}
+
 GibEngine::Model::~Model()
 {
 }

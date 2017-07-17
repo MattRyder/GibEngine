@@ -18,6 +18,28 @@ GibEngine::Mesh::Mesh(const char* directory, aiMesh *mesh, const aiScene* scene)
 	this->LoadMeshData();
 }
 
+GibEngine::Mesh::Mesh(float* vertices, unsigned int verticesCount) : Entity(EntityType::MODEL)
+{
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+	glGenBuffers(1, &instanceVBO);
+
+	glGenBuffers(1, &uniformBufferObject);
+	glBindBuffer(GL_UNIFORM_BUFFER, uniformBufferObject);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 36, NULL, GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	for (unsigned int i = 0; i < verticesCount; i += 3)
+	{
+		GibEngine::Vertex vertex = {};
+		vertex.Position = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
+		this->vertices.push_back(vertex);
+	}
+
+	this->LoadMeshData();
+}
+
 void GibEngine::Mesh::ProcessMesh(aiMesh *mesh, const aiScene* scene)
 {
 	//VerticesCount += mesh->mNumVertices;
@@ -100,8 +122,11 @@ void GibEngine::Mesh::LoadMeshData()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, vboSize, &vertices[0], GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
+	if (indices.size() > 0)
+	{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
+	}
 
 	// Setup Position:
 	glEnableVertexAttribArray(0);

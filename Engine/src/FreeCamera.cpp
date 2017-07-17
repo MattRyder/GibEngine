@@ -26,9 +26,7 @@ GibEngine::FreeCamera::FreeCamera(int cameraWidth, int cameraHeight, float nearP
     this->projectionMatrix = ConstructProjectionMatrix((float)cameraWidth, (float)cameraHeight, nearPlane, farPlane, fieldOfViewDegrees);
 }
 
-GibEngine::FreeCamera::~FreeCamera()
-{
-}
+GibEngine::FreeCamera::~FreeCamera() { }
 
 void GibEngine::FreeCamera::Render() { }
 
@@ -88,9 +86,9 @@ void GibEngine::FreeCamera::UpdateDirection(double deltaTime, double mouseDeltaX
     if (cameraPitch < -1.0f) cameraPitch = -1.0f;
 
 	glm::vec3 front;
-	front.x = cos(cameraYaw) * cos(cameraPitch);
-	front.y = sin(cameraPitch);
-	front.z = sin(cameraYaw) * cos(cameraPitch);
+	front.x = float(cos(cameraYaw) * cos(cameraPitch));
+	front.y = float(sin(cameraPitch));
+	front.z = float(sin(cameraYaw) * cos(cameraPitch));
 
 	cameraFront = glm::normalize(front);
 }
