@@ -32,23 +32,20 @@ include_directories(${TESTS_INCLUDE_DIRS} ${ENGINE_INCLUDE_DIRS})
 link_directories(${GOOGLETEST_LIB_DIR})
 
 add_executable(GibTest
-  include/glmock.hpp
-  src/glmock.cpp
-  include/FileTest.h
-  src/FileTest.cpp
-  include/InputTest.h
-  src/InputTest.cpp
-  include/mock/MockCameraBase.h
-  include/CameraBaseTest.h
-  src/CameraBaseTest.cpp
-  include/FreeCameraTest.h
-  src/FreeCameraTest.cpp
-  # include/RenderPassTest.h
-  # src/RenderPassTest.cpp
-  include/ShaderTest.h
-  src/ShaderTest.cpp
-  include/Main.h
-  src/Main.cpp)
+	include/Entity.h
+	src/Entity.cpp
+
+	include/FileTest.h
+	src/FileTest.cpp
+
+	include/InputTest.h
+	src/InputTest.cpp
+
+	include/FreeCameraTest.h
+	src/FreeCameraTest.cpp
+
+	include/Main.h
+	src/Main.cpp)
 
 target_link_libraries(GibTest GibEngine gtest gmock)
 

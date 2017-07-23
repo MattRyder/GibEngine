@@ -29,23 +29,6 @@ std::string GibEngine::Entity::GetTypeName() const
     return GibEngine::EntityTypeStrings[static_cast<int>(this->entityType)];
 }
 
-void GibEngine::Entity::BindUBO(GLuint shaderId, GLuint uniformBlockIndex, GLuint blockBinding)
-{
-	glUniformBlockBinding(shaderId, uniformBlockIndex, blockBinding);
-
-	glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlockIndex, Entity::GetUBO());
-	if (uboRequiresUpdate)
-	{
-		UpdateUBO();
-		uboRequiresUpdate = false;
-	}
-}
-
-GLuint& GibEngine::Entity::GetUBO()
-{
-	return uniformBufferObject;
-}
-
 int GibEngine::Entity::GetID() const
 {
     return this->entityId;
@@ -65,12 +48,6 @@ void GibEngine::Entity::Print()
 {
     // TODO
 }
-
-bool GibEngine::Entity::IsUBOCreated()
-{
-	return uboInitialized;
-}
-
 
 void GibEngine::Entity::SetPosition(glm::vec3 entityPosition)
 {

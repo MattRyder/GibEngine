@@ -11,6 +11,7 @@
 #include "Input.h"
 #include "Model.h"
 #include "Shader.h"
+#include "Skybox.h"
 #include "FreeCamera.h"
 #include "renderer/Pipeline.h"
 
@@ -19,33 +20,34 @@
 
 namespace GibEngine
 {
-    class Game
-    {
-        GLFWwindow *window;
-        const char *windowTitle;
+	class Game
+	{
+		GLFWwindow *window;
+		const char *windowTitle;
 
 		float currentFrameTime = 0, lastFrameTime = 0;
 
-        // TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
-        FreeCamera *playerCamera;
-        Model *model;
-        Shader *shader;
-        
-        Renderer::Pipeline *renderPipeline;
-    
-    public:
-        Game(const char *windowTitle);
-        virtual ~Game();
+		// TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
+		FreeCamera *playerCamera;
+		Model *model;
+		Shader *shader;
+		Skybox *skybox;
 
-        virtual void Render();
-        virtual void Update();
+		Renderer::Pipeline *renderPipeline;
 
-        bool initializeGL();
-        void ToggleVsync();
+	public:
+		Game(const char *windowTitle);
+		virtual ~Game();
 
-        void SetWindowTitle(const char *windowTitle);
-        void SetWindowSize(int windowWidth, int windowHeight);
+		virtual void Render();
+		virtual void Update();
 
-        GLFWwindow *GetWindow();
-    };
+		bool initializeGL();
+		void ToggleVsync();
+
+		void SetWindowTitle(const char *windowTitle);
+		void SetWindowSize(int windowWidth, int windowHeight);
+
+		GLFWwindow *GetWindow();
+	};
 }

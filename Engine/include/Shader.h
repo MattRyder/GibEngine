@@ -26,15 +26,10 @@ namespace GibEngine
         Shader(File *vertexShaderFile, File *fragmentShaderFile);
         ~Shader();
         
-        GLuint Load();
-        void Reload();
-        
-        GLuint GetShaderId();
-        
-        void Begin();
-        void Draw(Entity *drawableEntity);
-        void Draw(Model *drawableModel);
-        void End();
+		GLuint Load();
+		void Begin();
+		void End();
 
+        GLuint GetShaderId();
     };
 }

@@ -16,7 +16,7 @@ TEST_F(InputTest, TestKeyboardState)
   input->UpdateKeyboardCallback(NULL, GLFW_KEY_M, 0, 1, 0);
 
   bool expectedKeyState = true;
-  bool actualKeyState = static_cast<bool>(input->KeyboardState[GLFW_KEY_M]);
+  bool actualKeyState = input->KeyboardState[GLFW_KEY_M];
 
   ASSERT_EQ(expectedKeyState, actualKeyState);
 }

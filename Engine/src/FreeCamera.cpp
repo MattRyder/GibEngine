@@ -1,5 +1,7 @@
 #include "FreeCamera.h"
 
+unsigned int GibEngine::FreeCamera::BUFFER_OBJECT_SIZE = sizeof(float) * 36;
+
 GibEngine::FreeCamera::FreeCamera() : CameraBase(EntityType::CAMERA)
 {
     this->cameraYaw = -90.0f;
@@ -11,13 +13,6 @@ GibEngine::FreeCamera::FreeCamera() : CameraBase(EntityType::CAMERA)
 	SetPosition(glm::vec3(0, 5, 15));
 
 	this->viewMatrix = glm::mat4(glm::lookAt(GetPosition(), glm::vec3(GetPosition() + cameraFront), cameraUp));
-
-	glGenBuffers(1, &uniformBufferObject);
-	glBindBuffer(GL_UNIFORM_BUFFER, uniformBufferObject);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 36, NULL, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, uniformBufferObject, 0, sizeof(float) * 36);
 }
 
 GibEngine::FreeCamera::FreeCamera(int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees)
@@ -45,7 +40,6 @@ void GibEngine::FreeCamera::Update(double deltaTime, double mouseDeltaX, double 
 	if (position != newPosition || mouseMovementDetected)
 	{
 		this->viewMatrix = glm::lookAt(newPosition, newPosition + cameraFront, cameraUp);
-		SetUBORequiresUpdate();
 	}
 }
 

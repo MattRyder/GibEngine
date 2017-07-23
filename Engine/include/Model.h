@@ -16,25 +16,23 @@ namespace GibEngine
 		void LoadModel(File *modelFile);
 
 	protected:
-		std::vector<Mesh *> meshes;
+		std::vector<Mesh*> meshes;
 		std::vector<glm::mat4> modelInstanceMatrices;
 		File* modelFile;
 
 	public:
 		Model();
-		Model(const char *modelFilename);
-		Model(Mesh *mesh);
-		~Model() override;
+		Model(const char* modelFilename);
+		Model(Mesh* mesh);
 
-		void ProcessNode(aiNode *node, const aiScene *scene);
+		void ProcessNode(aiNode* node, const aiScene* scene);
 
-		void Render(GLuint shaderProgram, float deltaTime);
 		void UpdateInstances();
 		void AddInstance(glm::mat4 modelMatrix);
 		virtual void Update(double deltaTime) override;
 
 		int GetID() const override;
 		std::string& GetName() const override;
-		virtual void UpdateUBO() override;
+		std::vector<Mesh*> GetMeshes();
 	};
 }

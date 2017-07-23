@@ -8,6 +8,7 @@ namespace GibEngine
       DEFERRED_GEOMETRY,
       DEFERRED_LIGHTING,
       FORWARD_LIGHTING,
+	  SKYBOX,
     };
   }
 }

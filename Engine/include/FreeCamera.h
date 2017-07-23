@@ -15,6 +15,8 @@ namespace GibEngine
         FreeCamera();
 
     public:
+		static unsigned int BUFFER_OBJECT_SIZE;
+
         FreeCamera(int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees);
         ~FreeCamera();
 

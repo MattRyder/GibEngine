@@ -10,27 +10,25 @@ GibEngine::Renderer::Pipeline::Pipeline(ShaderLanguage supportedShaderLanguage)
 {
   this->shaderLanguage = supportedShaderLanguage;
   this->passes = std::map<RenderPassType, RenderPass *>();
+  this->uniformBufferManager = new UniformBufferManager();
 }
 
 GibEngine::Renderer::Pipeline::~Pipeline() { }
 
-void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type) 
+void GibEngine::Renderer::Pipeline::AddPass(UniformBufferManager* uniformBufferManager, RenderPassType type)
 {
-  // auto existingPassIter = this->passes.find(type);
-  // if(existingPassIter != this->passes.end())
-  // {
-  //   delete existingPassIter->second;
-  // }
-
 	// Calculate the name of the shader to load for this RenderPass:
 	std::string shaderFileName;
 	switch (type)
 	{
 	case RenderPassType::FORWARD_LIGHTING:
 		shaderFileName = "color";
+		break;
+	case RenderPassType::SKYBOX:
+		shaderFileName = "skybox";
 	}
 
-  Renderer::ForwardRenderPass *renderPass;
+  Renderer::RenderPass *renderPass;
 
   // Dynamically load the shader, for the appropriate GLSL version, for each OpenGL phase:
   File *vertexFile = GibEngine::File::GetShaderFile(
@@ -48,8 +46,11 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
   switch(type) 
   {
     case RenderPassType::FORWARD_LIGHTING:
-      renderPass = new ForwardRenderPass(shader);
+      renderPass = new ForwardRenderPass(uniformBufferManager, shader);
       break;
+	case RenderPassType::SKYBOX:
+	  renderPass = new SkyboxRenderPass(uniformBufferManager, shader);
+	  break;
   }
   
   this->passes.emplace(type, renderPass);

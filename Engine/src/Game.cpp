@@ -20,12 +20,18 @@ GibEngine::Game::Game(const char *windowTitle)
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 1000.0f, 90.0f);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glDepthFunc(GL_LEQUAL);
+
+	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 250.0f, 65.0f);
 	this->playerCamera->LookAt(0, 0, 0);
 	//this->model = new Model("teapot/teapot.obj");
 	this->model = new Model("brickwall/brickwall.obj");
 	//this->model = new Model("ruin/ruin.obj");
 	//this->model = new Model("sponza/sponza.obj");
+
+	//this->skybox = new Skybox("default", "png");
 
 
 	glm::mat4 modelMatrix = glm::mat4();
@@ -35,6 +41,9 @@ GibEngine::Game::Game(const char *windowTitle)
 	Renderer::RenderPass *colorPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_LIGHTING);
 	colorPass->SetCameraBase(playerCamera);
 	colorPass->AddDrawable(model);
+
+	//Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX));
+	//skyboxPass->SetSkybox(skybox);
 }
 
 GibEngine::Game::~Game()
@@ -45,9 +54,6 @@ GibEngine::Game::~Game()
 
 void GibEngine::Game::Render()
 {
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glDepthFunc(GL_LEQUAL);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     this->renderPipeline->Render();
@@ -63,6 +69,7 @@ void GibEngine::Game::Update()
 	lastFrameTime = currentFrameTime;
 
     this->playerCamera->Update(deltaTime, GibEngine::Input::MouseState.x, GibEngine::Input::MouseState.y, GibEngine::Input::KeyboardState);
+	this->renderPipeline->GetRenderPass(GibEngine::Renderer::RenderPassType::FORWARD_LIGHTING)->SetCameraBase(playerCamera);
 
     glfwPollEvents();
 }
@@ -111,9 +118,12 @@ bool GibEngine::Game::initializeGL()
     Logger::Instance->info("Renderer: {}", renderer);
     Logger::Instance->info("OpenGL Version: {} - GLSL Version: {}", version, glslVersion);
 
+	GibEngine::Renderer::UniformBufferManager *uniformBufferManager = new GibEngine::Renderer::UniformBufferManager();
+
     // Set the Render pipeline up with known OpenGL supported types:
     this->renderPipeline = new Renderer::Pipeline(GibEngine::Renderer::ShaderLanguage::GLSL_420);
-    this->renderPipeline->AddPass(Renderer::RenderPassType::FORWARD_LIGHTING);
+    this->renderPipeline->AddPass(uniformBufferManager, Renderer::RenderPassType::FORWARD_LIGHTING);
+	//this->renderPipeline->AddPass(Renderer::RenderPassType::SKYBOX);
 
     return true;
 }

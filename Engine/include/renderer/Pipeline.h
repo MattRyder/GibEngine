@@ -1,9 +1,13 @@
 #pragma once
 
 #include <map>
+
 #include "RenderPass.h"
 #include "RenderPassType.h"
 #include "ForwardRenderPass.h"
+#include "SkyboxRenderPass.h"
+
+#include "UniformBufferManager.h"
 
 namespace GibEngine
 {
@@ -19,6 +23,7 @@ namespace GibEngine
     {
       static const char* ShaderLanguageStrings[];
 
+	  UniformBufferManager* uniformBufferManager;
       ShaderLanguage shaderLanguage;
       std::map<RenderPassType, RenderPass *> passes;
 
@@ -28,10 +33,10 @@ namespace GibEngine
         Pipeline(ShaderLanguage supportedShaderLanguage);
         ~Pipeline();
 
-        void AddPass(RenderPassType type);
+        void AddPass(UniformBufferManager* uniformBufferManager, RenderPassType type);
         void Render();
 
-				RenderPass* GetRenderPass(RenderPassType type);
+		RenderPass* GetRenderPass(RenderPassType type);
     };
   }
 }

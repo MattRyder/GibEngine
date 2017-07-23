@@ -25,10 +25,7 @@ namespace GibEngine
 		virtual void UpdatePosition(double deltaTime, int *keyState) = 0;
 		virtual void UpdateDirection(double deltaTime, double mouseDeltaX, double mouseDeltaY) = 0;
 
-		static void TakeScreenshot(int framebufferWidth, int framebufferHeight);
 		static glm::mat4 ConstructProjectionMatrix(float width, float height, float zNear, float zFar, float fov);
-
-		virtual void UpdateUBO() override;
 
 		virtual glm::mat4 GetProjectionMatrix();
 		virtual glm::mat4 GetViewMatrix();

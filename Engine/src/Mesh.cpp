@@ -9,11 +9,6 @@ GibEngine::Mesh::Mesh(const char* directory, aiMesh *mesh, const aiScene* scene)
 	glGenBuffers(1, &EBO);
 	glGenBuffers(1, &instanceVBO);
 
-	glGenBuffers(1, &uniformBufferObject);
-	glBindBuffer(GL_UNIFORM_BUFFER, uniformBufferObject);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 36, NULL, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
 	ProcessMesh(mesh, scene);
 	this->LoadMeshData();
 }
@@ -24,11 +19,6 @@ GibEngine::Mesh::Mesh(float* vertices, unsigned int verticesCount) : Entity(Enti
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 	glGenBuffers(1, &instanceVBO);
-
-	glGenBuffers(1, &uniformBufferObject);
-	glBindBuffer(GL_UNIFORM_BUFFER, uniformBufferObject);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(float) * 36, NULL, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	for (unsigned int i = 0; i < verticesCount; i += 3)
 	{
@@ -186,14 +176,6 @@ void GibEngine::Mesh::LoadMaterial(GLuint shaderProgram)
 	}
 }
 
-void GibEngine::Mesh::Render(GLuint shaderProgram, GLuint instanceCount, float deltaTime)
-{
-	LoadMaterial(shaderProgram);
-
-	glBindVertexArray(VAO);
-	glDrawElementsInstanced(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0, instanceCount);
-}
-
 void GibEngine::Mesh::UpdateInstances()
 {
 	const int vec4Size = sizeof(glm::vec4);
@@ -223,27 +205,19 @@ void GibEngine::Mesh::AddInstance(glm::mat4 modelMatrix)
 	UpdateInstances();
 }
 
-void GibEngine::Mesh::UpdateUBO()
+unsigned int GibEngine::Mesh::GetVAO()
 {
-	const int vec4Size = sizeof(glm::vec4);
+	return VAO;
+}
 
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-	glBufferData(GL_ARRAY_BUFFER, instanceMatrices.size() * sizeof(glm::mat4), &instanceMatrices[0], GL_STATIC_DRAW);
+size_t GibEngine::Mesh::GetIndicesSize()
+{
+	return indices.size();
+}
 
-	glEnableVertexAttribArray(5);
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)0);
-	glEnableVertexAttribArray(6);
-	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)vec4Size);
-	glEnableVertexAttribArray(7);
-	glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(vec4Size * 2));
-	glEnableVertexAttribArray(8);
-	glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(vec4Size * 3));
-
-	glVertexAttribDivisor(5, 1);
-	glVertexAttribDivisor(6, 1);
-	glVertexAttribDivisor(7, 1);
-	glVertexAttribDivisor(8, 1);
+size_t GibEngine::Mesh::GetInstanceCount()
+{
+	return instanceMatrices.size();
 }
 
 void GibEngine::Mesh::Update(double deltaTime)

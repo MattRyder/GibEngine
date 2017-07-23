@@ -85,12 +85,14 @@ namespace GibEngine
 
 		void LoadMeshData();
 		void LoadMaterial(GLuint shaderProgram);
-		void Render(GLuint shaderProgram, GLuint instanceCount, float deltaTime);
 
 		void UpdateInstances();
 		void AddInstance(glm::mat4 modelMatrix);
 
-		virtual void UpdateUBO() override;
+		unsigned int GetVAO();
+		size_t GetIndicesSize();
+
+		size_t GetInstanceCount();
 
 		virtual void Update(double deltaTime) override;
 

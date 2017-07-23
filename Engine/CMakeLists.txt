@@ -101,11 +101,14 @@ add_library(GibEngine
   include/Mesh.h
   include/Model.h
   include/Shader.h
+  include/Skybox.h
   include/Texture.h
+  include/renderer/UniformBufferManager.h
   include/renderer/RenderPassType.h
   include/renderer/RenderPass.h
   include/renderer/Pipeline.h
   include/renderer/ForwardRenderPass.h
+  include/renderer/SkyboxRenderPass.h
   include/glfw/glfw_callback.h
   src/glfw/glfw_callback.cpp
   src/gl3w/gl3w.c
@@ -120,9 +123,13 @@ add_library(GibEngine
   src/Mesh.cpp
   src/Model.cpp
   src/Shader.cpp
+  src/Skybox.cpp
   src/Texture.cpp
+  src/renderer/UniformBufferManager.cpp
   src/renderer/Pipeline.cpp
+  src/renderer/RenderPass.cpp
   src/renderer/ForwardRenderPass.cpp
+  src/renderer/SkyboxRenderPass.cpp
 )
 
 if(WIN32)

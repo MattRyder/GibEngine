@@ -1,8 +1,6 @@
 ﻿#include "Model.h"
 
-GibEngine::Model::Model() : Entity(EntityType::MODEL)
-{
-}
+GibEngine::Model::Model() : Entity(EntityType::MODEL) { }
 
 GibEngine::Model::Model(const char* modelFilename) : Model()
 {
@@ -10,16 +8,12 @@ GibEngine::Model::Model(const char* modelFilename) : Model()
     LoadModel(modelFile);
 }
 
-GibEngine::Model::Model(Mesh * mesh) : Model()
+GibEngine::Model::Model(Mesh* mesh) : Model()
 {
 	this->meshes.push_back(mesh);
 }
 
-GibEngine::Model::~Model()
-{
-}
-
-void GibEngine::Model::ProcessNode(aiNode * node, const aiScene * scene)
+void GibEngine::Model::ProcessNode(aiNode* node, const aiScene* scene)
 {
 	for (GLuint i = 0; i < node->mNumMeshes; i++)
 	{
@@ -34,11 +28,11 @@ void GibEngine::Model::ProcessNode(aiNode * node, const aiScene * scene)
 
 }
 
-void GibEngine::Model::LoadModel(File *modelFile)
+void GibEngine::Model::LoadModel(File* modelFile)
 {
     Assimp::Importer importer;
-    const char *modelFilePath = modelFile->GetPath();
-    const aiScene *scene = importer.ReadFile(modelFile->GetPath(), aiProcess_Triangulate | aiProcess_FlipUVs);
+    const char* modelFilePath = modelFile->GetPath();
+    const aiScene* scene = importer.ReadFile(modelFile->GetPath(), aiProcess_Triangulate | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -50,20 +44,9 @@ void GibEngine::Model::LoadModel(File *modelFile)
     importer.FreeScene();
 }
 
-void GibEngine::Model::Render(GLuint shaderProgram, float deltaTime)
-{
-	for (auto mesh : this->meshes)
-	{
-		mesh->Render(shaderProgram, 1, deltaTime);
-	}
-	//this->LoadMaterialUBO(this->materials[0]);
-	//glBindVertexArray(VAO);
-	//glDrawElementsInstanced(GL_LINES, indices.size(), GL_UNSIGNED_INT, 0, modelInstanceMatrices.size());
-}
-
 void GibEngine::Model::UpdateInstances()
 {
-	for (auto mesh : meshes)
+	for (Mesh* mesh : this->meshes)
 	{
 		mesh->UpdateInstances();
 	}
@@ -71,11 +54,10 @@ void GibEngine::Model::UpdateInstances()
 
 void GibEngine::Model::AddInstance(glm::mat4 modelMatrix)
 {
-	for (auto mesh : meshes)
+	for (Mesh* mesh : this->meshes)
 	{
 		mesh->AddInstance(modelMatrix);
 	}
-	UpdateInstances();
 }
 
 void GibEngine::Model::Update(double deltaTime)
@@ -84,7 +66,7 @@ void GibEngine::Model::Update(double deltaTime)
 
 int GibEngine::Model::GetID() const
 {
-    return 0;
+	return Entity::GetID();
 }
 
 std::string& GibEngine::Model::GetName() const
@@ -92,10 +74,7 @@ std::string& GibEngine::Model::GetName() const
     return *Entity::entityName;
 }
 
-void GibEngine::Model::UpdateUBO()
+std::vector<GibEngine::Mesh*> GibEngine::Model::GetMeshes()
 {
-	for (auto mesh : this->meshes)
-	{
-		mesh->UpdateUBO();
-	}
+	return meshes;
 }

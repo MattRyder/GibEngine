@@ -15,6 +15,18 @@ std::string GibEngine::File::GetWorkingDirectory()
     #endif
 }
 
+std::string* GibEngine::File::GetSkyboxPath(const char* skyboxTextureName)
+{
+	std::string *fileBase = GetPathForType(SKYBOX_RELATIVE_PATH);
+	fileBase->append(skyboxTextureName);
+	return fileBase;
+}
+
+std::string* GibEngine::File::GetScreenshotPath()
+{
+	return GetPathForType(SCREENSHOT_RELATIVE_PATH);
+}
+
 std::string* GibEngine::File::GetPathForType(const char* filePath)
 {
     std::string *pathStr = new std::string(File::GetWorkingDirectory());
@@ -34,6 +46,22 @@ GibEngine::File* GibEngine::File::GetShaderFile(const char* shaderFile)
     std::string *fileBase = GetPathForType(SHADER_RELATIVE_PATH);
     fileBase->append(shaderFile);
     return new File(fileBase->c_str());
+}
+
+GibEngine::File* GibEngine::File::GetSkyboxFile(const char* skyboxTextureName, const char* skyboxSideName)
+{
+	std::string *fileBase = GetPathForType(SKYBOX_RELATIVE_PATH);
+	fileBase->append(skyboxTextureName);
+	fileBase->append((std::string("/") + std::string(skyboxSideName)).c_str());
+
+	return new File(fileBase->c_str());
+}
+
+GibEngine::File* GibEngine::File::GetScreenshotFile(const char* screenshotName)
+{
+	std::string *fileBase = GetPathForType(SKYBOX_RELATIVE_PATH);
+	fileBase->append(screenshotName);
+	return new File(fileBase->c_str());
 }
 
 GibEngine::File::File(const char *filePath)

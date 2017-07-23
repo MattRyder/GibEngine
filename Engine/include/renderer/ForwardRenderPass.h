@@ -9,7 +9,7 @@ namespace GibEngine
     class ForwardRenderPass : public RenderPass
     {
     public:
-      ForwardRenderPass(Shader *shader);
+      ForwardRenderPass(UniformBufferManager *uniformBufferManager, Shader *shader);
       virtual void Render();// override;
       //virtual void AddDrawable(Model *drawableEntity) override;
     };

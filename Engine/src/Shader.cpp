@@ -39,10 +39,6 @@ GLuint GibEngine::Shader::Load()
     return program;
 }
 
-void GibEngine::Shader::Reload()
-{
-}
-
 GLuint GibEngine::Shader::GetShaderId()
 {
     return this->shaderId;
@@ -59,16 +55,6 @@ void GibEngine::Shader::Begin()
     }
 
     glUseProgram(this->shaderId);
-}
-
-//void GibEngine::Shader::Draw(Entity *drawableEntity)
-//{
-//    drawableEntity->Render();
-//}
-
-void GibEngine::Shader::Draw(Model *drawableModel)
-{
-    drawableModel->Render(shaderId, 0);
 }
 
 void GibEngine::Shader::End()
