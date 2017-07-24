@@ -1,4 +1,4 @@
-#include "..\..\include\renderer\SkyboxRenderPass.h"
+#include "renderer/SkyboxRenderPass.h"
 
 GibEngine::Renderer::SkyboxRenderPass::SkyboxRenderPass(UniformBufferManager* uniformBufferManager, Shader * shader) : RenderPass(uniformBufferManager, shader)
 {

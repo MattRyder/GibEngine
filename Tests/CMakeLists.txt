@@ -32,8 +32,8 @@ include_directories(${TESTS_INCLUDE_DIRS} ${ENGINE_INCLUDE_DIRS})
 link_directories(${GOOGLETEST_LIB_DIR})
 
 add_executable(GibTest
-	include/Entity.h
-	src/Entity.cpp
+	include/EntityTest.h
+	src/EntityTest.cpp
 
 	include/FileTest.h
 	src/FileTest.cpp

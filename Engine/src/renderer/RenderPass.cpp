@@ -1,7 +1,7 @@
-#include "renderer\RenderPass.h"
+#include "renderer/RenderPass.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb\stb_image_write.h>
+#include <stb/stb_image_write.h>
 
 GibEngine::Renderer::RenderPass::RenderPass(UniformBufferManager *uniformBufferManager, Shader *shader)
 {
