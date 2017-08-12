@@ -1,6 +1,6 @@
 #include "Skybox.h"
 
-GibEngine::Skybox::Skybox(std::string skyboxTextureName, std::string skyboxTextureExtension) : Mesh(skyboxVertices, 108)
+GibEngine::Skybox::Skybox(std::string skyboxTextureName, std::string skyboxTextureExtension) : Mesh(skyboxVertices, SKYBOX_VERTICES_COUNT)
 {
 	this->modelMatrix = glm::mat4();
 	this->SetName(&skyboxTextureName);
@@ -19,11 +19,6 @@ GibEngine::Skybox::Skybox(std::string skyboxTextureName, std::string skyboxTextu
 
 GibEngine::Skybox::~Skybox() { }
 
-GLuint GibEngine::Skybox::GetVAO()
-{
-	return VAO;
-}
-
 GibEngine::Texture* GibEngine::Skybox::GetCubemap()
 {
 	return skyboxCubemap;
@@ -32,6 +27,11 @@ GibEngine::Texture* GibEngine::Skybox::GetCubemap()
 glm::mat4 GibEngine::Skybox::GetModelMatrix()
 {
 	return modelMatrix;
+}
+
+void GibEngine::Skybox::SetModelMatrix(glm::mat4 modelMatrix)
+{
+	this->modelMatrix = modelMatrix;
 }
 
 void GibEngine::Skybox::Update(double deltaTime)

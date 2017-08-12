@@ -67,7 +67,6 @@ namespace GibEngine
 	class Mesh : public Entity
 	{
 		GLuint VAO, VBO, EBO, instanceVBO;
-		GLuint materialUBO = -1, materialUBOIndex = -1;
 
 		std::vector<glm::mat4> instanceMatrices;
 
@@ -75,9 +74,12 @@ namespace GibEngine
 		std::vector<GLuint> indices;
 		std::vector<Material*> materials;
 
+		glm::vec3 movementDir;
+
 		const char* directory;
 
 	public:
+		static const int MOVE_SPEED = 10;
 		Mesh(const char* directory, aiMesh *mesh, const aiScene* scene);
 		Mesh(float* vertices, unsigned int verticesCount);
 

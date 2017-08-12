@@ -20,7 +20,7 @@
 // uniform DirectionalLight directionalLights[1];
 
 layout (std140) uniform materialUBO {
-	vec3 ambient;
+  vec3 ambient;
   vec3 diffuse;
   vec3 specular;
   float shininess;
@@ -37,9 +37,9 @@ in VertexShader {
   vec2 TexCoords;
 } VS;
 
-layout(binding = 0) uniform sampler2D texture_diffuse1;
-layout(binding = 1) uniform sampler2D texture_specular1;
-layout(binding = 2) uniform sampler2D texture_normal1;
+uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_specular1;
+uniform sampler2D texture_normal1;
 uniform sampler2D texture_depth1;
 
 // layout(binding = 5) uniform sampler2D texture_depthMap;
@@ -57,7 +57,7 @@ uniform sampler2D texture_depth1;
 out vec4 frag_color;
 
 void main() {	
-
+    
 	frag_color = texture(texture_diffuse1, VS.TexCoords);
 	
 	// gammaw

@@ -4,6 +4,7 @@ GibEngine::Renderer::ForwardRenderPass::ForwardRenderPass(UniformBufferManager* 
 
 void GibEngine::Renderer::ForwardRenderPass::Render()
 {
+	RenderPass::SetCameraBase(RenderPass::camera);
 	shader->Begin();
 
 	for (Model* model : drawablesList)
@@ -19,3 +20,12 @@ void GibEngine::Renderer::ForwardRenderPass::Render()
 
 	shader->End();
 }
+
+void GibEngine::Renderer::ForwardRenderPass::Update(float deltaTime)
+{
+	for (Model* model : drawablesList)
+	{
+		model->Update(deltaTime);
+	}
+}
+

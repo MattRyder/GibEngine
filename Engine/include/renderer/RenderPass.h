@@ -26,6 +26,8 @@ namespace GibEngine
 			RenderPass(UniformBufferManager *uniformBufferManager, Shader *shader);
 
 			virtual void Render();
+			virtual void Update(float deltaTime) = 0;
+
 			virtual void AddDrawable(Model *drawable);
 			virtual void SetCameraBase(FreeCamera *camera);
 

@@ -62,6 +62,10 @@ void GibEngine::Model::AddInstance(glm::mat4 modelMatrix)
 
 void GibEngine::Model::Update(double deltaTime)
 {
+	for (Mesh* mesh : meshes)
+	{
+		mesh->Update(deltaTime);
+	}
 }
 
 int GibEngine::Model::GetID() const

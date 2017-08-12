@@ -15,6 +15,7 @@ namespace GibEngine
 			SkyboxRenderPass(UniformBufferManager* uniformBufferManager, Shader *shader);
 
 			virtual void Render();
+			void Update(float deltaTime);
 
 			void SetSkybox(Skybox *skybox);
 		};

@@ -9,10 +9,7 @@ GibEngine::Renderer::RenderPass::RenderPass(UniformBufferManager *uniformBufferM
 	this->uniformBufferManager = uniformBufferManager;
 }
 
-void GibEngine::Renderer::RenderPass::Render()
-{
-
-}
+void GibEngine::Renderer::RenderPass::Render() { }
 
 void GibEngine::Renderer::RenderPass::RenderPass::AddDrawable(Model *drawable)
 {
