@@ -53,7 +53,7 @@ namespace GibEngine
 				Update(newData, 0, size);
 			}
 
-			void Update(GLvoid* newData, unsigned int offset, unsigned int size)
+			void Update(GLvoid* newData, unsigned int offset, size_t size)
 			{
 				glBindBuffer(GL_UNIFORM_BUFFER, bufferId);
 				glBufferSubData(GL_UNIFORM_BUFFER, offset, size, newData);

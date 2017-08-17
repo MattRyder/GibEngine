@@ -32,7 +32,6 @@ GibEngine::Mesh::Mesh(float* vertices, unsigned int verticesCount) : Entity(Enti
 
 void GibEngine::Mesh::ProcessMesh(aiMesh *mesh, const aiScene* scene)
 {
-	//VerticesCount += mesh->mNumVertices;
 	for (GLuint i = 0; i < mesh->mNumVertices; i++)
 	{
 		Vertex vertex;
@@ -95,8 +94,8 @@ void GibEngine::Mesh::ProcessMesh(aiMesh *mesh, const aiScene* scene)
 	mat->Textures.insert(mat->Textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 	std::vector<Texture*> specularMaps = LoadMaterialTextures(material, aiTextureType_SPECULAR, TextureType::SPECULAR);
 	mat->Textures.insert(mat->Textures.end(), specularMaps.begin(), specularMaps.end());
-	std::vector<Texture*> heightMaps = LoadMaterialTextures(material, aiTextureType_UNKNOWN, TextureType::HEIGHT);
-	mat->Textures.insert(mat->Textures.end(), heightMaps.begin(), heightMaps.end());
+	//std::vector<Texture*> heightMaps = LoadMaterialTextures(material, aiTextureType_UNKNOWN, TextureType::HEIGHT);
+	//mat->Textures.insert(mat->Textures.end(), heightMaps.begin(), heightMaps.end());
 	std::vector<Texture*> normalMaps = LoadMaterialTextures(material, aiTextureType_HEIGHT, TextureType::NORMAL);
 	mat->Textures.insert(mat->Textures.end(), normalMaps.begin(), normalMaps.end());
 
@@ -153,26 +152,26 @@ void GibEngine::Mesh::LoadMaterial(GLuint shaderProgram)
 
 			glActiveTexture(GL_TEXTURE0 + tIndex);
 
-			std::string textureUniformName = std::string("texture_" + std::string(textureTypeStr) + std::to_string(tIndex + 1));
+			std::string textureUniformName = std::string("texture_" + std::string(textureTypeStr) + std::to_string(/*tIndex*/0 + 1));
 			GLint textureLocation = glGetUniformLocation(shaderProgram, textureUniformName.c_str());
 			glUniform1i(textureLocation, static_cast<GLfloat>(tIndex));
 			glBindTexture(GL_TEXTURE_2D, material.Textures[tIndex]);
 		}
 
-		GLint surfaceAmbientLocation = glGetUniformLocation(shaderProgram, "material.ambient");
-		if (surfaceAmbientLocation > 0) { glUniform3fv(surfaceAmbientLocation, 1, material.AmbientColor); }
+		//GLint surfaceAmbientLocation = glGetUniformLocation(shaderProgram, "material.ambient");
+		//if (surfaceAmbientLocation > 0) { glUniform3fv(surfaceAmbientLocation, 1, material.AmbientColor); }
 
-		GLuint surfaceDiffuseLocation = glGetUniformLocation(shaderProgram, "material.diffuse");
-		if (surfaceDiffuseLocation > 0) { glUniform3fv(surfaceDiffuseLocation, 1, material.DiffuseColor); }
+		//GLuint surfaceDiffuseLocation = glGetUniformLocation(shaderProgram, "material.diffuse");
+		//if (surfaceDiffuseLocation > 0) { glUniform3fv(surfaceDiffuseLocation, 1, material.DiffuseColor); }
 
-		GLuint surfaceSpecularLocation = glGetUniformLocation(shaderProgram, "material.specular");
-		if (surfaceAmbientLocation > 0) { glUniform3fv(surfaceSpecularLocation, 1, material.SpecularColor); }
+		//GLuint surfaceSpecularLocation = glGetUniformLocation(shaderProgram, "material.specular");
+		//if (surfaceSpecularLocation > 0) { glUniform3fv(surfaceSpecularLocation, 1, material.SpecularColor); }
 
-		GLuint surfaceShininessLocation = glGetUniformLocation(shaderProgram, "material.shininess");
-		if (surfaceShininessLocation > 0) { glUniform1f(surfaceShininessLocation, material.Shininess); }
+		//GLuint surfaceShininessLocation = glGetUniformLocation(shaderProgram, "material.shininess");
+		//if (surfaceShininessLocation > 0) { glUniform1f(surfaceShininessLocation, material.Shininess); }
 
-		GLuint surfaceOpacityLocation = glGetUniformLocation(shaderProgram, "material.opacity");
-		if (surfaceOpacityLocation > 0) { glUniform1f(surfaceOpacityLocation, material.Opacity); }
+		//GLuint surfaceOpacityLocation = glGetUniformLocation(shaderProgram, "material.opacity");
+		//if (surfaceOpacityLocation > 0) { glUniform1f(surfaceOpacityLocation, material.Opacity); }
 	}
 }
 

@@ -6,8 +6,11 @@
 #include "RenderPassType.h"
 #include "ForwardRenderPass.h"
 #include "SkyboxRenderPass.h"
+#include "DeferredGeometryPass.h"
+#include "DeferredLightingPass.h"
 
 #include "UniformBufferManager.h"
+#include "Framebuffer.h"
 
 namespace GibEngine
 {
@@ -23,14 +26,16 @@ namespace GibEngine
 		{
 			static const char* ShaderLanguageStrings[];
 
-			UniformBufferManager* uniformBufferManager;
+			UniformBufferManager *uniformBufferManager;
+			Framebuffer *framebuffer;
+
 			ShaderLanguage shaderLanguage;
-			std::map<RenderPassType, RenderPass *> passes;
+			std::map<RenderPassType, RenderPass*> passes;
 
 			const char* GetShaderLanguageString(ShaderLanguage language);
 
 		public:
-			Pipeline(UniformBufferManager* uniformBufferManager, ShaderLanguage supportedShaderLanguage);
+			Pipeline(UniformBufferManager* uniformBufferManager, Framebuffer* framebuffer, ShaderLanguage supportedShaderLanguage);
 			~Pipeline();
 
 			void AddPass(RenderPassType type);

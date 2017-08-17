@@ -43,7 +43,7 @@ namespace GibEngine
 		GLfloat SpecularColor[3];
 		GLfloat Opacity;
 		GLuint Shininess;
-		GLuint Textures[static_cast<int>(TextureType::NORMAL)];
+		GLuint Textures[static_cast<int>(TextureType::TEXTURETYPE_LAST)];
 
 		material_uniform_block_t(const Material *material)
 		{

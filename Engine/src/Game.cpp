@@ -13,7 +13,7 @@ GibEngine::Game::Game(const char *windowTitle)
 	if (GL_KHR_debug)
 	{
 		GibEngine::Logger::Instance->info("GL_KHR_debug extension available");
-		//glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
+		glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		GibEngine::Logger::Instance->info("GL_KHR_debug extension enabled");
 	}
@@ -22,7 +22,7 @@ GibEngine::Game::Game(const char *windowTitle)
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	glDepthFunc(GL_LEQUAL);
+	glDepthFunc(GL_LESS);
 
 	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 250.0f, 65.0f);
 	this->playerCamera->LookAt(0, 0, 0);
@@ -31,20 +31,30 @@ GibEngine::Game::Game(const char *windowTitle)
 	//this->model = new Model("ruin/ruin.obj");
 	//this->model = new Model("sponza/sponza.obj");
 
-	//this->skybox = new Skybox("default", "png");
-	this->skybox = new Skybox("bricks", "jpg");
+	this->skybox = new Skybox("default", "png");
 
-	glm::mat4 modelMatrix = glm::mat4();
-	modelMatrix[3] = glm::vec4(0, 0, 0, 1.0);
-	this->model->AddInstance(modelMatrix);
+	glm::mat4 modelMatrix;
+	for (int x = -16; x < 16; x++)
+		for (int y = -16; y < 16; y++)
+		{
+			modelMatrix = glm::mat4();
+			modelMatrix[3] = glm::vec4(x * 5, rand() % 10, y * 5, 1.0);
+			this->model->AddInstance(modelMatrix);
+		}
 
-	Renderer::RenderPass* colorPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_LIGHTING);
-	colorPass->SetCameraBase(playerCamera);
-	colorPass->AddDrawable(model);
+	//Renderer::RenderPass* colorPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_LIGHTING);
+	//colorPass->SetCameraBase(playerCamera);
+	//colorPass->AddDrawable(model);
 
-	Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);
-	Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);
-	skyboxPass->SetSkybox(this->skybox);
+	Renderer::RenderPass* deferredGeoPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_GEOMETRY);
+	deferredGeoPass->SetCameraBase(playerCamera);
+	deferredGeoPass->AddDrawable(model);
+
+	Renderer::RenderPass* deferredLightingPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING);
+
+	//Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);
+	//Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);
+	//skyboxPass->SetSkybox(this->skybox);
 }
 
 GibEngine::Game::~Game()
@@ -55,8 +65,6 @@ GibEngine::Game::~Game()
 
 void GibEngine::Game::Render()
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	this->renderPipeline->Render();
 
 	glfwSwapBuffers(window);
@@ -106,10 +114,8 @@ bool GibEngine::Game::initializeGL()
 
 	glfwMakeContextCurrent(window);
 
-	// Initialize GL3W
 	if (gl3wInit())
 	{
-		// Failed to init GL3W!
 		return false;
 	}
 
@@ -121,11 +127,10 @@ bool GibEngine::Game::initializeGL()
 	Logger::Instance->info("OpenGL Version: {} - GLSL Version: {}", version, glslVersion);
 
 	GibEngine::Renderer::UniformBufferManager *uniformBufferManager = new GibEngine::Renderer::UniformBufferManager();
+	GibEngine::Renderer::Framebuffer *framebuffer = new GibEngine::Renderer::Framebuffer(WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	// Set the Render pipeline up with known OpenGL supported types:
-	this->renderPipeline = new Renderer::Pipeline(uniformBufferManager, GibEngine::Renderer::ShaderLanguage::GLSL_420);
-	this->renderPipeline->AddPass(Renderer::RenderPassType::FORWARD_LIGHTING);
-	this->renderPipeline->AddPass(Renderer::RenderPassType::SKYBOX);
+	this->renderPipeline = new Renderer::Pipeline(uniformBufferManager, framebuffer, GibEngine::Renderer::ShaderLanguage::GLSL_420);
 
 	return true;
 }

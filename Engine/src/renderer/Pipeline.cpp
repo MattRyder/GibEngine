@@ -6,12 +6,13 @@ const char* GibEngine::Renderer::Pipeline::ShaderLanguageStrings[] =
   "_420"
 };
 
-GibEngine::Renderer::Pipeline::Pipeline(UniformBufferManager* uniformBufferManager, ShaderLanguage supportedShaderLanguage)
+GibEngine::Renderer::Pipeline::Pipeline(UniformBufferManager* uniformBufferManager, Framebuffer* framebuffer, ShaderLanguage supportedShaderLanguage)
 {
 	this->uniformBufferManager = uniformBufferManager;
+	this->framebuffer = framebuffer;
 	this->shaderLanguage = supportedShaderLanguage;
+
 	this->passes = std::map<RenderPassType, RenderPass *>();
-	this->uniformBufferManager = new UniformBufferManager();
 }
 
 GibEngine::Renderer::Pipeline::~Pipeline() { }
@@ -27,6 +28,13 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 		break;
 	case RenderPassType::SKYBOX:
 		shaderFileName = "skybox";
+		break;
+	case RenderPassType::DEFERRED_GEOMETRY:
+		shaderFileName = "deferred_geometry";
+		break;
+	case RenderPassType::DEFERRED_LIGHTING:
+		shaderFileName = "deferred_lighting";
+		break;
 	}
 
 	Renderer::RenderPass *renderPass;
@@ -52,6 +60,12 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 	case RenderPassType::SKYBOX:
 		renderPass = new SkyboxRenderPass(uniformBufferManager, shader);
 		break;
+	case RenderPassType::DEFERRED_GEOMETRY:
+		renderPass = new DeferredGeometryPass(uniformBufferManager, shader, framebuffer);
+		break;
+	case RenderPassType::DEFERRED_LIGHTING:
+		renderPass = new DeferredLightingPass(uniformBufferManager, shader, framebuffer);
+		break;
 	}
 
 	this->passes.emplace(type, renderPass);
@@ -59,11 +73,23 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 
 void GibEngine::Renderer::Pipeline::Render()
 {
+	framebuffer->Bind();
+	
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	for (auto const& pass : this->passes)
 	{
 		RenderPass *rpass = pass.second;
 		rpass->Render();
 	}
+	
+	framebuffer->Unbind();
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->GetBuffer().framebufferId);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(),
+		0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void GibEngine::Renderer::Pipeline::Update(float deltaTime)
@@ -77,6 +103,13 @@ void GibEngine::Renderer::Pipeline::Update(float deltaTime)
 
 GibEngine::Renderer::RenderPass* GibEngine::Renderer::Pipeline::GetRenderPass(RenderPassType type)
 {
+	std::map<RenderPassType, RenderPass*>::iterator passLookup = passes.find(type);
+	if (passLookup == passes.end())
+	{
+		AddPass(type);
+		return GetRenderPass(type);
+	}
+	
 	return this->passes.at(type);
 }
 

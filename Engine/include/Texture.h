@@ -13,7 +13,6 @@ namespace GibEngine
 	{
 		DIFFUSE,
 		SPECULAR,
-		HEIGHT,
 		NORMAL,
 		TEXTURETYPE_LAST
 	};

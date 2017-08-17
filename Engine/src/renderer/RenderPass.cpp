@@ -9,6 +9,12 @@ GibEngine::Renderer::RenderPass::RenderPass(UniformBufferManager *uniformBufferM
 	this->uniformBufferManager = uniformBufferManager;
 }
 
+GibEngine::Renderer::RenderPass::RenderPass(UniformBufferManager * uniformBufferManager, Shader * shader, Framebuffer * framebuffer)
+	: RenderPass(uniformBufferManager, shader)
+{
+	this->framebuffer = framebuffer;
+}
+
 void GibEngine::Renderer::RenderPass::Render() { }
 
 void GibEngine::Renderer::RenderPass::RenderPass::AddDrawable(Model *drawable)

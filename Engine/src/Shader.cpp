@@ -81,6 +81,8 @@ void GibEngine::Shader::Compile(GLuint shaderId, File *shaderFile)
         glGetShaderInfoLog(shaderId, logLength, nullptr, &shaderErr[0]);
         Logger::Instance->error("Failed to compile shader!\nFile: {}\nShader Log:\n{}", shaderFile->GetPath(), &shaderErr[0]);
     }
+
+	delete shaderSrc;
 }
 
 GLuint GibEngine::Shader::Link(GLuint vertexShader, GLuint fragmentShader)

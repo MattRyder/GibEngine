@@ -90,7 +90,7 @@ set(ENGINE_INCLUDE_DIRS ${ENGINE_INCLUDE_DIRS}
 
 include_directories(${ENGINE_INCLUDE_DIRS})
 
-add_library(GibEngine
+set(SOURCE_TREE
   include/CameraBase.h
   include/Entity.h
   include/File.h
@@ -109,6 +109,9 @@ add_library(GibEngine
   include/renderer/Pipeline.h
   include/renderer/ForwardRenderPass.h
   include/renderer/SkyboxRenderPass.h
+  include/renderer/DeferredGeometryPass.h
+  include/renderer/DeferredLightingPass.h
+  include/renderer/Framebuffer.h
   include/glfw/glfw_callback.h
   src/glfw/glfw_callback.cpp
   src/gl3w/gl3w.c
@@ -130,7 +133,11 @@ add_library(GibEngine
   src/renderer/RenderPass.cpp
   src/renderer/ForwardRenderPass.cpp
   src/renderer/SkyboxRenderPass.cpp
-)
+  src/renderer/DeferredGeometryPass.cpp
+  src/renderer/DeferredLightingPass.cpp
+  src/renderer/Framebuffer.cpp)
+
+add_library(GibEngine ${SOURCE_TREE})
 
 if(WIN32)
   LIST(APPEND LINK_TARGETS opengl32)
