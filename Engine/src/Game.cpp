@@ -13,7 +13,7 @@ GibEngine::Game::Game(const char *windowTitle)
 	if (GL_KHR_debug)
 	{
 		GibEngine::Logger::Instance->info("GL_KHR_debug extension available");
-		glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
+		//glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		GibEngine::Logger::Instance->info("GL_KHR_debug extension enabled");
 	}
@@ -22,7 +22,7 @@ GibEngine::Game::Game(const char *windowTitle)
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	glDepthFunc(GL_LESS);
+	glDepthFunc(GL_LEQUAL);
 
 	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 250.0f, 65.0f);
 	this->playerCamera->LookAt(0, 0, 0);
@@ -34,8 +34,9 @@ GibEngine::Game::Game(const char *windowTitle)
 	this->skybox = new Skybox("default", "png");
 
 	glm::mat4 modelMatrix;
-	for (int x = -16; x < 16; x++)
-		for (int y = -16; y < 16; y++)
+	int a = 64;
+	for (int x = -a; x < a; x++)
+		for (int y = -a; y < a; y++)
 		{
 			modelMatrix = glm::mat4();
 			modelMatrix[3] = glm::vec4(x * 5, rand() % 10, y * 5, 1.0);

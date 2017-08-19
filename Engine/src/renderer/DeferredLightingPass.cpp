@@ -39,8 +39,6 @@ void GibEngine::Renderer::DeferredLightingPass::Render()
 	const int QUAD_VERTICES_COUNT = 4;
 	const int FRAMEBUFFER_TEXTURE_COUNT = 3;
 
-	//framebuffer->Bind();
-
 	shader->Begin();
 
 	buffer_t buffer = framebuffer->GetBuffer();
@@ -55,8 +53,6 @@ void GibEngine::Renderer::DeferredLightingPass::Render()
 	glBindVertexArray(0);
 
 	shader->End();
-
-	//framebuffer->Unbind();
 }
 
 void GibEngine::Renderer::DeferredLightingPass::Update(float deltaTime) { }

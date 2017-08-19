@@ -7,8 +7,6 @@ void GibEngine::Renderer::DeferredGeometryPass::Render()
 {
 	RenderPass::SetCameraBase(RenderPass::camera);
 
-	//framebuffer->Bind();
-
 	shader->Begin();
 
 	for (Model* model : drawablesList)
@@ -23,8 +21,6 @@ void GibEngine::Renderer::DeferredGeometryPass::Render()
 	}
 
 	shader->End();
-
-	//framebuffer->Unbind();
 }
 
 void GibEngine::Renderer::DeferredGeometryPass::Update(float deltaTime)

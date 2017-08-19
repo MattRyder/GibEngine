@@ -74,7 +74,7 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 void GibEngine::Renderer::Pipeline::Render()
 {
 	framebuffer->Bind();
-	
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	for (auto const& pass : this->passes)
@@ -88,7 +88,7 @@ void GibEngine::Renderer::Pipeline::Render()
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->GetBuffer().framebufferId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBlitFramebuffer(0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(),
-		0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
