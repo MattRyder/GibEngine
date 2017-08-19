@@ -1,0 +1,48 @@
+# Specify version format
+version: "1.0.{build}"
+
+# Operating system (build VM template)
+os: Visual Studio 2015
+
+# build platform, i.e. Win32 (instead of x86), x64, Any CPU. This setting is optional.
+platform: 
+  - Win32
+  - x64
+
+# specify custom environment variables
+environment:
+  MSVC_DEFAULT_OPTIONS: ON
+
+# build configuration, i.e. Debug, Release, etc.
+configuration:
+  - Debug
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - cmd: cmake --version
+  - cmd: msbuild /version
+
+# branches to build
+branches:
+  except:
+    - gh-pages
+
+# scripts to run before build
+before_build:
+  - cmd: cd c:\projects\gibengine
+  - cmd: md build
+  - cmd: cd build
+  - cmd: if "%platform%"=="Win32" set CMAKE_GENERATOR_NAME=Visual Studio 14 2015
+  - cmd: if "%platform%"=="x64"   set CMAKE_GENERATOR_NAME=Visual Studio 14 2015 Win64
+  - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%configuration% -DBUILD_TESTS=ON  ..
+
+build:
+  project: c:\projects\gibengine\build\GibEngine.sln
+  parallel: true
+
+test_script:
+  - cmd: cd c:\projects\gibengine\build\debug
+  - cmd: GibTest.exe --gtest_output=xml:test_gibengine.xml
+
+on_finish:
+  - ps: (new-object net.webclient).UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\test_gibengine.xml))
