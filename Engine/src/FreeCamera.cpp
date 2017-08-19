@@ -10,8 +10,6 @@ GibEngine::FreeCamera::FreeCamera() : CameraBase(EntityType::CAMERA)
     this->cameraUp = glm::vec3(0, 1.0f, 0);
     this->cameraFront = glm::vec3(0, 0, -1.0f);
 
-	SetPosition(glm::vec3(0, 5, 15));
-
 	this->viewMatrix = glm::mat4(glm::lookAt(GetPosition(), glm::vec3(GetPosition() + cameraFront), cameraUp));
 }
 
@@ -27,13 +25,12 @@ void GibEngine::FreeCamera::Render() { }
 
 void GibEngine::FreeCamera::Update(double deltaTime) { }
 
-void GibEngine::FreeCamera::Update(double deltaTime, double mouseDeltaX, double mouseDeltaY, int *keyState)
+void GibEngine::FreeCamera::Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState)
 {
-	bool mouseMovementDetected = mouseDeltaX != lastMouseX || mouseDeltaY != lastMouseY;
+	bool mouseMovementDetected = mouseState.x != lastMouseX || mouseState.y != lastMouseY;
 	glm::vec3 position = GetPosition();
 
-
-    UpdateDirection(deltaTime, mouseDeltaX, mouseDeltaY);
+    UpdateDirection(deltaTime, mouseState.x, mouseState.y);
     UpdatePosition(deltaTime, keyState);
 
     glm::vec3 newPosition = GetPosition();
@@ -57,10 +54,8 @@ void GibEngine::FreeCamera::UpdatePosition(double deltaTime, int *keyState)
     if (keyState[GLFW_KEY_D])
         position += glm::normalize(glm::cross(cameraFront, cameraUp));
 
-    //Logger::Instance->info("Position ({}, {}, {})", position.x, position.y, position.z);
     SetPosition(position);
 }
-
 
 void GibEngine::FreeCamera::UpdateDirection(double deltaTime, double mouseDeltaX, double mouseDeltaY) 
 {

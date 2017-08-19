@@ -38,8 +38,11 @@ add_executable(GibTest
 	include/FileTest.h
 	src/FileTest.cpp
 
-	include/InputTest.h
-	src/InputTest.cpp
+	include/ControllerTest.h
+	src/ControllerTest.cpp
+
+	include/InputManagerTest.h
+	src/InputManagerTest.cpp
 
 	include/FreeCameraTest.h
 	src/FreeCameraTest.cpp

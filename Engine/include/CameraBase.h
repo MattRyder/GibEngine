@@ -21,7 +21,7 @@ namespace GibEngine
 	public:
 		CameraBase(EntityType entityType);
 
-		virtual void Update(double deltaTime, double mouseDeltaX, double mouseDeltaY, int *keyState) = 0;
+		virtual void Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState) = 0;
 		virtual void UpdatePosition(double deltaTime, int *keyState) = 0;
 		virtual void UpdateDirection(double deltaTime, double mouseDeltaX, double mouseDeltaY) = 0;
 

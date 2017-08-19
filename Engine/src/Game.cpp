@@ -26,7 +26,11 @@ GibEngine::Game::Game(const char *windowTitle)
 
 	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 250.0f, 65.0f);
 	this->playerCamera->LookAt(0, 0, 0);
+	this->playerCamera->SetPosition(glm::vec3(0, 10, -15));
 	this->model = new Model("brickwall/brickwall.obj");
+
+	this->inputManager = new Input::InputManager(window);
+
 	//this->model = new Model("teapot/teapot.obj");
 	//this->model = new Model("ruin/ruin.obj");
 	//this->model = new Model("sponza/sponza.obj");
@@ -78,7 +82,7 @@ void GibEngine::Game::Update()
 	float deltaTime = currentFrameTime - lastFrameTime;
 	lastFrameTime = currentFrameTime;
 
-	this->playerCamera->Update(deltaTime, GibEngine::Input::MouseState.x, GibEngine::Input::MouseState.y, GibEngine::Input::KeyboardState);
+	this->playerCamera->Update(deltaTime, inputManager->GetMousePosition(), inputManager->GetScrollState(), inputManager->GetKeyboardState());
 
 	this->renderPipeline->Update(deltaTime);
 
@@ -102,8 +106,6 @@ bool GibEngine::Game::initializeGL()
 	this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, this->windowTitle, NULL, NULL);
 
 	// Setup GLFW callbacks:
-	glfwSetKeyCallback(window, GibEngine::Input::UpdateKeyboardCallback);
-	glfwSetCursorPosCallback(window, GibEngine::Input::UpdateMousePositionCallback);
 	glfwSetErrorCallback(GlfwErrorCallback);
 	glfwSetFramebufferSizeCallback(window, GlfwSetWindowSizeCallback);
 

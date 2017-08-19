@@ -96,13 +96,14 @@ set(SOURCE_TREE
   include/File.h
   include/FreeCamera.h
   include/Game.h
-  include/Input.h
   include/Logger.h
   include/Mesh.h
   include/Model.h
   include/Shader.h
   include/Skybox.h
   include/Texture.h
+  include/input/Controller.h
+  include/input/InputManager.h
   include/renderer/UniformBufferManager.h
   include/renderer/RenderPassType.h
   include/renderer/RenderPass.h
@@ -121,13 +122,14 @@ set(SOURCE_TREE
   src/File.cpp
   src/FreeCamera.cpp
   src/Game.cpp
-  src/Input.cpp
   src/Logger.cpp
   src/Mesh.cpp
   src/Model.cpp
   src/Shader.cpp
   src/Skybox.cpp
   src/Texture.cpp
+  src/input/Controller.cpp
+  src/input/InputManager.cpp
   src/renderer/UniformBufferManager.cpp
   src/renderer/Pipeline.cpp
   src/renderer/RenderPass.cpp

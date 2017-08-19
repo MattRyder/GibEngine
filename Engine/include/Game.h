@@ -8,12 +8,12 @@
 #include "glfw/glfw_callback.h"
 
 #include "File.h"
-#include "Input.h"
 #include "Model.h"
 #include "Shader.h"
 #include "Skybox.h"
 #include "FreeCamera.h"
 #include "renderer/Pipeline.h"
+#include "input/InputManager.h"
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
@@ -30,10 +30,10 @@ namespace GibEngine
 		// TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
 		FreeCamera *playerCamera;
 		Model *model;
-		Shader *shader;
 		Skybox *skybox;
 
 		Renderer::Pipeline *renderPipeline;
+		Input::InputManager *inputManager;
 
 	public:
 		Game(const char *windowTitle);
