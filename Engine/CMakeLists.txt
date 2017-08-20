@@ -102,8 +102,13 @@ set(SOURCE_TREE
   include/Shader.h
   include/Skybox.h
   include/Texture.h
+
+  include/LightBase.h
+  include/PointLight.h
+
   include/input/Controller.h
   include/input/InputManager.h
+
   include/renderer/UniformBufferManager.h
   include/renderer/RenderPassType.h
   include/renderer/RenderPass.h
@@ -114,9 +119,9 @@ set(SOURCE_TREE
   include/renderer/DeferredLightingPass.h
   include/renderer/Framebuffer.h
   include/glfw/glfw_callback.h
+
   src/glfw/glfw_callback.cpp
   src/gl3w/gl3w.c
-  src/renderer/Pipeline.cpp
   src/CameraBase.cpp
   src/Entity.cpp
   src/File.cpp
@@ -128,8 +133,13 @@ set(SOURCE_TREE
   src/Shader.cpp
   src/Skybox.cpp
   src/Texture.cpp
+
+  src/LightBase.cpp
+  src/PointLight.cpp
+
   src/input/Controller.cpp
   src/input/InputManager.cpp
+
   src/renderer/UniformBufferManager.cpp
   src/renderer/Pipeline.cpp
   src/renderer/RenderPass.cpp
