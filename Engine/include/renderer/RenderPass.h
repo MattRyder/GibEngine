@@ -7,6 +7,7 @@
 #include "FreeCamera.h"
 #include "UniformBufferManager.h"
 #include "Framebuffer.h"
+#include "PointLight.h"
 
 namespace GibEngine
 {
@@ -15,6 +16,7 @@ namespace GibEngine
 		class RenderPass
 		{
 			bool passEnabled = true;
+			bool lightingBindRequred;
 
 		protected:
 			Shader *shader;
@@ -23,6 +25,7 @@ namespace GibEngine
 
 			FreeCamera *camera;
 			std::vector<Model *> drawablesList;
+			std::vector<LightBase *> lights;
 
 		public:
 			RenderPass(UniformBufferManager *uniformBufferManager, Shader *shader);
@@ -32,7 +35,10 @@ namespace GibEngine
 			virtual void Update(float deltaTime) = 0;
 
 			virtual void AddDrawable(Model *drawable);
+			virtual void AddLight(LightBase *light);
 			virtual void SetCameraBase(FreeCamera *camera);
+
+			void BindLights();
 
 			void TakeScreenshot(int framebufferWidth, int framebufferHeight);
 

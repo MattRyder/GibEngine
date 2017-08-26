@@ -12,6 +12,7 @@
 #include "Shader.h"
 #include "Skybox.h"
 #include "FreeCamera.h"
+#include "PointLight.h"
 #include "renderer/Pipeline.h"
 #include "input/InputManager.h"
 
@@ -31,6 +32,7 @@ namespace GibEngine
 		FreeCamera *playerCamera;
 		Model *model;
 		Skybox *skybox;
+		PointLight *light;
 
 		Renderer::Pipeline *renderPipeline;
 		Input::InputManager *inputManager;
@@ -48,6 +50,6 @@ namespace GibEngine
 		void SetWindowTitle(const char *windowTitle);
 		void SetWindowSize(int windowWidth, int windowHeight);
 
-		GLFWwindow *GetWindow();
+		GLFWwindow* GetWindow();
 	};
 }

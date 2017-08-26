@@ -15,5 +15,11 @@ namespace GibEngine
 		glm::vec3 GetAmbientColor() const;
 		glm::vec3 GetDiffuseColor() const;
 		glm::vec3 GetSpecularColor() const;
+
+		void SetAmbientColor(glm::vec3 color);
+		void SetDiffuseColor(glm::vec3 color);
+		void SetSpecularColor(glm::vec3 color);
+
+		virtual void Update(double deltaTime) override;
 	};
 }

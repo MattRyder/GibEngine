@@ -2,6 +2,7 @@
 
 #include "RenderPass.h"
 #include "Framebuffer.h"
+#include "PointLight.h"
 
 namespace GibEngine
 {
@@ -10,8 +11,6 @@ namespace GibEngine
 		class DeferredLightingPass : public RenderPass
 		{
 			static GLfloat QuadTextureData[];
-
-			//std::vector<Light> lights;
 
 			GLuint quadVAO, quadVBO;
 			void LoadQuadData();

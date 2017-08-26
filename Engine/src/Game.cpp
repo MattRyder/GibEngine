@@ -22,6 +22,7 @@ GibEngine::Game::Game(const char *windowTitle)
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
 	glDepthFunc(GL_LEQUAL);
 
 	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 250.0f, 65.0f);
@@ -35,15 +36,21 @@ GibEngine::Game::Game(const char *windowTitle)
 	//this->model = new Model("ruin/ruin.obj");
 	//this->model = new Model("sponza/sponza.obj");
 
-	this->skybox = new Skybox("default", "png");
+	//this->skybox = new Skybox("default", "png");
+
+	PointLight* light = new PointLight(
+		glm::vec3(0, 5.0f, 0),
+		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.9f, 0.9f, 0.9f),
+		0.7f,
+		1.8f);
 
 	glm::mat4 modelMatrix;
-	int a = 64;
+	int a = 64, b = 6;
 	for (int x = -a; x < a; x++)
 		for (int y = -a; y < a; y++)
 		{
 			modelMatrix = glm::mat4();
-			modelMatrix[3] = glm::vec4(x * 5, rand() % 10, y * 5, 1.0);
+			modelMatrix[3] = glm::vec4(x * 5 + rand() % 10, rand() % 10, y * 5 + rand() % 10, 1.0);
 			this->model->AddInstance(modelMatrix);
 		}
 
@@ -56,6 +63,25 @@ GibEngine::Game::Game(const char *windowTitle)
 	deferredGeoPass->AddDrawable(model);
 
 	Renderer::RenderPass* deferredLightingPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING);
+	
+	for(int x = -b; x < b; x++)
+		for (int y = -b; y < b; y++)
+		{
+			PointLight* lightDup = new PointLight(*light);
+			lightDup->SetPosition(glm::vec3(x * 5, 10, x * 5));
+
+			float r = rand() % 100 / 100.0;
+			float g = rand() % 100 / 100.0;
+			float bb = rand() % 100 / 100.0;
+
+			lightDup->SetDiffuseColor(glm::vec3(r, g, bb));
+			//lightDup->SetLinearAttenuation(rand() % 100 / 10.0);
+			//lightDup->SetQuadraticAttenuation(rand() % 100 / 10.0);
+			deferredLightingPass->AddLight(lightDup);
+
+
+		}
+	deferredLightingPass->AddLight(light);
 
 	//Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);
 	//Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);

@@ -41,6 +41,8 @@ void GibEngine::Renderer::DeferredLightingPass::Render()
 
 	shader->Begin();
 
+	RenderPass::BindLights();
+
 	buffer_t buffer = framebuffer->GetBuffer();
 	for (unsigned int i = 0; i < FRAMEBUFFER_TEXTURE_COUNT; i++)
 	{

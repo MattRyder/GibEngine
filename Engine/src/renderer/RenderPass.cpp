@@ -9,7 +9,7 @@ GibEngine::Renderer::RenderPass::RenderPass(UniformBufferManager *uniformBufferM
 	this->uniformBufferManager = uniformBufferManager;
 }
 
-GibEngine::Renderer::RenderPass::RenderPass(UniformBufferManager * uniformBufferManager, Shader * shader, Framebuffer * framebuffer)
+GibEngine::Renderer::RenderPass::RenderPass(UniformBufferManager *uniformBufferManager, Shader *shader, Framebuffer *framebuffer)
 	: RenderPass(uniformBufferManager, shader)
 {
 	this->framebuffer = framebuffer;
@@ -24,6 +24,12 @@ void GibEngine::Renderer::RenderPass::RenderPass::AddDrawable(Model *drawable)
 	UniformBuffer* materialUBO = uniformBufferManager->FindOrCreate("materialUBO", sizeof(float) * 36);
 	GLuint materialUBOIndex = glGetUniformBlockIndex(shader->GetShaderId(), "materialUBO");
 	glUniformBlockBinding(shader->GetShaderId(), materialUBOIndex, materialUBO->GetBufferBindingIndex());
+}
+
+void GibEngine::Renderer::RenderPass::AddLight(LightBase *light)
+{
+	this->lights.push_back(light);
+	lightingBindRequred = true;
 }
 
 void GibEngine::Renderer::RenderPass::RenderPass::SetCameraBase(FreeCamera *camera)
@@ -42,7 +48,93 @@ void GibEngine::Renderer::RenderPass::RenderPass::SetCameraBase(FreeCamera *came
 
 	cameraUBO->Update(cameraData);
 
-	delete cameraData;
+	delete[] cameraData;
+}
+
+void GibEngine::Renderer::RenderPass::BindLights()
+{
+	if (!lightingBindRequred)
+	{
+		return;
+	}
+
+	for (unsigned int i = 0; i < this->lights.size(); i++)
+	{
+		LightBase* light = this->lights[i];
+
+		std::string lightId, position, ambient, diffuse, specular,
+			linearAttenuation, quadraticAttenuation, volumeRadius, direction;
+
+		switch (light->GetType())
+		{
+		case EntityType::DIRECTIONAL_LIGHT:
+			lightId = "directional";
+			break;
+		case EntityType::POINT_LIGHT:
+			lightId = "point";
+			break;
+		}
+
+		// Queue up the uniform attribute names:
+		lightId = lightId + "Lights[" + std::to_string(i) + "]";
+		position = lightId + ".position";
+		ambient = lightId + ".ambientColor";
+		diffuse = lightId + ".diffuseColor";
+		specular = lightId + ".specularColor";
+		linearAttenuation = lightId + ".linearAttenuation";
+		quadraticAttenuation = lightId + ".quadraticAttenuation";
+		volumeRadius = lightId + ".volumeRadius";
+		direction = lightId + ".direction";
+
+		if (light->GetType() != EntityType::DIRECTIONAL_LIGHT)
+		{
+			glUniform3fv(
+				glGetUniformLocation(shader->GetShaderId(), position.c_str()),
+				1,
+				glm::value_ptr(light->GetPosition())
+			);
+		}
+
+		glUniform3fv(
+			glGetUniformLocation(shader->GetShaderId(), ambient.c_str()),
+			1,
+			glm::value_ptr(light->GetAmbientColor())
+		);
+
+		glUniform3fv(
+			glGetUniformLocation(shader->GetShaderId(), diffuse.c_str()),
+			1,
+			glm::value_ptr(light->GetDiffuseColor())
+		);
+
+		glUniform3fv(
+			glGetUniformLocation(shader->GetShaderId(), specular.c_str()),
+			1,
+			glm::value_ptr(light->GetSpecularColor())
+		);
+
+		if (light->GetType() == EntityType::POINT_LIGHT)
+		{
+			PointLight *pointLight = reinterpret_cast<PointLight *>(light);
+
+			glUniform1f(
+				glGetUniformLocation(shader->GetShaderId(), linearAttenuation.c_str()),
+				pointLight->GetLinearAttenuation()
+			);
+
+			glUniform1f(
+				glGetUniformLocation(shader->GetShaderId(), quadraticAttenuation.c_str()),
+				pointLight->GetQuadraticAttenuation()
+			);
+
+			glUniform1f(
+				glGetUniformLocation(shader->GetShaderId(), volumeRadius.c_str()),
+				pointLight->GetVolumeRadius()
+			);
+		}
+	}
+
+	lightingBindRequred = false;
 }
 
 void GibEngine::Renderer::RenderPass::RenderPass::SetPassEnabled(bool value) { this->passEnabled = value; }

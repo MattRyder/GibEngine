@@ -22,3 +22,20 @@ glm::vec3 GibEngine::LightBase::GetSpecularColor() const
 {
 	return this->specularColor;
 }
+
+void GibEngine::LightBase::SetAmbientColor(glm::vec3 color)
+{
+	this->ambientColor = color;
+}
+
+void GibEngine::LightBase::SetDiffuseColor(glm::vec3 color)
+{
+	this->diffuseColor = color;
+}
+
+void GibEngine::LightBase::SetSpecularColor(glm::vec3 color)
+{
+	this->specularColor = color;
+}
+
+void GibEngine::LightBase::Update(double deltaTime) { }
