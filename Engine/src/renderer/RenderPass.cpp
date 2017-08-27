@@ -29,7 +29,10 @@ void GibEngine::Renderer::RenderPass::RenderPass::AddDrawable(Model *drawable)
 void GibEngine::Renderer::RenderPass::AddLight(LightBase *light)
 {
 	this->lights.push_back(light);
-	lightingBindRequred = true;
+	if (!lightingBindRequired)
+	{
+		FlagLightingBindRequired();
+	}
 }
 
 void GibEngine::Renderer::RenderPass::RenderPass::SetCameraBase(FreeCamera *camera)
@@ -53,7 +56,7 @@ void GibEngine::Renderer::RenderPass::RenderPass::SetCameraBase(FreeCamera *came
 
 void GibEngine::Renderer::RenderPass::BindLights()
 {
-	if (!lightingBindRequred)
+	if (!lightingBindRequired)
 	{
 		return;
 	}
@@ -134,7 +137,12 @@ void GibEngine::Renderer::RenderPass::BindLights()
 		}
 	}
 
-	lightingBindRequred = false;
+	lightingBindRequired = false;
+}
+
+void GibEngine::Renderer::RenderPass::FlagLightingBindRequired()
+{
+	this->lightingBindRequired = true;
 }
 
 void GibEngine::Renderer::RenderPass::RenderPass::SetPassEnabled(bool value) { this->passEnabled = value; }

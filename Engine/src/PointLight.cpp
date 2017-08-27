@@ -43,3 +43,7 @@ void GibEngine::PointLight::SetQuadraticAttenuation(float attenuation)
 {
 	this->quadraticAtten = attenuation;
 }
+
+void GibEngine::PointLight::Update(float deltaTime)
+{
+}

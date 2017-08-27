@@ -14,7 +14,7 @@ layout(binding = 0) uniform sampler2D framebuffer_Position;
 layout(binding = 1) uniform sampler2D framebuffer_Albedo;
 layout(binding = 2) uniform sampler2D framebuffer_Normal;
 
-const int LIGHT_COUNT = 37;
+const int LIGHT_COUNT = (10 * 10) + 1;
 uniform Light pointLights[LIGHT_COUNT];
 
 in VertexShader {
@@ -30,14 +30,14 @@ void main() {
 	vec3 fragmentNormal = texture(framebuffer_Normal, VS.TexCoords).rgb;
 	float fragmentSpecular = texture(framebuffer_Albedo, VS.TexCoords).a;
 
-	vec3 lightColor = fragmentDiffuse * 0.1;
+	vec3 lightColor = fragmentDiffuse * 0.5;
 	vec3 viewDirection = normalize(VS.CameraPosition - fragmentPosition);
 
 	for(int i = 0; i < LIGHT_COUNT; i++) {
 		float distanceToLight = length(pointLights[i].position - fragmentPosition);
 
-		// if(distanceToLight > pointLights[i].volumeRadius * 10)
-		// 		continue;
+		if(distanceToLight > pointLights[i].volumeRadius)
+				continue;
 
 		vec3 lightDirection = normalize(pointLights[i].position - fragmentPosition);
 		vec3 diffuseColor = max(dot(fragmentNormal, lightDirection), 0.0) * fragmentDiffuse * pointLights[i].diffuseColor;

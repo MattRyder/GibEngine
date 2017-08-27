@@ -16,7 +16,7 @@ namespace GibEngine
 		class RenderPass
 		{
 			bool passEnabled = true;
-			bool lightingBindRequred;
+			bool lightingBindRequired;
 
 		protected:
 			Shader *shader;
@@ -39,6 +39,7 @@ namespace GibEngine
 			virtual void SetCameraBase(FreeCamera *camera);
 
 			void BindLights();
+			void FlagLightingBindRequired();
 
 			void TakeScreenshot(int framebufferWidth, int framebufferHeight);
 

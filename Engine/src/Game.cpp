@@ -41,16 +41,16 @@ GibEngine::Game::Game(const char *windowTitle)
 	PointLight* light = new PointLight(
 		glm::vec3(0, 5.0f, 0),
 		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.9f, 0.9f, 0.9f),
-		0.7f,
-		1.8f);
+		-3.8f,
+		1.5f);
 
 	glm::mat4 modelMatrix;
-	int a = 64, b = 6;
+	int a = 64, b = 10;
 	for (int x = -a; x < a; x++)
 		for (int y = -a; y < a; y++)
 		{
 			modelMatrix = glm::mat4();
-			modelMatrix[3] = glm::vec4(x * 5 + rand() % 10, rand() % 10, y * 5 + rand() % 10, 1.0);
+			modelMatrix[3] = glm::vec4(x * 2.5, 0, y * 2.5, 1.0);
 			this->model->AddInstance(modelMatrix);
 		}
 
@@ -68,11 +68,13 @@ GibEngine::Game::Game(const char *windowTitle)
 		for (int y = -b; y < b; y++)
 		{
 			PointLight* lightDup = new PointLight(*light);
-			lightDup->SetPosition(glm::vec3(x * 5, 10, x * 5));
+			lightDup->SetPosition(glm::vec3(x * 10, 5, y * 10));
 
 			float r = rand() % 100 / 100.0;
 			float g = rand() % 100 / 100.0;
 			float bb = rand() % 100 / 100.0;
+
+			Logger::Instance->info("Color: {} {} {}", r, g, bb);
 
 			lightDup->SetDiffuseColor(glm::vec3(r, g, bb));
 			//lightDup->SetLinearAttenuation(rand() % 100 / 10.0);
