@@ -4,15 +4,32 @@
 GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 {
 	std::function<void()> exitCallback = [&]() -> void { glfwSetWindowShouldClose(GetWindow(), true); };
+	std::function<void()> openWorldFileCallback = [&]() -> void
+	{
+		nfdchar_t* outPath = nullptr;
+		nfdresult_t res = NFD_OpenDialog("gwo", GibEngine::File::GetWorkingDirectory().c_str(), &outPath);
+
+		if (res == NFD_OKAY)
+		{
+			std::cout << "Success!" << std::endl;
+		}
+		else if(res != NFD_CANCEL)
+		{
+			std::cout << "Error: " << std::endl;
+		}
+	};
 
 	menubar = new Components::Menubar();
 	menubar->SetOnExitCallback(exitCallback);
+	menubar->SetOnOpenFileDialogCallback(openWorldFileCallback);
 
 	dock = new Components::Dock();
 }
 
 GibEditor::Editor::~Editor()
 {
+	delete menubar;
+	delete dock;
 }
 
 void GibEditor::Editor::Render()

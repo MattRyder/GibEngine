@@ -1,9 +1,13 @@
 #pragma once
 
 #include "imgui_dock.h"
+#include "nfd.h"
 #include "Game.h"
 #include "components/Menubar.h"
 #include "components/Dock.h"
+
+#include "UnixDirectoryChangeObserver.h"
+#include "WindowsDirectoryChangeObserver.h"
 
 namespace GibEditor
 {

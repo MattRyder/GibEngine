@@ -30,6 +30,16 @@ file(
 	"thirdparty/simpleini/SimpleIni.h")
 source_group(SimpleIni FILES ${SIMPLEINI_FILES})
 
+include_directories("thirdparty/nativefiledialog")
+file(
+	GLOB NFD_FILES
+	"thirdparty/nativefiledialog/nfd_common.c"
+	"thirdparty/nativefiledialog/nfd_gtk.c"
+	"thirdparty/nativefiledialog/nfd_win.cpp"
+	"thirdparty/nativefiledialog/nfs_cocoa.m"
+	"thirdparty/nativefiledialog/*.h")
+source_group(NativeFileDialog FILES ${NFD_FILES})
+
 file(
 	GLOB COMPONENT_FILES
 		include/components/IComponent.h
@@ -42,10 +52,16 @@ file(
 add_executable(GibEditor
   ${SIMPLEINI_FILES}
   ${IMGUI_FILES}
+  ${NFD_FILES}
   ${COMPONENT_FILES}
+  include/Observer.h
+  include/UnixDirectoryChangeObserver.h
+  include/WindowsDirectoryChangeObserver.h
   include/Editor.h
   include/Main.h
-
+  
+  src/UnixDirectoryChangeObserver.cpp
+  src/WindowsDirectoryChangeObserver.cpp
   src/Editor.cpp
   src/Main.cpp
   ${SHADER_FILES})
