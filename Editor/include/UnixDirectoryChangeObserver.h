@@ -8,5 +8,7 @@ namespace GibEditor
 	{
 	public:
 		UnixDirectoryChangeObserver(std::string directoryPath, bool searchSubdirectories, std::function<void(std::string)> onChangeFunc);
+
+		virtual void Update() override;
 	};
 }
