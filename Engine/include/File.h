@@ -21,6 +21,7 @@
 #define MODEL_RELATIVE_PATH ASSET_RELATIVE_PATH "Models/"
 #define SHADER_RELATIVE_PATH ASSET_RELATIVE_PATH "Shaders/"
 #define SKYBOX_RELATIVE_PATH ASSET_RELATIVE_PATH "Skybox/"
+#define FONT_RELATIVE_PATH ASSET_RELATIVE_PATH "Fonts/"
 
 namespace GibEngine
 {
@@ -38,6 +39,7 @@ namespace GibEngine
 
 		static std::string* GetScreenshotPath();
 
+		static File* GetFontFile(const char* fontName);
         static File* GetModelFile(const char* modelName);
         static File* GetShaderFile(const char* shaderName);
 		static File* GetSkyboxFile(const char* skyboxTextureName, const char* skyboxSideName);

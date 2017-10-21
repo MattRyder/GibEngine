@@ -10,27 +10,48 @@ include_directories(${EDITOR_INCLUDE_DIRS})
 
 file(GLOB_RECURSE SHADER_FILES ${CMAKE_SOURCE_DIR}/Assets/Shaders/*.glsl)
 
-include_directories("imgui/" "imgui/examples/opengl3_example/")
+include_directories("thirdparty/imgui/")
 file(
 	GLOB IMGUI_FILES
-		"imgui/imgui.cpp"
-		"imgui/imgui_draw.cpp"
-    "imgui/imgui_demo.cpp"
-    "imgui/examples/opengl3_example/imgui_impl_glfw_gl3.cpp"
-    "imgui/examples/opengl3_example/imgui_impl_glfw_gl3.h"
-		"imgui/*.h"
+		"thirdparty/imgui/imgui.cpp"
+		"thirdparty/imgui/imgui_draw.cpp"
+		"thirdparty/imgui/imgui_demo.cpp"
+		"thirdparty/imgui/imgui_dock.cpp"
+		"thirdparty/imgui/imgui_impl_glfw_gl3.cpp"
+		"thirdparty/imgui/*.h"
 )
 source_group(ImGui FILES ${IMGUI_FILES})
 
+include_directories("thirdparty/simpleini")
+file(
+	GLOB SIMPLEINI_FILES
+	"thirdparty/simpleini/ConvertUTF.h"
+	"thirdparty/simpleini/ConvertUTF.c"
+	"thirdparty/simpleini/SimpleIni.h")
+source_group(SimpleIni FILES ${SIMPLEINI_FILES})
+
+file(
+	GLOB COMPONENT_FILES
+		include/components/IComponent.h
+		include/components/Menubar.h
+		include/components/Dock.h
+		src/components/Dock.cpp
+		src/components/Menubar.cpp
+)
+
 add_executable(GibEditor
+  ${SIMPLEINI_FILES}
   ${IMGUI_FILES}
+  ${COMPONENT_FILES}
   include/Editor.h
   include/Main.h
+
   src/Editor.cpp
   src/Main.cpp
   ${SHADER_FILES})
 
 source_group("Shaders" FILES ${SHADER_FILES})
+source_group("Components" FILES ${COMPONENT_FILES})
 
 target_link_libraries(GibEditor GibEngine)
 

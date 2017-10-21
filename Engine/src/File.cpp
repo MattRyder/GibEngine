@@ -34,7 +34,14 @@ std::string* GibEngine::File::GetPathForType(const char* filePath)
     return pathStr;
 }
 
-GibEngine::File* GibEngine::File::GetModelFile(const char* modelFile) 
+GibEngine::File* GibEngine::File::GetFontFile(const char * fontName)
+{
+	std::string *fileBase = GetPathForType(FONT_RELATIVE_PATH);
+	fileBase->append(fontName);
+	return new File(fileBase->c_str());
+}
+
+GibEngine::File* GibEngine::File::GetModelFile(const char* modelFile)
 {
     std::string *fileBase = GetPathForType(MODEL_RELATIVE_PATH);
     fileBase->append(modelFile);

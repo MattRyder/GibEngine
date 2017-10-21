@@ -59,5 +59,6 @@ namespace GibEngine
 		void SetWindowSize(int windowWidth, int windowHeight);
 
 		GLFWwindow* GetWindow();
+		glm::vec2 GetWindowSize();
 	};
 }

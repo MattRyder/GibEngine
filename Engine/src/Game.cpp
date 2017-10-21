@@ -92,8 +92,6 @@ GibEngine::Game::~Game()
 void GibEngine::Game::Render()
 {
 	this->renderPipeline->Render();
-
-	glfwSwapBuffers(window);
 	Update();
 }
 
