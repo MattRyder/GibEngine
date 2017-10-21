@@ -9,10 +9,10 @@ GibEditor::Editor::~Editor()
 }
 
 void GibEditor::Editor::Render()
-{
-   Game::Render();
-
-   this->Update();
+{    
+    Game::Render();
+    
+    this->Update();
 }
 
 void GibEditor::Editor::Update()
