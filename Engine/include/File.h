@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef WIN32
-    #include <Windows.h>
+#include <windows.h>
 #elif __linux__
     #include <unistd.h>
     #include <linux/limits.h>
@@ -15,7 +15,7 @@
 /* Fast asset path descriptors, keep things consistent
  * All definitions must be terminated with a forward-slash:
 */
-#define ASSET_RELATIVE_PATH "/Assets/"
+#define ASSET_RELATIVE_PATH "/../../Assets/"
 #define SCREENSHOT_RELATIVE_PATH "/Screenshots/"
 
 #define MODEL_RELATIVE_PATH ASSET_RELATIVE_PATH "Models/"
@@ -47,5 +47,7 @@ namespace GibEngine
         const char* GetPath();
         
         const char* ReadFile();
+
+		bool Exists();
     };
 }

@@ -12,7 +12,7 @@ namespace GibEngine
 			Skybox *skybox;
 
 		public:
-			SkyboxRenderPass(UniformBufferManager* uniformBufferManager, Shader *shader);
+			SkyboxRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader);
 
 			virtual void Render();
 			void Update(float deltaTime);

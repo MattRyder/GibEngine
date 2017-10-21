@@ -9,12 +9,8 @@ namespace GibEngine
 {
     class Shader
     {
-        enum class ShaderType
-        {
-            COLOR
-        };
-
         GLuint shaderId;
+        bool isComplete;
 
         File *vertexShader;
         File *fragmentShader;
@@ -31,5 +27,8 @@ namespace GibEngine
 		void End();
 
         GLuint GetShaderId();
+        bool IsComplete();
+
+        void SetComplete(bool isComplete);
     };
 }

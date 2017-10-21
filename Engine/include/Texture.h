@@ -9,7 +9,7 @@
 
 namespace GibEngine
 {
-	enum class TextureType
+	enum TextureType
 	{
 		DIFFUSE,
 		SPECULAR,
@@ -17,40 +17,69 @@ namespace GibEngine
 		TEXTURETYPE_LAST
 	};
 
+	struct TextureData {
+		unsigned int Target;
+		int Width;
+		int Height;
+		int Channels;
+		unsigned char *Data;
+
+		bool IsPowerOfTwo()
+		{
+			return (Width & (Width - 1)) != 0 || (Height & (Height - 1)) != 0;
+		}
+	};
+
+	struct Cubemap
+	{
+		std::string* directory;
+		const char* extension;
+
+		TextureData* textures[6];
+	};
+
+
 	class Texture
 	{
-		typedef struct texture_data_t
-		{
-			GLuint Target;
-			int Width;
-			int Height;
-			int Channels;
-			unsigned char *Data;
-
-			bool IsPowerOfTwo()
-			{
-				return (Width & (Width - 1)) != 0 || (Height & (Height - 1)) != 0;
-			}
-		} TextureData;
-
 		std::string *fileName;
-		TextureData *data;
+		unsigned int textureId;
+		bool isUploaded;
+
+		Cubemap* cubemap;
+		TextureData* imageData;
+		bool isLoaded = false;
+
 		TextureType type;
 
-		GLuint textureId;
-
-		TextureData* Load(std::string *fileName);
-
-	public:
+	protected:
 		Texture();
 		Texture(TextureType type, std::string *fileName);
+
+		static TextureData* LoadTextureData(std::string *textureFilename);
+
+	public:
+		static const char* TextureTypeStrings[4];
+		
+
 		~Texture();
 
-		static Texture* LoadCubemap(std::string top, std::string bottom, std::string left,
-			std::string right, std::string front, std::string back);
+		static Texture* Load(TextureType type, std::string *fileName);
+		static Texture* LoadCubemap(std::string *cubemapDirectory, const char *textureExtension);
 
-		static const char* TextureTypeStrings[4];
+		std::string* GetFilename();
+		unsigned int GetTextureId();
+		TextureType GetTextureType();
+		const char* GetTextureTypeString();
+		TextureData* GetTextureData();
 
-		GLuint GetTextureId();
+		Cubemap* GetCubemap();
+
+		bool IsLoaded() { return this->isLoaded; }
+
+		void SetTextureData(TextureData *textureData);
+		void SetTextureId(unsigned int textureId);
+		void SetCubemap(Cubemap *cubemap);
+		bool SetLoaded(bool loaded);
+
 	};
 }

@@ -3,7 +3,6 @@
 #include <vector>
 #include <GL/gl3w.h>
 #include <glm/detail/type_vec3.hpp>
-//#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Logger.h"
 

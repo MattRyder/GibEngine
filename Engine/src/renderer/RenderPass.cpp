@@ -1,18 +1,40 @@
 #include "renderer/RenderPass.h"
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb/stb_image_write.h>
+GLfloat GibEngine::Renderer::RenderPass::QuadTextureData[] = {
+	// Positions			// Texture Coords
+	-1.0f, 1.0f, 0.0f,		0.0f, 1.0f,
+	-1.0f, -1.0f, 0.0f,		0.0f, 0.0f,
+	1.0f, 1.0f, 0.0f,		1.0f, 1.0f,
+	1.0f, -1.0f, 0.0f,		1.0f, 0.0f,
+};
 
-GibEngine::Renderer::RenderPass::RenderPass(UniformBufferManager *uniformBufferManager, Shader *shader)
+GibEngine::Renderer::RenderPass::RenderPass(API::IGraphicsApi* graphicsApi, Shader *shader)
 {
+	this->graphicsApi = graphicsApi;
 	this->shader = shader;
-	this->uniformBufferManager = uniformBufferManager;
 }
 
-GibEngine::Renderer::RenderPass::RenderPass(UniformBufferManager *uniformBufferManager, Shader *shader, Framebuffer *framebuffer)
-	: RenderPass(uniformBufferManager, shader)
+GibEngine::Renderer::RenderPass::RenderPass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer *framebuffer)
+	: RenderPass(graphicsApi, shader)
 {
 	this->framebuffer = framebuffer;
+}
+
+void GibEngine::Renderer::RenderPass::LoadQuadData()
+{
+	std::vector<Vertex> quadVerts;
+
+	for (unsigned int i = 0; i < 20; i += 5)
+	{
+		Vertex v;
+		v.Position = glm::vec3(QuadTextureData[i], QuadTextureData[i + 1], QuadTextureData[i + 2]);
+		v.TexCoord = glm::vec2(QuadTextureData[i + 3], QuadTextureData[i + 4]);
+
+		quadVerts.push_back(v);
+	}
+
+	quadMesh = new Mesh(quadVerts);
+	quadMesh->SetMeshUploadTicket(graphicsApi->UploadMesh(quadMesh));
 }
 
 void GibEngine::Renderer::RenderPass::Render() { }
@@ -21,37 +43,29 @@ void GibEngine::Renderer::RenderPass::RenderPass::AddDrawable(Model *drawable)
 {
 	this->drawablesList.push_back(drawable);
 
-	UniformBuffer* materialUBO = uniformBufferManager->FindOrCreate("materialUBO", sizeof(float) * 36);
-	GLuint materialUBOIndex = glGetUniformBlockIndex(shader->GetShaderId(), "materialUBO");
-	glUniformBlockBinding(shader->GetShaderId(), materialUBOIndex, materialUBO->GetBufferBindingIndex());
+	for (auto mesh : drawable->GetMeshes())
+	{
+		MeshUploadTicket* ticket = graphicsApi->UploadMesh(mesh);
+		mesh->SetMeshUploadTicket(ticket);
+
+		// Bind the Mesh material's Texture objects:
+		for(auto material : mesh->GetMaterials())
+			for(auto texture : material->Textures)
+			{
+				graphicsApi->UploadTexture2D(texture);
+			}
+	}
 }
 
 void GibEngine::Renderer::RenderPass::AddLight(LightBase *light)
 {
 	this->lights.push_back(light);
-	if (!lightingBindRequired)
-	{
-		FlagLightingBindRequired();
-	}
+	FlagLightingBindRequired();
 }
 
-void GibEngine::Renderer::RenderPass::RenderPass::SetCameraBase(FreeCamera *camera)
+void GibEngine::Renderer::RenderPass::SetCameraBase(CameraBase * camera)
 {
 	this->camera = camera;
-
-	UniformBuffer* cameraUBO = uniformBufferManager->FindOrCreate("cameraUBO", camera->BUFFER_OBJECT_SIZE);
-	GLuint cameraUBOIndex = glGetUniformBlockIndex(shader->GetShaderId(), "cameraUBO");
-	glUniformBlockBinding(shader->GetShaderId(), cameraUBOIndex, cameraUBO->GetBufferBindingIndex());
-
-	float *cameraData = new float[camera->BUFFER_OBJECT_SIZE]{ 0 };
-
-	memcpy(&cameraData[0], glm::value_ptr(camera->GetProjectionMatrix()), sizeof(float) * 16);
-	memcpy(&cameraData[16], glm::value_ptr(camera->GetViewMatrix()), sizeof(float) * 16);
-	memcpy(&cameraData[32], glm::value_ptr(camera->GetPosition()), sizeof(float) * 3);
-
-	cameraUBO->Update(cameraData);
-
-	delete[] cameraData;
 }
 
 void GibEngine::Renderer::RenderPass::BindLights()
@@ -91,35 +105,20 @@ void GibEngine::Renderer::RenderPass::BindLights()
 
 		if (light->GetType() != EntityType::DIRECTIONAL_LIGHT)
 		{
-			glUniform3fv(
-				glGetUniformLocation(shader->GetShaderId(), position.c_str()),
-				1,
-				glm::value_ptr(light->GetPosition())
-			);
+			BindLightUniform3f(position.c_str(), light->GetPosition());
 		}
 
-		glUniform3fv(
-			glGetUniformLocation(shader->GetShaderId(), ambient.c_str()),
-			1,
-			glm::value_ptr(light->GetAmbientColor())
-		);
+		// Currently unused by the deferred lighting shader:
+		//BindLightUniform3f(ambient.c_str(), light->GetAmbientColor());
 
-		glUniform3fv(
-			glGetUniformLocation(shader->GetShaderId(), diffuse.c_str()),
-			1,
-			glm::value_ptr(light->GetDiffuseColor())
-		);
+		BindLightUniform3f(diffuse.c_str(), light->GetDiffuseColor());
 
-		glUniform3fv(
-			glGetUniformLocation(shader->GetShaderId(), specular.c_str()),
-			1,
-			glm::value_ptr(light->GetSpecularColor())
-		);
+		BindLightUniform3f(specular.c_str(), light->GetSpecularColor());
 
 		if (light->GetType() == EntityType::POINT_LIGHT)
 		{
 			PointLight *pointLight = reinterpret_cast<PointLight *>(light);
-
+			
 			glUniform1f(
 				glGetUniformLocation(shader->GetShaderId(), linearAttenuation.c_str()),
 				pointLight->GetLinearAttenuation()
@@ -147,15 +146,10 @@ void GibEngine::Renderer::RenderPass::FlagLightingBindRequired()
 
 void GibEngine::Renderer::RenderPass::RenderPass::SetPassEnabled(bool value) { this->passEnabled = value; }
 
-void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot(int framebufferWidth, int framebufferHeight)
+void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot()
 {
 	const size_t DATE_MAX_LENGTH = 64;
-	size_t framebufferBytes = (size_t)(framebufferWidth * framebufferHeight * 3);
-
-	unsigned char* frameBuffer = new unsigned char[framebufferBytes];
 	char* date = new char[DATE_MAX_LENGTH];
-
-	glReadPixels(0, 0, framebufferWidth, framebufferHeight, GL_RGB, GL_UNSIGNED_BYTE, frameBuffer);
 
 	std::string filename = std::string();
 
@@ -165,19 +159,28 @@ void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot(int framebuffer
 	// Prepend Date to the log message:
 	strftime(date, DATE_MAX_LENGTH, "%F-%H-%M-%S", timeinfo);
 
-	filename.append("GibEngine_").append(date);
+	filename.append("GibEngine_").append(date).append(".png");
 	File *screenshotFile = File::GetScreenshotFile(filename.c_str());
 
-	unsigned char *lastRow = frameBuffer + (framebufferWidth * 3 * (framebufferHeight - 1));
+	unsigned char *frameBuffer = graphicsApi->ReadFramebuffer(framebuffer);
+	unsigned char *lastRow = frameBuffer + (framebuffer->GetBufferWidth() * 3 * (framebuffer->GetBufferHeight() - 1));
 	const char *filePath = screenshotFile->GetPath();
 
-	if (!stbi_write_png(filePath, framebufferWidth, framebufferHeight, 3, lastRow, -3 * framebufferWidth)) {
-		Logger::Instance->error("Failed to write screenshot '{}'", filePath);
-	}
-	else {
-		Logger::Instance->info("Screenshot saved to '{}'", filePath);
-	}
+	// if (!stbi_write_png(filePath, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 3, lastRow, -3 * framebuffer->GetBufferWidth()))
+	// {
+	// 	Logger::Instance->error("Failed to write screenshot '{}'", filePath);
+	// }
+	// else
+	// {
+	// 	Logger::Instance->info("Screenshot saved to '{}'", filePath);
+	// }
 
 	delete[] date;
 	delete[] frameBuffer;
+}
+
+void GibEngine::Renderer::RenderPass::BindLightUniform3f(const char* lightUniformName, const glm::vec3 lightUniformValue)
+{
+	unsigned int uniformLocation = graphicsApi->GetUniformLocation(lightUniformName);
+	graphicsApi->BindUniform3fv(uniformLocation, 1, glm::value_ptr(lightUniformValue));
 }

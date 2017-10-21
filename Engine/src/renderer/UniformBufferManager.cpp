@@ -35,7 +35,7 @@ GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::C
 GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::FindOrCreate(const char * bufferName, size_t bufferSize)
 {
 	UniformBuffer* buffer = nullptr;
-	if ((buffer = FindBuffer(bufferName)) != nullptr)
+	if ((buffer = Find(bufferName)) != nullptr)
 	{
 		return buffer;
 	}
@@ -58,11 +58,11 @@ void GibEngine::Renderer::UniformBufferManager::Destroy(UniformBuffer* uniformBu
 	delete uniformBuffer;
 }
 
-GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::FindBuffer(const char* bufferName)
+GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::Find(const char* bufferName)
 {
 	for (unsigned int i = 0; i < MAX_UNIFORM_BUFFER_COUNT; i++)
 	{
-		if (buffers[i] != nullptr && buffers[i]->GetBufferName() == bufferName)
+		if (buffers[i] != nullptr && strcmp(buffers[i]->GetBufferName(), bufferName) == 0)
 		{
 			return buffers[i];
 		}

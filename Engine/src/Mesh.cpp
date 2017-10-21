@@ -1,38 +1,23 @@
 #include "../include/Mesh.h"
 
+GibEngine::Mesh::Mesh() : Entity(EntityType::MODEL) { }
+
 GibEngine::Mesh::Mesh(const char* directory, aiMesh *mesh, const aiScene* scene) : Entity(EntityType::MODEL)
 {
 	this->directory = directory;
-
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-	glGenBuffers(1, &instanceVBO);
-
 	ProcessMesh(mesh, scene);
-	this->LoadMeshData();
 }
 
-GibEngine::Mesh::Mesh(float* vertices, unsigned int verticesCount) : Entity(EntityType::MODEL)
+GibEngine::Mesh::Mesh(std::vector<Vertex> vertices) : Entity(EntityType::MODEL)
 {
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-	glGenBuffers(1, &instanceVBO);
-
-	for (unsigned int i = 0; i < verticesCount; i += 3)
-	{
-		GibEngine::Vertex vertex = {};
-		vertex.Position = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-		this->vertices.push_back(vertex);
-	}
-
-	this->LoadMeshData();
+	this->vertices = vertices;
+	this->instanceMatricesDirty = false;
+	this->directory = nullptr;
 }
 
 void GibEngine::Mesh::ProcessMesh(aiMesh *mesh, const aiScene* scene)
 {
-	for (GLuint i = 0; i < mesh->mNumVertices; i++)
+	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
 		Vertex vertex;
 		if (mesh->HasTangentsAndBitangents())
@@ -62,10 +47,10 @@ void GibEngine::Mesh::ProcessMesh(aiMesh *mesh, const aiScene* scene)
 
 		vertices.push_back(vertex);
 	}
-	for (GLuint i = 0; i < mesh->mNumFaces; i++)
+	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 	{
 		aiFace face = mesh->mFaces[i];
-		for (GLuint j = 0; j < face.mNumIndices; j++)
+		for (unsigned int j = 0; j < face.mNumIndices; j++)
 		{
 			indices.push_back(face.mIndices[j]);
 		}
@@ -102,140 +87,87 @@ void GibEngine::Mesh::ProcessMesh(aiMesh *mesh, const aiScene* scene)
 	this->materials.push_back(mat);
 }
 
-void GibEngine::Mesh::LoadMeshData()
+void GibEngine::Mesh::SetIndices(std::vector<unsigned int> indices)
 {
-	size_t vboSize = vertices.size() * sizeof(Vertex);
-
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, vboSize, &vertices[0], GL_STATIC_DRAW);
-
-	if (indices.size() > 0)
-	{
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
-	}
-
-	// Setup Position:
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
-
-	// Setup Normals:
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, Normal));
-
-	// Setup TexCoord:
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, TexCoord));
-
-	//// Setup Tangents:
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, Tangent));
-
-	//// Setup Bitangents:
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, Bitangent));
-
-	glBindVertexArray(0);
+	this->indices = indices;
 }
 
-void GibEngine::Mesh::LoadMaterial(GLuint shaderProgram) 
+void GibEngine::Mesh::SetVertices(std::vector<Vertex> vertices)
 {
-	for (int i = 0; i < 1; i++)
-	{
-		struct material_uniform_block_t material(materials[i]);
-		
-		for (unsigned int tIndex = 0; tIndex < materials[i]->Textures.size(); tIndex++)
-		{
-			const char *textureTypeStr = Texture::TextureTypeStrings[tIndex];
-
-			glActiveTexture(GL_TEXTURE0 + tIndex);
-
-			std::string textureUniformName = std::string("texture_" + std::string(textureTypeStr) + std::to_string(/*tIndex*/0 + 1));
-			GLint textureLocation = glGetUniformLocation(shaderProgram, textureUniformName.c_str());
-			glUniform1i(textureLocation, static_cast<GLfloat>(tIndex));
-			glBindTexture(GL_TEXTURE_2D, material.Textures[tIndex]);
-		}
-
-		//GLint surfaceAmbientLocation = glGetUniformLocation(shaderProgram, "material.ambient");
-		//if (surfaceAmbientLocation > 0) { glUniform3fv(surfaceAmbientLocation, 1, material.AmbientColor); }
-
-		//GLuint surfaceDiffuseLocation = glGetUniformLocation(shaderProgram, "material.diffuse");
-		//if (surfaceDiffuseLocation > 0) { glUniform3fv(surfaceDiffuseLocation, 1, material.DiffuseColor); }
-
-		//GLuint surfaceSpecularLocation = glGetUniformLocation(shaderProgram, "material.specular");
-		//if (surfaceSpecularLocation > 0) { glUniform3fv(surfaceSpecularLocation, 1, material.SpecularColor); }
-
-		//GLuint surfaceShininessLocation = glGetUniformLocation(shaderProgram, "material.shininess");
-		//if (surfaceShininessLocation > 0) { glUniform1f(surfaceShininessLocation, material.Shininess); }
-
-		//GLuint surfaceOpacityLocation = glGetUniformLocation(shaderProgram, "material.opacity");
-		//if (surfaceOpacityLocation > 0) { glUniform1f(surfaceOpacityLocation, material.Opacity); }
-	}
+	this->vertices = vertices;
 }
 
-void GibEngine::Mesh::UpdateInstances()
+void GibEngine::Mesh::SetInstanceMatricesDirty(bool isDirty)
 {
-	const int vec4Size = sizeof(glm::vec4);
+	this->instanceMatricesDirty = isDirty;
+}
 
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-	glBufferData(GL_ARRAY_BUFFER, instanceMatrices.size() * sizeof(glm::mat4), &instanceMatrices[0], GL_STATIC_DRAW);
+bool GibEngine::Mesh::IsInstanceMatricesDirty() const
+{
+	return this->instanceMatricesDirty;
+}
 
-	glEnableVertexAttribArray(5);
-	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)0);
-	glEnableVertexAttribArray(6);
-	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)vec4Size);
-	glEnableVertexAttribArray(7);
-	glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(vec4Size * 2));
-	glEnableVertexAttribArray(8);
-	glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(vec4Size * 3));
-
-	glVertexAttribDivisor(5, 1);
-	glVertexAttribDivisor(6, 1);
-	glVertexAttribDivisor(7, 1);
-	glVertexAttribDivisor(8, 1);
+std::vector<glm::mat4> GibEngine::Mesh::GetInstanceMatrices() const
+{
+	return this->instanceMatrices;
 }
 
 void GibEngine::Mesh::AddInstance(glm::mat4 modelMatrix)
 {
 	this->instanceMatrices.push_back(modelMatrix);
-	UpdateInstances();
+	this->instanceMatricesDirty = true;
 }
 
-unsigned int GibEngine::Mesh::GetVAO()
+void GibEngine::Mesh::SetInstance(unsigned int index, glm::mat4 modelMatrix)
 {
-	return VAO;
+	this->instanceMatrices.insert(this->instanceMatrices.begin() + index, modelMatrix);
 }
 
-size_t GibEngine::Mesh::GetIndicesSize()
+std::vector<GibEngine::Vertex> GibEngine::Mesh::GetVertices() const
 {
-	return indices.size();
+	return this->vertices;
 }
 
-size_t GibEngine::Mesh::GetInstanceCount()
+std::vector<unsigned int> GibEngine::Mesh::GetIndices() const
 {
-	return instanceMatrices.size();
+	return this->indices;
 }
 
-void GibEngine::Mesh::Update(double deltaTime)
+std::vector<GibEngine::Material*> GibEngine::Mesh::GetMaterials() const
 {
+	return this->materials;
 }
 
-std::vector<GibEngine::Texture*> GibEngine::Mesh::LoadMaterialTextures(aiMaterial * material, aiTextureType type, GibEngine::TextureType textureType)
+GibEngine::MeshUploadTicket * GibEngine::Mesh::GetMeshUploadTicket() const
 {
-	std::vector<Texture *> textures;
-	for (GLuint i = 0; i < material->GetTextureCount(type); i++) {
+	return this->uploadTicket;
+}
+
+void GibEngine::Mesh::Update(double deltaTime) { }
+
+std::vector<GibEngine::Texture*> GibEngine::Mesh::LoadMaterialTextures(aiMaterial* material, aiTextureType type, GibEngine::TextureType textureType)
+{
+	std::vector<Texture*> textures;
+	for (unsigned int i = 0; i < material->GetTextureCount(type); i++) {
 		aiString str;
 		material->GetTexture(type, i, &str);
 
 		std::string* texturePath = new std::string(this->directory);
 		texturePath->append("/").append(str.C_Str());
 
-		Texture* texture = new Texture(textureType, texturePath);
+		Texture* texture = Texture::Load(textureType, texturePath);
 		textures.push_back(texture);
 	}
 	return textures;
 
+}
+
+bool GibEngine::Mesh::IsUploaded()
+{
+	return this->uploadTicket != nullptr;
+}
+
+void GibEngine::Mesh::SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept)
+{
+	this->uploadTicket = meshUploadReciept;
 }

@@ -1,20 +1,21 @@
 #include "Skybox.h"
 
-GibEngine::Skybox::Skybox(std::string skyboxTextureName, std::string skyboxTextureExtension) : Mesh(skyboxVertices, SKYBOX_VERTICES_COUNT)
+GibEngine::Skybox::Skybox(std::string skyboxTextureName, std::string skyboxTextureExtension) : Mesh()//skyboxVertices, SKYBOX_VERTICES_COUNT)
 {
 	this->modelMatrix = glm::mat4();
 	this->SetName(&skyboxTextureName);
 
-	std::string skyboxTextureDir = *File::GetSkyboxPath(skyboxTextureName.c_str());
-	std::string skyboxFront = skyboxTextureDir + "\\front." + skyboxTextureExtension;
-	std::string skyboxBack = skyboxTextureDir + "\\back." + skyboxTextureExtension;
-	std::string skyboxLeft = skyboxTextureDir + "\\left." + skyboxTextureExtension;
-	std::string skyboxRight = skyboxTextureDir + "\\right." + skyboxTextureExtension;
-	std::string skyboxTop = skyboxTextureDir + "\\top." + skyboxTextureExtension;
-	std::string skyboxBottom = skyboxTextureDir + "\\bottom." + skyboxTextureExtension;
+	std::vector<Vertex> vertices;
+	for (unsigned int i = 0; i < SKYBOX_VERTICES_COUNT; i += 3)
+	{
+		GibEngine::Vertex vertex = {};
+		vertex.Position = glm::vec3(skyboxVertices[i], skyboxVertices[i + 1], skyboxVertices[i + 2]);
+		vertices.push_back(vertex);
+	}
+	this->SetVertices(vertices);
 
-	skyboxCubemap = new Texture();
-	skyboxCubemap->LoadCubemap(skyboxTop, skyboxBottom, skyboxLeft, skyboxRight, skyboxFront, skyboxBack);
+	std::string* skyboxTextureDir = File::GetSkyboxPath(skyboxTextureName.c_str());
+	skyboxCubemap = Texture::LoadCubemap(skyboxTextureDir, "png");
 }
 
 GibEngine::Skybox::~Skybox() { }
@@ -26,15 +27,15 @@ GibEngine::Texture* GibEngine::Skybox::GetCubemap()
 
 glm::mat4 GibEngine::Skybox::GetModelMatrix()
 {
-	return modelMatrix;
+	return this->GetInstanceMatrices().size() > 0 ? this->GetInstanceMatrices().at(0) : glm::mat4();
 }
 
 void GibEngine::Skybox::SetModelMatrix(glm::mat4 modelMatrix)
 {
-	this->modelMatrix = modelMatrix;
+	this->SetInstance(0, modelMatrix);
 }
 
 void GibEngine::Skybox::Update(double deltaTime)
 {
-	modelMatrix = glm::rotate(modelMatrix, float(glm::radians(SKYBOX_MOVE_SPEED * deltaTime)), glm::vec3(0, 1, 0));
+	SetModelMatrix(glm::rotate(GetModelMatrix(), float(glm::radians(SKYBOX_MOVE_SPEED * deltaTime)), glm::vec3(0, 1, 0)));
 }

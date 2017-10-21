@@ -1,10 +1,10 @@
 ﻿#include "Game.h"
 
-GibEngine::Game::Game(const char *windowTitle)
+GibEngine::Game::Game(int argc, char** argv)
 {
-	this->windowTitle = windowTitle;
+	this->ParseOptions(argc, argv);
 
-	if (!initializeGL())
+	if (!initializeGL(shaderLanguage))
 	{
 		Logger::Instance->error("Failed to initialize OpenGL!");
 		return;
@@ -13,8 +13,9 @@ GibEngine::Game::Game(const char *windowTitle)
 	if (GL_KHR_debug)
 	{
 		GibEngine::Logger::Instance->info("GL_KHR_debug extension available");
-		//glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		//glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
+
 		GibEngine::Logger::Instance->info("GL_KHR_debug extension enabled");
 	}
 
@@ -25,10 +26,10 @@ GibEngine::Game::Game(const char *windowTitle)
 	glEnable(GL_BLEND);
 	glDepthFunc(GL_LEQUAL);
 
-	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 250.0f, 65.0f);
-	this->playerCamera->LookAt(0, 0, 0);
+	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 250.0f, 45.0f);
 	this->playerCamera->SetPosition(glm::vec3(0, 10, -15));
-	this->model = new Model("brickwall/brickwall.obj");
+	this->playerCamera->LookAt(0, 0, 0);
+	this->model = new Model("brickwall/brickwall.obj");	
 
 	this->inputManager = new Input::InputManager(window);
 
@@ -36,7 +37,7 @@ GibEngine::Game::Game(const char *windowTitle)
 	//this->model = new Model("ruin/ruin.obj");
 	//this->model = new Model("sponza/sponza.obj");
 
-	//this->skybox = new Skybox("default", "png");
+	this->skybox = new Skybox("default", "png");
 
 	PointLight* light = new PointLight(
 		glm::vec3(0, 5.0f, 0),
@@ -45,49 +46,41 @@ GibEngine::Game::Game(const char *windowTitle)
 		1.5f);
 
 	glm::mat4 modelMatrix;
-	int a = 64, b = 10;
+	int a = 8, b = 3;
 	for (int x = -a; x < a; x++)
 		for (int y = -a; y < a; y++)
 		{
 			modelMatrix = glm::mat4();
-			modelMatrix[3] = glm::vec4(x * 2.5, 0, y * 2.5, 1.0);
+			modelMatrix[3] = glm::vec4(x * 2.95, 0, y * 2.95, 1.0);
 			this->model->AddInstance(modelMatrix);
 		}
 
-	//Renderer::RenderPass* colorPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_LIGHTING);
-	//colorPass->SetCameraBase(playerCamera);
-	//colorPass->AddDrawable(model);
 
-	Renderer::RenderPass* deferredGeoPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_GEOMETRY);
-	deferredGeoPass->SetCameraBase(playerCamera);
-	deferredGeoPass->AddDrawable(model);
+	// Set the Render pipeline up with known OpenGL supported types:
+	this->renderPipeline = new Renderer::Pipeline(WINDOW_WIDTH, WINDOW_HEIGHT, shaderLanguage, playerCamera);
+
+	Renderer::RenderPass* deferredGeoPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_GEOMETRY);	
+	deferredGeoPass->AddDrawable(model);	
 
 	Renderer::RenderPass* deferredLightingPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING);
-	
+
 	for(int x = -b; x < b; x++)
 		for (int y = -b; y < b; y++)
 		{
 			PointLight* lightDup = new PointLight(*light);
-			lightDup->SetPosition(glm::vec3(x * 10, 5, y * 10));
+			lightDup->SetPosition(glm::vec3(1 * 2.5, 7.5, 1 * 2.5));
 
 			float r = rand() % 100 / 100.0;
 			float g = rand() % 100 / 100.0;
 			float bb = rand() % 100 / 100.0;
 
-			Logger::Instance->info("Color: {} {} {}", r, g, bb);
-
 			lightDup->SetDiffuseColor(glm::vec3(r, g, bb));
-			//lightDup->SetLinearAttenuation(rand() % 100 / 10.0);
-			//lightDup->SetQuadraticAttenuation(rand() % 100 / 10.0);
 			deferredLightingPass->AddLight(lightDup);
-
-
 		}
-	deferredLightingPass->AddLight(light);
 
-	//Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);
-	//Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);
-	//skyboxPass->SetSkybox(this->skybox);
+	 Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);	
+	 Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);
+	 skyboxPass->SetSkybox(this->skybox);
 }
 
 GibEngine::Game::~Game()
@@ -112,12 +105,17 @@ void GibEngine::Game::Update()
 
 	this->playerCamera->Update(deltaTime, inputManager->GetMousePosition(), inputManager->GetScrollState(), inputManager->GetKeyboardState());
 
+	if (inputManager->GetKeyboardState()[GLFW_KEY_T])
+	{
+		this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING)->TakeScreenshot();
+	}
+
 	this->renderPipeline->Update(deltaTime);
 
 	glfwPollEvents();
 }
 
-bool GibEngine::Game::initializeGL()
+bool GibEngine::Game::initializeGL(GibEngine::Renderer::ShaderLanguage shaderLanguage)
 {
 	int glfwInitResult = glfwInit();
 	if (glfwInitResult != GL_TRUE)
@@ -125,13 +123,23 @@ bool GibEngine::Game::initializeGL()
 		return false;
 	}
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_SAMPLES, 16);
+	switch(shaderLanguage)
+	{
+		case GibEngine::Renderer::ShaderLanguage::GLES_3:
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+			glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+			break;
+		case GibEngine::Renderer::ShaderLanguage::GLSL_420:
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_SAMPLES, 16);
+			break;
+	}
 
-	this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, this->windowTitle, NULL, NULL);
+	this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, this->windowTitle, nullptr, nullptr);
 
 	// Setup GLFW callbacks:
 	glfwSetErrorCallback(GlfwErrorCallback);
@@ -157,13 +165,47 @@ bool GibEngine::Game::initializeGL()
 	Logger::Instance->info("Renderer: {}", renderer);
 	Logger::Instance->info("OpenGL Version: {} - GLSL Version: {}", version, glslVersion);
 
-	GibEngine::Renderer::UniformBufferManager *uniformBufferManager = new GibEngine::Renderer::UniformBufferManager();
-	GibEngine::Renderer::Framebuffer *framebuffer = new GibEngine::Renderer::Framebuffer(WINDOW_WIDTH, WINDOW_HEIGHT);
-
-	// Set the Render pipeline up with known OpenGL supported types:
-	this->renderPipeline = new Renderer::Pipeline(uniformBufferManager, framebuffer, GibEngine::Renderer::ShaderLanguage::GLSL_420);
-
 	return true;
+}
+
+void GibEngine::Game::ParseOptions(int argc, char** argv)
+{
+	cxxopts::Options opts(argv[0]);
+
+	opts.add_options()
+		("v,version", "Returns the current GibEngine version")
+		("h,help", "Outputs this help text");
+
+	opts.add_options("Game")
+		("title", "Set the window title", cxxopts::value<std::string>());
+
+	opts.add_options("Rendering")
+		("gles", "Use OpenGL ES 3 Client API")
+		("gl420", "User OpenGL 4.0 Core Client API");
+
+	opts.parse(argc, argv);
+
+	if(opts.count("help") > 0)
+	{
+		Logger::Instance->info(opts.help({"", "Game", "Rendering"}).c_str());
+	}
+
+	if(opts.count("gles") > 0)
+	{
+		shaderLanguage = Renderer::ShaderLanguage::GLES_3;
+	}
+
+	if(opts.count("gl420") > 0)
+	{
+		shaderLanguage = Renderer::ShaderLanguage::GLSL_420;
+	}
+
+	std::string title = opts["title"].as<std::string>();
+	std::string *windowTitle = new std::string(title);
+	if(title.size() > 0)
+	{
+		this->SetWindowTitle(windowTitle->c_str());
+	}
 }
 
 void GibEngine::Game::ToggleVsync() { }

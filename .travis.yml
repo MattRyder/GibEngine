@@ -1,22 +1,23 @@
 language: cpp
-
-compiler: g++-4.9
-
+compiler: g++
 dist: trusty
 
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
-      - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
+      - ubuntu-toolchain-r-test           # gcc-5
+      - george-edison55-precise-backports # cmake 3.2.3
     packages:
-      - g++-4.9
+      - g++-5
+      - gcc-5
       - cmake
       - cmake-data
       - xorg-dev
       - libglu1-mesa-dev
 
 script:
+  - sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-5 /usr/bin/g++
+  - g++ --version
   - mkdir build
   - cd build
   - cmake .. -DBUILD_TESTS=ON

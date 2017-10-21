@@ -10,13 +10,8 @@ namespace GibEngine
 	{
 		class DeferredLightingPass : public RenderPass
 		{
-			static GLfloat QuadTextureData[];
-
-			GLuint quadVAO, quadVBO;
-			void LoadQuadData();
-			
 		public:
-			DeferredLightingPass(UniformBufferManager* uniformBufferManager, Shader* shader, Framebuffer* framebuffer);
+			DeferredLightingPass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer* framebuffer);
 			void Render() override;
 			void Update(float deltaTime) override;
 		};

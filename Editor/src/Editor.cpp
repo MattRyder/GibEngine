@@ -1,6 +1,6 @@
 #include "Editor.h"
 
-GibEditor::Editor::Editor() : GibEngine::Game("GibEditor")
+GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 {
 }
 

@@ -64,6 +64,8 @@ TEST_F(FileTest, ReadFile)
 	File *file = new File(fileName);
 	const char *actualFileContent = file->ReadFile();
 
+	std::remove(fileName);
+
 	const char *expectedFileContent = "Hello World\n";
 	ASSERT_STREQ(expectedFileContent, actualFileContent);
 }

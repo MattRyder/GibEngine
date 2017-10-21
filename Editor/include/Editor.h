@@ -7,7 +7,7 @@ namespace GibEditor
     class Editor : public GibEngine::Game
     {
     public:
-       Editor();
+       Editor(int argc, char** argv);
        ~Editor();
 
        virtual void Render() override;

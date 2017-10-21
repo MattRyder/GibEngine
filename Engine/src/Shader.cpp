@@ -25,6 +25,17 @@ GLuint GibEngine::Shader::Load()
     //    shaderId = 0;
     //}
 
+	if (!vertexShader->Exists())
+	{
+		Logger::Instance->error("GibEngine::Shader::Load failed: Vertex Shader does not exist.");
+		return 0;
+	}
+	else if(!fragmentShader->Exists())
+	{
+		Logger::Instance->error("GibEngine::Shader::Load failed: Fragment Shader does not exist.");
+		return 0;
+	}
+
     GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
     GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -44,8 +55,24 @@ GLuint GibEngine::Shader::GetShaderId()
     return this->shaderId;
 }
 
+bool GibEngine::Shader::IsComplete()
+{
+    return this->isComplete;
+}
+
+void GibEngine::Shader::SetComplete(bool isComplete)
+{
+    this->isComplete = isComplete;
+}
+
 void GibEngine::Shader::Begin()
 {
+    if(!isComplete)
+    {
+        Logger::Instance->error("Shader is not complete!");
+        return;
+    }
+
     GLint currentProgram;
     glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
 
@@ -88,6 +115,13 @@ void GibEngine::Shader::Compile(GLuint shaderId, File *shaderFile)
 GLuint GibEngine::Shader::Link(GLuint vertexShader, GLuint fragmentShader)
 {
     GLuint program = glCreateProgram();
+    
+    glBindAttribLocation(program, 0, "v_Position");
+	glBindAttribLocation(program, 1, "v_Normal");
+	glBindAttribLocation(program, 2, "v_TexCoords");	
+	glBindAttribLocation(program, 3, "v_Tangent");	
+	glBindAttribLocation(program, 4, "v_Bitangent");	
+
     glAttachShader(program, vertexShader);
     glAttachShader(program, fragmentShader);
 
@@ -103,9 +137,12 @@ GLuint GibEngine::Shader::Link(GLuint vertexShader, GLuint fragmentShader)
     {
         std::vector<char> programErr(logLength);
         glGetProgramInfoLog(program, logLength, nullptr, &programErr[0]);
-        Logger::Instance->error("Failed to link shader!\nShader Log:\n{}", &programErr[0]);
+		Logger::Instance->error("Failed to link shader!\nVertex: {}\nFragment:{}\nShader Log:\n{}",
+			this->vertexShader->GetPath(), this->fragmentShader->GetPath(), &programErr[0]);
         return -1;
     }
+
+    SetComplete(true);
 
     return program;
 }

@@ -22,7 +22,7 @@ namespace GibEngine
 		glm::vec2 TexCoord;
 		glm::vec3 Tangent;
 		glm::vec3 Bitangent;
-		float Determinant;
+		float Determinant = 0;
 	};
 
 	// The color and shine of the Model
@@ -64,11 +64,25 @@ namespace GibEngine
 		}
 	} MaterialBuffer;
 
+	// An object containing information regarding how to reference
+	// the Mesh via the graphics server
+	struct MeshUploadTicket
+	{
+		unsigned int vertexArrayObject;
+		unsigned int totalVertices;
+		unsigned int totalIndices;
+
+		std::vector<unsigned int> buffers;
+	};
+
 	class Mesh : public Entity
 	{
-		GLuint VAO, VBO, EBO, instanceVBO;
+		MeshUploadTicket* uploadTicket = nullptr;
 
 		std::vector<glm::mat4> instanceMatrices;
+
+		// Flags that the instance matrices must be updated on the GFX server
+		bool instanceMatricesDirty;
 
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
@@ -80,24 +94,31 @@ namespace GibEngine
 
 	public:
 		static const int MOVE_SPEED = 10;
-		Mesh(const char* directory, aiMesh *mesh, const aiScene* scene);
-		Mesh(float* vertices, unsigned int verticesCount);
 
-		void ProcessMesh(aiMesh *mesh, const aiScene* scene);
+		Mesh();
+		Mesh(const char *directory, aiMesh *mesh, const aiScene *scene);
+		Mesh(std::vector<Vertex> vertices);
 
-		void LoadMeshData();
-		void LoadMaterial(GLuint shaderProgram);
-
-		void UpdateInstances();
 		void AddInstance(glm::mat4 modelMatrix);
+		void SetInstance(unsigned int index, glm::mat4 modelMatrix);
 
-		unsigned int GetVAO();
-		size_t GetIndicesSize();
+		std::vector<glm::mat4> GetInstanceMatrices() const;
+		std::vector<unsigned int> GetIndices() const;
+		std::vector<Material*> GetMaterials() const;
+		MeshUploadTicket* GetMeshUploadTicket() const;
+		std::vector<Vertex> GetVertices() const;
 
-		size_t GetInstanceCount();
+		bool IsInstanceMatricesDirty() const;
+		bool IsUploaded();
+		std::vector<GibEngine::Texture*> LoadMaterialTextures(aiMaterial *material, aiTextureType type, GibEngine::TextureType textureType);
+
+		void ProcessMesh(aiMesh *mesh, const aiScene *scene);
+
+		void SetIndices(std::vector<unsigned int> indices);
+		void SetVertices(std::vector<Vertex> vertices);
+		void SetInstanceMatricesDirty(bool isDirty);
+		void SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept);
 
 		virtual void Update(double deltaTime) override;
-
-        std::vector<GibEngine::Texture*> LoadMaterialTextures(aiMaterial * material, aiTextureType type, GibEngine::TextureType textureType);
 	};
 }

@@ -2,17 +2,17 @@
 
 std::string GibEngine::File::GetWorkingDirectory()
 {
-    #ifdef WIN32
-        char buffer[MAX_PATH];
-        GetModuleFileName(NULL, buffer, MAX_PATH);
-        
-        std::string::size_type position = std::string(buffer).find_last_of("\\/");
-        return std::string(buffer).substr(0, position);
-    #elif __linux__
-        char buffer[PATH_MAX];
-        if(getcwd(buffer, sizeof(buffer)) == NULL) { return NULL; }
-        return std::string(buffer);
-    #endif
+#ifdef WIN32
+	char buffer[MAX_PATH];
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+
+	std::string::size_type position = std::string(buffer).find_last_of("\\/");
+	return std::string(buffer).substr(0, position);
+#elif __linux__
+	char buffer[PATH_MAX];
+	if (getcwd(buffer, sizeof(buffer)) == NULL) { return NULL; }
+	return std::string(buffer);
+#endif
 }
 
 std::string* GibEngine::File::GetSkyboxPath(const char* skyboxTextureName)
@@ -59,7 +59,7 @@ GibEngine::File* GibEngine::File::GetSkyboxFile(const char* skyboxTextureName, c
 
 GibEngine::File* GibEngine::File::GetScreenshotFile(const char* screenshotName)
 {
-	std::string *fileBase = GetPathForType(SKYBOX_RELATIVE_PATH);
+	std::string *fileBase = GetPathForType(SCREENSHOT_RELATIVE_PATH);
 	fileBase->append(screenshotName);
 	return new File(fileBase->c_str());
 }
@@ -78,7 +78,7 @@ const char* GibEngine::File::GetDirectory()
 {
     std::string pathStr = path;
     std::string::size_type position = pathStr.find_last_of("\\/");
-		std::string* directory = new std::string(pathStr.substr(0, position));
+	std::string* directory = new std::string(pathStr.substr(0, position));
     return directory->c_str();
 }
 
@@ -103,9 +103,15 @@ const char* GibEngine::File::ReadFile()
     while (!fileStream.eof())
     {
         std::getline(fileStream, line);
-				content->append(line).append("\n");
+		content->append(line).append("\n");
     }
 
     fileStream.close();
     return content->c_str();
+}
+
+bool GibEngine::File::Exists()
+{
+    std::ifstream fileStream(this->path);
+    return (bool)fileStream;
 }

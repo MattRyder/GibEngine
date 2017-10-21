@@ -1,26 +1,30 @@
 #include "renderer/DeferredGeometryPass.h"
 
-GibEngine::Renderer::DeferredGeometryPass::DeferredGeometryPass(UniformBufferManager* uniformBufferManager, Shader* shader, Framebuffer* framebuffer)
-	: RenderPass(uniformBufferManager, shader, framebuffer) { }
+GibEngine::Renderer::DeferredGeometryPass::DeferredGeometryPass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer* framebuffer)
+	: RenderPass(graphicsApi, shader, framebuffer) { }
 
 void GibEngine::Renderer::DeferredGeometryPass::Render()
 {
-	RenderPass::SetCameraBase(RenderPass::camera);
+	graphicsApi->BindShader(shader->GetShaderId());
 
-	shader->Begin();
+	graphicsApi->BindCamera(RenderPass::camera);	
 
 	for (Model* model : drawablesList)
 	{
 		for (Mesh* mesh : model->GetMeshes())
 		{
-			mesh->LoadMaterial(shader->GetShaderId());
-			glBindVertexArray(mesh->GetVAO());
-			glDrawElementsInstanced(GL_TRIANGLES, mesh->GetIndicesSize(), GL_UNSIGNED_INT, 0, mesh->GetInstanceCount());
-			glBindVertexArray(0);
+			if (mesh->IsInstanceMatricesDirty())
+			{
+				graphicsApi->UpdateMeshInstances(mesh->GetMeshUploadTicket(), mesh->GetInstanceMatrices());
+				mesh->SetInstanceMatricesDirty(false);
+			}
+
+			graphicsApi->BindMaterial(mesh->GetMaterials()[0]);
+			graphicsApi->DrawMesh(mesh);
 		}
 	}
 
-	shader->End();
+	graphicsApi->UnbindShader();
 }
 
 void GibEngine::Renderer::DeferredGeometryPass::Update(float deltaTime)
@@ -30,5 +34,3 @@ void GibEngine::Renderer::DeferredGeometryPass::Update(float deltaTime)
 		model->Update(deltaTime);
 	}
 }
-
-

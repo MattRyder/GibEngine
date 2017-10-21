@@ -1,6 +1,9 @@
 ﻿#include "Model.h"
 
-GibEngine::Model::Model() : Entity(EntityType::MODEL) { }
+GibEngine::Model::Model() : Entity(EntityType::MODEL)
+{
+	this->modelFile = nullptr;
+}
 
 GibEngine::Model::Model(const char* modelFilename) : Model()
 {
@@ -41,15 +44,7 @@ void GibEngine::Model::LoadModel(File* modelFile)
     }
 
     ProcessNode(scene->mRootNode, scene);
-    importer.FreeScene();
-}
-
-void GibEngine::Model::UpdateInstances()
-{
-	for (Mesh* mesh : this->meshes)
-	{
-		mesh->UpdateInstances();
-	}
+	importer.FreeScene();
 }
 
 void GibEngine::Model::AddInstance(glm::mat4 modelMatrix)

@@ -48,6 +48,17 @@ ExternalProject_Add(spdlog
 ExternalProject_Get_Property(spdlog source_dir)
 list(APPEND ENGINE_INCLUDE_DIRS ${source_dir}/include)
 
+ExternalProject_Add(cxxopts
+  GIT_REPOSITORY https://github.com/jarro2783/cxxopts
+  GIT_TAG 0b7686949d01f6475cc13ba0693725aefb76fc0c
+  CMAKE_ARGS
+    -DCXXOPTS_BUILD_EXAMPLES=OFF
+    -DCXXOPTS_BUILD_TESTS=OFF
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/lib/cxxopts
+)
+ExternalProject_Get_Property(cxxopts source_dir)
+list(APPEND ENGINE_INCLUDE_DIRS ${source_dir}/include)
+
 ExternalProject_Add(glm
   GIT_REPOSITORY https://github.com/g-truc/glm
   GIT_TAG 5dcc56489e1b66dfd5bca751fa9b8dc68059e008
@@ -69,15 +80,12 @@ list(APPEND ENGINE_INCLUDE_DIRS ${source_dir}/include)
 
 if(MSVC)
   set(ASSIMP_LIBRARY ${CMAKE_BINARY_DIR}/lib/assimp/lib/${CMAKE_STATIC_LIBRARY_PREFIX}assimp-vc140-mt${CMAKE_STATIC_LIBRARY_SUFFIX})
+  set(ASSIMP_DLL ${CMAKE_BINARY_DIR}/lib/assimp/bin/assimp-vc140-mt${CMAKE_SHARED_LIBRARY_SUFFIX})
 elseif(UNIX)
   set(ASSIMP_LIBRARY ${CMAKE_BINARY_DIR}/lib/assimp/lib/${CMAKE_SHARED_LIBRARY_PREFIX}assimp${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
 
 LIST(APPEND LINK_TARGETS ${ASSIMP_LIBRARY})
-
-if(MSVC)
-  set(ASSIMP_DLL ${CMAKE_BINARY_DIR}/lib/assimp/bin/assimp-vc140-mt${CMAKE_SHARED_LIBRARY_SUFFIX})
-endif(MSVC)
 
 set(GibEngine_VERSION_MAJOR 1)
 set(GibEngine_VERSION_MINOR 0)
@@ -91,6 +99,8 @@ set(ENGINE_INCLUDE_DIRS ${ENGINE_INCLUDE_DIRS}
 include_directories(${ENGINE_INCLUDE_DIRS})
 
 set(SOURCE_TREE
+  include/stb/stb_image.h
+  include/stb/stb_image_write.h
   include/CameraBase.h
   include/Entity.h
   include/File.h
@@ -109,6 +119,9 @@ set(SOURCE_TREE
   include/input/Controller.h
   include/input/InputManager.h
 
+  include/renderer/api/IGraphicsApi.h
+  include/renderer/api/GL420.h
+  include/renderer/api/GLES3.h
   include/renderer/UniformBufferManager.h
   include/renderer/RenderPassType.h
   include/renderer/RenderPass.h
@@ -117,6 +130,7 @@ set(SOURCE_TREE
   include/renderer/SkyboxRenderPass.h
   include/renderer/DeferredGeometryPass.h
   include/renderer/DeferredLightingPass.h
+  include/renderer/RenderToTexturePass.h
   include/renderer/Framebuffer.h
   include/glfw/glfw_callback.h
 
@@ -140,6 +154,8 @@ set(SOURCE_TREE
   src/input/Controller.cpp
   src/input/InputManager.cpp
 
+  src/renderer/api/GLES3.cpp
+  src/renderer/api/GL420.cpp
   src/renderer/UniformBufferManager.cpp
   src/renderer/Pipeline.cpp
   src/renderer/RenderPass.cpp
@@ -147,6 +163,8 @@ set(SOURCE_TREE
   src/renderer/SkyboxRenderPass.cpp
   src/renderer/DeferredGeometryPass.cpp
   src/renderer/DeferredLightingPass.cpp
+  src/renderer/RenderToTexturePass.cpp
+  
   src/renderer/Framebuffer.cpp)
 
 add_library(GibEngine ${SOURCE_TREE})
@@ -159,17 +177,16 @@ endif()
 
 target_link_libraries(GibEngine ${LINK_TARGETS})
 
-add_dependencies(GibEngine assimp glm glfw spdlog)
+add_dependencies(GibEngine assimp glm glfw spdlog cxxopts)
 
 if(MSVC)
-	# I think this is MSVC only? Unix can work out so's itself or something, more research required
-	add_custom_command(TARGET GibEngine POST_BUILD					     # Adds a post-build event to MyTest
-					   COMMAND ${CMAKE_COMMAND} -E copy_if_different     # which executes "cmake - E copy_if_different..."
-					   ${GLFW_DLL}										 # <--this is in-file
-					   $<TARGET_FILE_DIR:GibEngine>)					 # <--this is out-file path
+	add_custom_command(TARGET GibEngine POST_BUILD
+					   COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					   ${GLFW_DLL}
+					   $<TARGET_FILE_DIR:GibEngine>)
 
-	add_custom_command(TARGET GibEngine POST_BUILD					     # Adds a post-build event to MyTest
-					   COMMAND ${CMAKE_COMMAND} -E copy_if_different     # which executes "cmake - E copy_if_different..."
-					   ${ASSIMP_DLL}									 # <--this is in-file
-					   $<TARGET_FILE_DIR:GibEngine>)					 # <--this is out-file path
+	add_custom_command(TARGET GibEngine POST_BUILD
+					   COMMAND ${CMAKE_COMMAND} -E copy_if_different
+					   ${ASSIMP_DLL}
+					   $<TARGET_FILE_DIR:GibEngine>)
 endif()

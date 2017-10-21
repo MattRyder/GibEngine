@@ -1,4 +1,4 @@
-#include "glfw/glfw_callback.h"
+﻿#include "glfw/glfw_callback.h"
 
 void GlfwErrorCallback(int error, const char* description)
 {
@@ -24,4 +24,35 @@ void APIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum seve
         case 0x824B: errString = "OTHER"; break;
         default: errString = "undefined"; break;
     }
+
+	errString += " ";
+
+	switch (type)
+	{
+		case 0x824C: errString += "ERROR"; break;
+		case 0x824D: errString += "DEPRECATED_BEHAVIOUR"; break;
+		case 0x824E: errString += "UNDEFINED_BEHAVIOR"; break;
+		case 0x824F: errString += "PORTABILITY"; break;
+		case 0x8250: errString += "PERFORMANCE"; break;
+		case 0x8251: errString += "OTHER"; break;
+		case 0x8268: errString += "MARKER"; break;
+		case 0x8269: errString += "PUSH_GROUP"; break;
+		case 0x826A: errString += "POP_GROUP"; break;
+		default: errString += "undefined"; break;
+	}
+
+	errString += " ";
+
+	GibEngine::Logger::Instance->info("GL API: {} [{}]", errString.c_str(), message);
+
+	//GibEngine::LogLevel level = GibEngine::LogLevel::INFO;
+	//switch (severity​) {
+	//case 0x9146: errString += "HIGH"; level = GibEngine::ERR; break;
+	//case 0x9147: errString += "MEDIUM"; level = GibEngine::WARN; break;
+	//case 0x9148: errString += "LOW"; break;
+	//case 0x826B: errString += "NOTIFICATION"; break;
+	//default: errString += "undefined"; level = GibEngine::ERR; break;
+	//}
+
+	//GibEngine::Logger::LogWrite(level, "%s: %s", errString.c_str(), message​);
 }

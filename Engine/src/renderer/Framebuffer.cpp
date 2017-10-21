@@ -18,7 +18,7 @@ GibEngine::Renderer::Framebuffer::Framebuffer(int bufferWidth, int bufferHeight)
 		glGenTextures(1, &geometryBuffer.textures[i]);
 		glBindTexture(GL_TEXTURE_2D, geometryBuffer.textures[i]);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, bufferWidth, bufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bufferWidth, bufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);		
 
 		switch (i)
 		{
@@ -29,28 +29,46 @@ GibEngine::Renderer::Framebuffer::Framebuffer(int bufferWidth, int bufferHeight)
 		default:
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			break;
 		}
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, geometryBuffer.textures[i], 0);
-
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, geometryBuffer.textures[i], 0);		
 		bufferAttachments[i] = GL_COLOR_ATTACHMENT0 + i;
 	}
-
+	
 	glDrawBuffers(FRAMEBUFFERTYPE_LAST, bufferAttachments);
 
-	// Attach the depth target:
 	glGenRenderbuffers(1, &geometryBuffer.depthTargetId);
 	glBindRenderbuffer(GL_RENDERBUFFER, geometryBuffer.depthTargetId);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, bufferWidth, bufferHeight);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, bufferWidth, bufferHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, geometryBuffer.depthTargetId);
+  
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	GLuint framebufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	const char *status = nullptr;
+
+	switch(framebufferStatus)
 	{
-		Logger::Instance->error("Framebuffer is not complete! Framebuffer ID: {}", geometryBuffer.framebufferId);
+		case GL_FRAMEBUFFER_COMPLETE: break;
+		case GL_FRAMEBUFFER_UNDEFINED:
+			status = "UNDEFINED";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			status = "INCOMPLETE ATTACHMENT";
+			break;
+		case GL_FRAMEBUFFER_UNSUPPORTED:
+			status = "UNSUPPORTED";
+			break;
+	}
+
+	if(status != nullptr)
+	{
+		Logger::Instance->error("OpenGL Framebuffer #{} ({}x{}): Status {}",
+			geometryBuffer.framebufferId, bufferWidth, bufferHeight, status);		
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

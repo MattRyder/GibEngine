@@ -8,6 +8,7 @@
 #include "UniformBufferManager.h"
 #include "Framebuffer.h"
 #include "PointLight.h"
+#include "api/IGraphicsApi.h"
 
 namespace GibEngine
 {
@@ -18,30 +19,38 @@ namespace GibEngine
 			bool passEnabled = true;
 			bool lightingBindRequired;
 
-		protected:
-			Shader *shader;
-			UniformBufferManager *uniformBufferManager;
-			Framebuffer* framebuffer;
+			void BindLightUniform3f(const char* lightUniformName, const glm::vec3 lightUniformValue);
 
-			FreeCamera *camera;
-			std::vector<Model *> drawablesList;
-			std::vector<LightBase *> lights;
+		protected:
+			Shader* shader;
+			Framebuffer* framebuffer;
+			
+			Renderer::API::IGraphicsApi* graphicsApi;
+
+			CameraBase* camera;
+			std::vector<Model*> drawablesList;
+			std::vector<LightBase*> lights;
+
+			static GLfloat QuadTextureData[];
+			Mesh *quadMesh;
+
+			void LoadQuadData();
 
 		public:
-			RenderPass(UniformBufferManager *uniformBufferManager, Shader *shader);
-			RenderPass(UniformBufferManager* uniformBufferManager, Shader* shader, Framebuffer* framebuffer);
+			RenderPass(API::IGraphicsApi *graphicsApi, Shader *shader);
+			RenderPass(API::IGraphicsApi *graphicsApi, Shader *shader, Framebuffer *framebuffer);
 
 			virtual void Render();
 			virtual void Update(float deltaTime) = 0;
 
 			virtual void AddDrawable(Model *drawable);
 			virtual void AddLight(LightBase *light);
-			virtual void SetCameraBase(FreeCamera *camera);
+			virtual void SetCameraBase(CameraBase *camera);
 
 			void BindLights();
 			void FlagLightingBindRequired();
 
-			void TakeScreenshot(int framebufferWidth, int framebufferHeight);
+			void TakeScreenshot();
 
 			void SetPassEnabled(bool value);
 		};

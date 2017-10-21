@@ -16,35 +16,43 @@
 #include "renderer/Pipeline.h"
 #include "input/InputManager.h"
 
+#include "cxxopts.hpp"
+
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
-
+ 
 namespace GibEngine
 {
+	static const char* ENGINE_NAME = "GibEngine";
+
 	class Game
 	{
-		GLFWwindow *window;
-		const char *windowTitle;
+		GLFWwindow* window;
+		const char* windowTitle = ENGINE_NAME;
 
 		float currentFrameTime = 0, lastFrameTime = 0;
 
 		// TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
-		FreeCamera *playerCamera;
-		Model *model;
-		Skybox *skybox;
-		PointLight *light;
+		FreeCamera* playerCamera;
+		Model* model;
+		Skybox* skybox;
+		PointLight* light;
 
-		Renderer::Pipeline *renderPipeline;
-		Input::InputManager *inputManager;
+		Renderer::ShaderLanguage shaderLanguage = GibEngine::Renderer::ShaderLanguage::GLSL_420;
+
+		Renderer::Pipeline* renderPipeline;
+		Input::InputManager* inputManager;
+
+		void ParseOptions(int argc, char** argv);
 
 	public:
-		Game(const char *windowTitle);
+		Game(int argc, char** argv);
 		virtual ~Game();
 
 		virtual void Render();
 		virtual void Update();
 
-		bool initializeGL();
+		bool initializeGL(GibEngine::Renderer::ShaderLanguage shaderVersion);
 		void ToggleVsync();
 
 		void SetWindowTitle(const char *windowTitle);

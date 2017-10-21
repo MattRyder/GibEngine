@@ -1,8 +1,8 @@
 #pragma once
 
 #ifdef WIN32
-	#include <Windows.h>
-	#include "GL/gl3w.h"
+#include <windows.h>
+#include "GL/gl3w.h"
 #endif
 
 #include "GLFW/glfw3.h"

@@ -2,17 +2,20 @@
 
 const char* GibEngine::Renderer::Pipeline::ShaderLanguageStrings[] =
 {
-  "_300_es",
-  "_420"
+  "300_es",
+  "420"
 };
 
-GibEngine::Renderer::Pipeline::Pipeline(UniformBufferManager* uniformBufferManager, Framebuffer* framebuffer, ShaderLanguage supportedShaderLanguage)
+GibEngine::Renderer::Pipeline::Pipeline(int framebufferWidth, int framebufferHeight, ShaderLanguage supportedShaderLanguage, CameraBase *camera)
 {
-	this->uniformBufferManager = uniformBufferManager;
-	this->framebuffer = framebuffer;
 	this->shaderLanguage = supportedShaderLanguage;
+	this->camera = camera;
 
-	this->passes = std::map<RenderPassType, RenderPass *>();
+	this->SelectGraphicsApi(this->shaderLanguage);
+
+	this->framebuffer = graphicsApi->CreateFramebuffer(framebufferWidth, framebufferHeight);
+
+	this->passes = std::map<RenderPassType, RenderPass*>();
 }
 
 GibEngine::Renderer::Pipeline::~Pipeline() { }
@@ -35,59 +38,86 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 	case RenderPassType::DEFERRED_LIGHTING:
 		shaderFileName = "deferred_lighting";
 		break;
+	case RenderPassType::RENDER_TO_TEXTURE:
+		shaderFileName = "render_to_texture";
+		break;
+	default:
+		Logger::Instance->info("[Pipeline::AddPass] Attempting to find shader filename failed, none set!");
+		break;
 	}
 
 	Renderer::RenderPass *renderPass;
 
 	// Dynamically load the shader, for the appropriate GLSL version, for each OpenGL phase:
 	File *vertexFile = GibEngine::File::GetShaderFile(
-		(shaderFileName + std::string("_vs") +
-			std::string(GetShaderLanguageString(this->shaderLanguage)) +
-			std::string(".glsl")).c_str());
+		(std::string(GetShaderLanguageString(this->shaderLanguage)) +
+		 std::string("/") +
+		 shaderFileName + std::string("_vs") +
+		 std::string(".glsl")).c_str());
 
 	File *fragmentFile = GibEngine::File::GetShaderFile(
-		(shaderFileName + std::string("_fs") +
-			std::string(GetShaderLanguageString(this->shaderLanguage)) +
-			std::string(".glsl")).c_str());
+		(std::string(GetShaderLanguageString(this->shaderLanguage)) +
+		 std::string("/") +
+		 shaderFileName + std::string("_fs") +
+		 std::string(".glsl")).c_str());
 
 	Shader *shader = new Shader(vertexFile, fragmentFile);
 
 	switch (type)
 	{
 	case RenderPassType::FORWARD_LIGHTING:
-		renderPass = new ForwardRenderPass(uniformBufferManager, shader);
+		renderPass = new ForwardRenderPass(graphicsApi, shader);
 		break;
 	case RenderPassType::SKYBOX:
-		renderPass = new SkyboxRenderPass(uniformBufferManager, shader);
+		renderPass = new SkyboxRenderPass(graphicsApi, shader);
 		break;
 	case RenderPassType::DEFERRED_GEOMETRY:
-		renderPass = new DeferredGeometryPass(uniformBufferManager, shader, framebuffer);
+		renderPass = new DeferredGeometryPass(graphicsApi, shader, framebuffer);
 		break;
 	case RenderPassType::DEFERRED_LIGHTING:
-		renderPass = new DeferredLightingPass(uniformBufferManager, shader, framebuffer);
+		renderPass = new DeferredLightingPass(graphicsApi, shader, framebuffer);
+		break;
+	case RenderPassType::RENDER_TO_TEXTURE:
+		renderPass = new RenderToTexturePass(graphicsApi, shader, framebuffer);
+		break;
+	default:
+		Logger::Instance->error("[Pipeline::AddPass] Failed to find implementation for: {}", shaderFileName.c_str());
 		break;
 	}
+
+	renderPass->SetCameraBase(camera);
 
 	this->passes.emplace(type, renderPass);
 }
 
 void GibEngine::Renderer::Pipeline::Render()
-{
-	framebuffer->Bind();
+{	
+	graphicsApi->BindFramebuffer(framebuffer);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	graphicsApi->ClearFramebuffer();
 
-	for (auto const& pass : this->passes)
-	{
-		RenderPass *rpass = pass.second;
-		rpass->Render();
-	}
-	
+	graphicsApi->UpdateCamera(camera);
+
+	this->GetRenderPass(RenderPassType::DEFERRED_GEOMETRY)->Render();
+
+	graphicsApi->UnbindFramebuffer();
+
+	this->GetRenderPass(RenderPassType::DEFERRED_LIGHTING)->Render();
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->GetBuffer().framebufferId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBlitFramebuffer(0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(),
-		0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	
-	framebuffer->Unbind();
+
+	// NB: This can fail with GL_INVALID_OPERATION, usually means the GPU is expecting a different renderbuffer storage format than the FB depth attachment
+	glBlitFramebuffer(0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+	this->GetRenderPass(RenderPassType::SKYBOX)->Render();
+
+	// Gotta do the skybox pass forward renderered:
+	RenderPass* skyboxRenderPass = GetRenderPass(RenderPassType::SKYBOX);
+	if (skyboxRenderPass != nullptr)
+	{
+		skyboxRenderPass->Render();
+	}
 }
 
 void GibEngine::Renderer::Pipeline::Update(float deltaTime)
@@ -111,7 +141,30 @@ GibEngine::Renderer::RenderPass* GibEngine::Renderer::Pipeline::GetRenderPass(Re
 	return this->passes.at(type);
 }
 
+void GibEngine::Renderer::Pipeline::SetCameraBase(CameraBase* camera)
+{
+	this->camera = camera;
+}
+
 const char* GibEngine::Renderer::Pipeline::GetShaderLanguageString(ShaderLanguage language)
 {
 	return ShaderLanguageStrings[static_cast<int>(language)];
+}
+
+void GibEngine::Renderer::Pipeline::SelectGraphicsApi(ShaderLanguage shaderLanguage)
+{
+	if(this->graphicsApi != nullptr)
+	{
+		delete this->graphicsApi;
+	}
+
+	switch(shaderLanguage)
+	{
+		case ShaderLanguage::GLES_3:
+			this->graphicsApi = new Renderer::API::GLES3();
+			break;
+		case ShaderLanguage::GLSL_420:
+			this->graphicsApi = new Renderer::API::GL420();
+			break;
+	}
 }

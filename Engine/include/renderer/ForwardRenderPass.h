@@ -9,7 +9,7 @@ namespace GibEngine
     class ForwardRenderPass : public RenderPass
     {
     public:
-      ForwardRenderPass(UniformBufferManager *uniformBufferManager, Shader *shader);
+      ForwardRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader);
       void Render() override;
 	  void Update(float deltaTime) override;
     };

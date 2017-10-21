@@ -81,15 +81,13 @@ namespace GibEngine
 		protected:
 			// Find and return a suitable uniform binding index
 			unsigned int GetAvailableBufferIndex();
-
-			UniformBuffer* FindBuffer(const char* bufferName);
-
 		public:
 			UniformBufferManager();
 
 			UniformBuffer* Create(const char* bufferName, size_t bufferSize);
 			UniformBuffer* Create(const char* bufferName, size_t bufferSize, GLvoid *bufferData);
 
+			UniformBuffer* Find(const char* bufferName);
 			UniformBuffer* FindOrCreate(const char* bufferName, size_t bufferSize);
 
 			void Bind(Shader* shader);

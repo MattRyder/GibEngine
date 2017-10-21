@@ -20,7 +20,8 @@ void GibEngine::Input::InputManager::ControllerConnectionCallback(int controller
 	Controller *controller = controllers[controllerId];
 	if (controller == nullptr)
 	{
-		controller = new Controller(controllerId, event == GLFW_CONNECTED);
+		controllers[controllerId] = new Controller(controllerId, event == GLFW_CONNECTED);
+		controller = controllers[controllerId];
 	}
 
 	switch (event)
