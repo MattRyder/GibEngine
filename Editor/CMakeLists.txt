@@ -3,11 +3,12 @@ project(Editor CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-find_package(GTK3 REQUIRED)
-if(GTK3_FOUND)
-	include_directories(${GTK3_INCLUDE_DIRS})
+if(UNIX)
+	find_package(GTK3 REQUIRED)
+	if(GTK3_FOUND)
+		include_directories(${GTK3_INCLUDE_DIRS})
+	endif()
 endif()
-
 
 set(EDITOR_INCLUDE_DIRS
   ${PROJECT_SOURCE_DIR}/include
