@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef _WIN32
+
 #include <Windows.h>
 #include <fileapi.h>
 
@@ -25,3 +27,5 @@ namespace GibEditor
 		virtual void Update() override;
 	};
 }
+
+#endif

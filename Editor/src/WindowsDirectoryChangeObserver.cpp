@@ -1,3 +1,5 @@
+#ifdef _WIN32
+
 #include "WindowsDirectoryChangeObserver.h"
 
 GibEditor::WindowsDirectoryChangeObserver::WindowsDirectoryChangeObserver(std::string directoryPath, bool searchSubdirectories, std::function<void(std::string)> onChangeFunc)
@@ -25,3 +27,5 @@ void GibEditor::WindowsDirectoryChangeObserver::Update()
 	}
 
 }
+
+#endif

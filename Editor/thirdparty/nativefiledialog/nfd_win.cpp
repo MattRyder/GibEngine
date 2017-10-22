@@ -4,6 +4,8 @@
   http://www.frogtoss.com/labs
  */
 
+#ifdef _WIN32
+
 /* only locally define UNICODE in this compilation unit */
 #ifndef UNICODE
 #define UNICODE
@@ -751,3 +753,5 @@ nfdresult_t NFD_PickFolder(const nfdchar_t *defaultPath,
 
     return NFD_OKAY;
 }
+
+#endif

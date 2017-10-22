@@ -18,8 +18,8 @@
 
 #include "cxxopts.hpp"
 
-#define WINDOW_WIDTH 1920
-#define WINDOW_HEIGHT 1080
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
  
 namespace GibEngine
 {
@@ -38,7 +38,7 @@ namespace GibEngine
 		Skybox* skybox;
 		PointLight* light;
 
-		Renderer::ShaderLanguage shaderLanguage = GibEngine::Renderer::ShaderLanguage::GLSL_420;
+		Renderer::ShaderLanguage shaderLanguage = GibEngine::Renderer::ShaderLanguage::GLES_3;
 
 		Renderer::Pipeline* renderPipeline;
 		Input::InputManager* inputManager;
