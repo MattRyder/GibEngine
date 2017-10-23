@@ -33,7 +33,7 @@ set(TESTS_INCLUDE_DIRS
   CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE
 )
 
-include_directories(${TESTS_INCLUDE_DIRS} ${ENGINE_INCLUDE_DIRS})
+include_directories(${TESTS_INCLUDE_DIRS} ${GIBENGINE_INCLUDE_DIRS})
 
 link_directories(${GOOGLETEST_LIB_DIR})
 

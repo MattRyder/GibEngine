@@ -44,11 +44,6 @@ std::string& GibEngine::Entity::GetName() const
     return *entityName;
 }
 
-void GibEngine::Entity::Print()
-{
-    // TODO
-}
-
 void GibEngine::Entity::SetPosition(glm::vec3 entityPosition)
 {
     this->entityPosition = entityPosition;

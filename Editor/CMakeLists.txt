@@ -12,7 +12,7 @@ endif()
 
 set(EDITOR_INCLUDE_DIRS
   ${PROJECT_SOURCE_DIR}/include
-  ${ENGINE_INCLUDE_DIRS}
+  ${GIBENGINE_INCLUDE_DIRS}
   CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
 
 include_directories(${EDITOR_INCLUDE_DIRS})

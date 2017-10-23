@@ -8,6 +8,8 @@ set(CXX clang)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 # Required to gen. symbols for GDB
 set(CMAKE_BUILD_TYPE Debug)
 

@@ -1,15 +1,5 @@
 ﻿#include "glfw/glfw_callback.h"
 
-void GlfwErrorCallback(int error, const char* description)
-{
-  GibEngine::Logger::Instance->info( "GLFW reported {}: {}", error, description);
-}
-
-void GlfwSetWindowSizeCallback(GLFWwindow* window, int width, int height)
-{
-    GibEngine::Logger::Instance->info("Window Resized: {} x {}", width, height);
-}
-
 void APIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
     std::string errString;
@@ -55,4 +45,21 @@ void APIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum seve
 	//}
 
 	//GibEngine::Logger::LogWrite(level, "%s: %s", errString.c_str(), message​);
+}
+
+bool GibEngine::GLFW::ResizeFramebuffer = false;
+
+void GibEngine::GLFW::ErrorCallback(int error, const char* description)
+{
+	Logger::Instance->info("GLFW reported {}: {}", error, description);
+}
+
+void GibEngine::GLFW::SetWindowSizeCallback(GLFWwindow* window, int width, int height)
+{
+	Logger::Instance->info("Window Resized: {} x {}", width, height);
+
+	if (ResizeFramebuffer)
+	{
+		glViewport(0, 0, width, height);
+	}
 }

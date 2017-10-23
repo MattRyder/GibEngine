@@ -140,8 +140,10 @@ bool GibEngine::Game::initializeGL(GibEngine::Renderer::ShaderLanguage shaderLan
 	this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, this->windowTitle, nullptr, nullptr);
 
 	// Setup GLFW callbacks:
-	glfwSetErrorCallback(GlfwErrorCallback);
-	glfwSetFramebufferSizeCallback(window, GlfwSetWindowSizeCallback);
+	GLFW::ResizeFramebuffer = true;
+	glfwSetErrorCallback(GLFW::ErrorCallback);
+	//glfwSetFramebufferSizeCallback(window, GLFW::SetWindowSizeCallback);
+	glfwSetWindowSizeCallback(window, GLFW::SetWindowSizeCallback);
 
 	if (!this->window)
 	{

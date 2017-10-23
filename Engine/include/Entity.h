@@ -57,8 +57,6 @@ namespace GibEngine
 		virtual glm::vec3 GetPosition() const;
 		virtual std::string& GetName() const;
 
-		virtual void Print();
-
 		virtual void SetPosition(glm::vec3 entityPosition);
 		void SetName(std::string *entityName);
 

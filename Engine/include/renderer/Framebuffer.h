@@ -34,6 +34,7 @@ namespace GibEngine
 
 		public:
 			Framebuffer(int bufferWidth, int bufferHeight);
+			~Framebuffer();
 
 			void Bind();
 			void Unbind();
