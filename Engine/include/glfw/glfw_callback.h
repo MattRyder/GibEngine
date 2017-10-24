@@ -2,9 +2,9 @@
 
 #ifdef WIN32
 #include <windows.h>
-#include "GL/gl3w.h"
 #endif
 
+#include "GL/gl3w.h"
 #include "GLFW/glfw3.h"
 #include "Logger.h"
 

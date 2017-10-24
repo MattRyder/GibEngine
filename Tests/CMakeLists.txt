@@ -53,6 +53,9 @@ add_executable(GibTest
 	include/FreeCameraTest.h
 	src/FreeCameraTest.cpp
 
+	include/LightBaseTest.h
+	src/LightBaseTest.cpp
+
 	include/Main.h
 	src/Main.cpp)
 

@@ -17,7 +17,7 @@ endif()
 ####################################################
 include(ExternalProject)
 
-find_package(GLFW REQUIRED)
+find_package(Glfw REQUIRED)
 if(GLFW_FOUND)
   list(APPEND GIBENGINE_INCLUDE_DIRS ${GLFW_INCLUDE_DIRS})
   list(APPEND GIBENGINE_LIBRARIES ${GLFW_LIBRARIES})
@@ -30,22 +30,22 @@ if(GLFW_FOUND)
   endif()
 endif()
 
-find_package(SPDLOG REQUIRED)
+find_package(Spdlog REQUIRED)
 if(SPDLOG_FOUND)
   list(APPEND GIBENGINE_INCLUDE_DIRS ${SPDLOG_INCLUDE_DIRS})
 endif()
 
-find_package(CXXOPTS REQUIRED)
+find_package(Cxxopts REQUIRED)
 if(CXXOPTS_FOUND)
   list(APPEND GIBENGINE_INCLUDE_DIRS ${CXXOPTS_INCLUDE_DIRS})
 endif()
 
-find_package(GLM REQUIRED)
+find_package(Glm REQUIRED)
 if(GLM_FOUND)
   list(APPEND GIBENGINE_INCLUDE_DIRS ${GLM_INCLUDE_DIRS})
 endif()
 
-find_package(ASSIMP REQUIRED)
+find_package(Assimp REQUIRED)
 if(ASSIMP_FOUND)
   list(APPEND GIBENGINE_INCLUDE_DIRS ${ASSIMP_INCLUDE_DIRS})
   list(APPEND GIBENGINE_LIBRARIES ${ASSIMP_LIBRARIES})
@@ -70,7 +70,7 @@ set(GIBENGINE_INCLUDE_DIRS ${GIBENGINE_INCLUDE_DIRS}
 include_directories(${GIBENGINE_INCLUDE_DIRS})
 
 set(SOURCE_TREE
-  include/gl/gl3w.h
+  include/GL/gl3w.h
   include/stb/stb_image.h
   include/stb/stb_image_write.h
   include/CameraBase.h
