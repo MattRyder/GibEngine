@@ -36,18 +36,18 @@ void GibEditor::Editor::Render()
 {    
     Game::Render();
 
-	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Always);
-	ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT), ImGuiSetCond_Always);
+	//ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Always);
+	//ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT), ImGuiSetCond_Always);
 
-	if (ImGui::Begin("", (bool*)0, ROOT_PANEL_FLAGS))
-	{
-		menubar->Render();
-	}
+	//if (ImGui::Begin("", (bool*)0, ROOT_PANEL_FLAGS))
+	//{
+	//	menubar->Render();
+	//}
 
-	dock->Render();
+	//dock->Render();
 
-	ImGui::End();
-    
+	//ImGui::End();
+ //   
     this->Update();
 }
 

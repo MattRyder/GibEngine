@@ -26,18 +26,11 @@ GibEngine::Game::Game(int argc, char** argv)
 	glEnable(GL_BLEND);
 	glDepthFunc(GL_LEQUAL);
 
-	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 250.0f, 45.0f);
-	this->playerCamera->SetPosition(glm::vec3(0, 10, -15));
+	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 2500.0f, 45.0f);
+	this->playerCamera->SetPosition(glm::vec3(0, 15, 0));
 	this->playerCamera->LookAt(0, 0, 0);
-	this->model = new Model("brickwall/brickwall.obj");	
 
 	this->inputManager = new Input::InputManager(window);
-
-	//this->model = new Model("teapot/teapot.obj");
-	//this->model = new Model("ruin/ruin.obj");
-	//this->model = new Model("sponza/sponza.obj");
-
-	this->skybox = new Skybox("default", "png");
 
 	PointLight* light = new PointLight(
 		glm::vec3(0, 5.0f, 0),
@@ -45,25 +38,38 @@ GibEngine::Game::Game(int argc, char** argv)
 		-3.8f,
 		1.5f);
 
-	glm::mat4 modelMatrix;
-	int a = 8, b = 3;
-	for (int x = -a; x < a; x++)
-		for (int y = -a; y < a; y++)
-		{
-			modelMatrix = glm::mat4();
-			modelMatrix[3] = glm::vec4(x * 2.95, 0, y * 2.95, 1.0);
-			this->model->AddInstance(modelMatrix);
-		}
+	this->worldDb = new World::Database("demo.gwo");
 
+	if(!true)
+	{
+		// Keep to rebuild a demo world when schema changes:
+		GibEngine::Model* model = new GibEngine::Model("woodhouse/woodhouse.obj");
+		glm::mat4 inst = glm::mat4();
+		inst = glm::scale(inst, glm::vec3(3.0f, 3.0f, 3.0f));
+		model->AddInstance(inst);
+		World::Level* lvl = worldDb->CreateLevel("E1M1: At Doom's Gate");
+		lvl->AddModel(model);
+
+		Skybox* skybox = new Skybox("stormy", "png");
+		lvl->SetSkybox(skybox);
+
+		worldDb->SaveLevel(lvl);		
+	}
+
+	World::Level* savedLevel = worldDb->FindLevel(1);
 
 	// Set the Render pipeline up with known OpenGL supported types:
 	this->renderPipeline = new Renderer::Pipeline(WINDOW_WIDTH, WINDOW_HEIGHT, shaderLanguage, playerCamera);
 
 	Renderer::RenderPass* deferredGeoPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_GEOMETRY);	
-	deferredGeoPass->AddDrawable(model);	
+	for(auto m : savedLevel->GetModels())
+	{
+		deferredGeoPass->AddDrawable(m);
+	}
 
 	Renderer::RenderPass* deferredLightingPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING);
 
+	int b = 3;	
 	for(int x = -b; x < b; x++)
 		for (int y = -b; y < b; y++)
 		{
@@ -80,7 +86,7 @@ GibEngine::Game::Game(int argc, char** argv)
 
 	 Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);	
 	 Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);
-	 skyboxPass->SetSkybox(this->skybox);
+	 skyboxPass->SetSkybox(savedLevel->GetSkybox());
 }
 
 GibEngine::Game::~Game()
@@ -140,8 +146,10 @@ bool GibEngine::Game::initializeGL(GibEngine::Renderer::ShaderLanguage shaderLan
 	this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, this->windowTitle, nullptr, nullptr);
 
 	// Setup GLFW callbacks:
-	glfwSetErrorCallback(GlfwErrorCallback);
-	glfwSetFramebufferSizeCallback(window, GlfwSetWindowSizeCallback);
+	GLFW::ResizeFramebuffer = true;
+	glfwSetErrorCallback(GLFW::ErrorCallback);
+	//glfwSetFramebufferSizeCallback(window, GLFW::SetWindowSizeCallback);
+	glfwSetWindowSizeCallback(window, GLFW::SetWindowSizeCallback);
 
 	if (!this->window)
 	{

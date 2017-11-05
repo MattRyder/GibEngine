@@ -15,6 +15,7 @@
 #include "PointLight.h"
 #include "renderer/Pipeline.h"
 #include "input/InputManager.h"
+#include "world/Database.h"
 
 #include "cxxopts.hpp"
 
@@ -37,6 +38,8 @@ namespace GibEngine
 		Model* model;
 		Skybox* skybox;
 		PointLight* light;
+
+		World::Database* worldDb;
 
 		Renderer::ShaderLanguage shaderLanguage = GibEngine::Renderer::ShaderLanguage::GLES_3;
 

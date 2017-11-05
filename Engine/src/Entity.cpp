@@ -5,7 +5,9 @@ int GibEngine::Entity::Id;
 GibEngine::Entity::Entity(EntityType type) : entityId(Id++)
 {
     this->entityType = type;
-    this->entityName = new std::string(GetTypeName() + " (#" + std::to_string(entityId) + ")");
+
+	std::string* nameStr = new std::string(GetTypeName() + " (#" + std::to_string(entityId) + ")");
+	this->entityName = nameStr->c_str();
     this->entityPosition = glm::vec3();
 }
 
@@ -14,10 +16,7 @@ GibEngine::Entity::Entity(EntityType entityType, glm::vec3& entityPosition) : En
     this->SetPosition(entityPosition);
 }
 
-GibEngine::Entity::~Entity()
-{
-    delete this->entityName;
-}
+GibEngine::Entity::~Entity() { }
 
 GibEngine::EntityType GibEngine::Entity::GetType() const
 {
@@ -39,14 +38,9 @@ glm::vec3 GibEngine::Entity::GetPosition() const
     return entityPosition;
 }
 
-std::string& GibEngine::Entity::GetName() const
+const char* GibEngine::Entity::GetName() const
 {
-    return *entityName;
-}
-
-void GibEngine::Entity::Print()
-{
-    // TODO
+    return entityName;
 }
 
 void GibEngine::Entity::SetPosition(glm::vec3 entityPosition)
@@ -54,7 +48,7 @@ void GibEngine::Entity::SetPosition(glm::vec3 entityPosition)
     this->entityPosition = entityPosition;
 }
 
-void GibEngine::Entity::SetName(std::string *entityName)
+void GibEngine::Entity::SetName(const char* entityName)
 {
 	this->entityName = entityName;
 }

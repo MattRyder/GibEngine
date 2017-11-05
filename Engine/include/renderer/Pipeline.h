@@ -54,6 +54,8 @@ namespace GibEngine
 			RenderPass* GetRenderPass(RenderPassType type);
 
 			void SetCameraBase(CameraBase *camera);
+
+			void ResizeFramebuffer(int width, int height);
 		};
 	}
 }

@@ -17,11 +17,9 @@ TEST_F(EntityTest, GetPosition)
 TEST_F(EntityTest, GetName)
 {
 	// Set the name of the mock:
-	std::string* entityName = new std::string("MockEntityName");
-	
-	entity->SetName(entityName);
+	entity->SetName(EntityTest::ENTITY_NAME);
 
-	ASSERT_EQ(entity->GetName().c_str(), entityName->c_str());
+	ASSERT_STREQ(entity->GetName(), EntityTest::ENTITY_NAME);
 }
 
 TEST_F(EntityTest, GetType)

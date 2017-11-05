@@ -43,7 +43,7 @@ namespace GibEngine
 
 	protected:
 		glm::vec3 entityPosition;
-		std::string *entityName;
+		const char* entityName;
 		EntityType entityType;
 
 	public:
@@ -55,12 +55,10 @@ namespace GibEngine
 
 		virtual int GetID() const;
 		virtual glm::vec3 GetPosition() const;
-		virtual std::string& GetName() const;
-
-		virtual void Print();
+		virtual const char* GetName() const;
 
 		virtual void SetPosition(glm::vec3 entityPosition);
-		void SetName(std::string *entityName);
+		void SetName(const char* entityName);
 
 		EntityType GetType() const;
 		std::string GetTypeName() const;

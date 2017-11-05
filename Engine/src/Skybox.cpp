@@ -1,9 +1,10 @@
 #include "Skybox.h"
 
-GibEngine::Skybox::Skybox(std::string skyboxTextureName, std::string skyboxTextureExtension) : Mesh()//skyboxVertices, SKYBOX_VERTICES_COUNT)
+GibEngine::Skybox::Skybox(const char* skyboxTextureName, const char* skyboxTextureExtension) : Mesh()//skyboxVertices, SKYBOX_VERTICES_COUNT)
 {
 	this->modelMatrix = glm::mat4();
-	this->SetName(&skyboxTextureName);
+	this->SetName(skyboxTextureName);
+	this->textureExtension = skyboxTextureExtension;
 
 	std::vector<Vertex> vertices;
 	for (unsigned int i = 0; i < SKYBOX_VERTICES_COUNT; i += 3)
@@ -14,7 +15,7 @@ GibEngine::Skybox::Skybox(std::string skyboxTextureName, std::string skyboxTextu
 	}
 	this->SetVertices(vertices);
 
-	std::string* skyboxTextureDir = File::GetSkyboxPath(skyboxTextureName.c_str());
+	std::string* skyboxTextureDir = File::GetSkyboxPath(skyboxTextureName);
 	skyboxCubemap = Texture::LoadCubemap(skyboxTextureDir, "png");
 }
 
@@ -33,6 +34,11 @@ glm::mat4 GibEngine::Skybox::GetModelMatrix()
 void GibEngine::Skybox::SetModelMatrix(glm::mat4 modelMatrix)
 {
 	this->SetInstance(0, modelMatrix);
+}
+
+const char* GibEngine::Skybox::GetExtension()
+{
+	return this->textureExtension;
 }
 
 void GibEngine::Skybox::Update(double deltaTime)

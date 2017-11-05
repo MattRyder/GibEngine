@@ -30,6 +30,36 @@ TEST_F(FileTest, GetShaderPath)
 	ASSERT_EQ(expectedTail, actualTail);
 }
 
+TEST_F(FileTest, GetFontPath)
+{
+	File *fp = File::GetFontFile("ComicSans.ttf");
+
+	std::string expectedTail = "/Assets/Fonts/ComicSans.ttf";
+	std::string path = std::string(fp->GetPath());
+
+	// Check we get a path back:
+	ASSERT_TRUE(path.length() > 0);
+
+	auto actualTail = path.substr(path.length() - expectedTail.length(), expectedTail.length());
+	// And check that the tail ends with a reference to the Assets folder, to the Asset
+	ASSERT_EQ(expectedTail, actualTail);
+}
+
+TEST_F(FileTest, GetSkyboxPath)
+{
+	File *fp = File::GetSkyboxFile("skybox_default", "top.png");
+
+	std::string expectedTail = "/Assets/Skybox/skybox_default/top.png";
+	std::string path = std::string(fp->GetPath());
+
+	// Check we get a path back:
+	ASSERT_TRUE(path.length() > 0);
+
+	auto actualTail = path.substr(path.length() - expectedTail.length(), expectedTail.length());
+	// And check that the tail ends with a reference to the Assets folder, to the Asset
+	ASSERT_EQ(expectedTail, actualTail);
+}
+
 TEST_F(FileTest, GetDirectory)
 {
 	std::string fullFilePath = "/ParentDir/ChildDir/File";

@@ -25,4 +25,6 @@ public:
 	}
 
 	MockEntity* entity;
+
+	const char* ENTITY_NAME = "MockEntityName";
 };

@@ -74,6 +74,16 @@ GibEngine::Renderer::Framebuffer::Framebuffer(int bufferWidth, int bufferHeight)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+GibEngine::Renderer::Framebuffer::~Framebuffer()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glDeleteTextures(3, &geometryBuffer.textures[0]);
+
+	glDeleteFramebuffers(1, &geometryBuffer.depthTargetId);
+	glDeleteFramebuffers(1, &geometryBuffer.framebufferId);
+}
+
 void GibEngine::Renderer::Framebuffer::Bind()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, geometryBuffer.framebufferId);

@@ -7,6 +7,7 @@ GibEngine::Model::Model() : Entity(EntityType::MODEL)
 
 GibEngine::Model::Model(const char* modelFilename) : Model()
 {
+	this->assetName = modelFilename;
     modelFile = File::GetModelFile(modelFilename);
     LoadModel(modelFile);
 }
@@ -68,12 +69,22 @@ int GibEngine::Model::GetID() const
 	return Entity::GetID();
 }
 
-std::string& GibEngine::Model::GetName() const
+const char* GibEngine::Model::GetName() const
 {
-    return *Entity::entityName;
+	return GetName();
+}
+
+const char* GibEngine::Model::GetAssetName() const
+{
+	return assetName;
 }
 
 std::vector<GibEngine::Mesh*> GibEngine::Model::GetMeshes()
 {
 	return meshes;
+}
+
+std::vector<glm::mat4> GibEngine::Model::GetModelInstances() const
+{
+	return meshes.at(0)->GetInstanceMatrices();
 }

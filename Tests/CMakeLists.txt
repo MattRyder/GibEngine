@@ -33,7 +33,7 @@ set(TESTS_INCLUDE_DIRS
   CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE
 )
 
-include_directories(${TESTS_INCLUDE_DIRS} ${ENGINE_INCLUDE_DIRS})
+include_directories(${TESTS_INCLUDE_DIRS} ${GIBENGINE_INCLUDE_DIRS})
 
 link_directories(${GOOGLETEST_LIB_DIR})
 
@@ -43,7 +43,8 @@ add_executable(GibTest
 
 	include/FileTest.h
 	src/FileTest.cpp
-
+	include/WorldDatabaseTest.h
+	src/WorldDatabaseTest.cpp
 	include/ControllerTest.h
 	src/ControllerTest.cpp
 
@@ -52,6 +53,9 @@ add_executable(GibTest
 
 	include/FreeCameraTest.h
 	src/FreeCameraTest.cpp
+
+	include/LightBaseTest.h
+	src/LightBaseTest.cpp
 
 	include/Main.h
 	src/Main.cpp)

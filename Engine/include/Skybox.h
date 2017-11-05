@@ -60,15 +60,17 @@ namespace GibEngine
 	{
 		Texture *skyboxCubemap;
 		glm::mat4 modelMatrix;
+		const char* textureExtension;
 
 	public:
 		const int SKYBOX_MOVE_SPEED = 1;
 
-		Skybox(std::string skyboxTextureName, std::string skyboxTextureExtension);
+		Skybox(const char* skyboxTextureName, const char* skyboxTextureExtension);
 		~Skybox();
 
 		Texture* GetCubemap();
 		glm::mat4 GetModelMatrix();
+		const char* GetExtension();
 
 		void SetModelMatrix(glm::mat4 modelMatrix);
 

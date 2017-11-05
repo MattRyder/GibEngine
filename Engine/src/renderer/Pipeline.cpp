@@ -146,6 +146,12 @@ void GibEngine::Renderer::Pipeline::SetCameraBase(CameraBase* camera)
 	this->camera = camera;
 }
 
+void GibEngine::Renderer::Pipeline::ResizeFramebuffer(int width, int height)
+{
+	delete framebuffer;
+	this->framebuffer = graphicsApi->CreateFramebuffer(width, height);
+}
+
 const char* GibEngine::Renderer::Pipeline::GetShaderLanguageString(ShaderLanguage language)
 {
 	return ShaderLanguageStrings[static_cast<int>(language)];

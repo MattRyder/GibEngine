@@ -9,7 +9,7 @@ namespace GibEngine
 {
     class FreeCamera : public CameraBase
     {
-        float cameraMovementSpeed = 10;
+        float cameraMovementSpeed = 1.0f;
 		double lastMouseX = 0.0f, lastMouseY = 0.0f;
 
         FreeCamera();

@@ -17,8 +17,8 @@ namespace GibEngine
 
 	protected:
 		std::vector<Mesh*> meshes;
-		std::vector<glm::mat4> modelInstanceMatrices;
 		File* modelFile;
+		const char* assetName;
 
 	public:
 		Model();
@@ -32,7 +32,9 @@ namespace GibEngine
 		virtual void Update(double deltaTime) override;
 
 		int GetID() const override;
-		std::string& GetName() const override;
+		const char* GetName() const override;
+		const char* GetAssetName() const;
 		std::vector<Mesh*> GetMeshes();
+		std::vector<glm::mat4> GetModelInstances() const;
 	};
 }
