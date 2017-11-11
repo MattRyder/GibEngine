@@ -52,6 +52,7 @@ namespace GibEngine
 			void Update(float deltaTime);
 
 			RenderPass* GetRenderPass(RenderPassType type);
+			Framebuffer* GetFramebuffer();
 
 			void SetCameraBase(CameraBase *camera);
 

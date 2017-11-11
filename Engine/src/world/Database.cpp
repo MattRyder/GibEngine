@@ -81,7 +81,8 @@ bool GibEngine::World::Database::SaveLevel(Level* level)
 int GibEngine::World::Database::SaveModel(int levelId, Model* model)
 {
     sqlite3pp::command insertCmd(*db, CREATE_MODEL_QUERY);
-    insertCmd.bind(":levelId", std::to_string(levelId).c_str(), sqlite3pp::nocopy);
+	std::string levelIdStr = std::to_string(levelId);
+    insertCmd.bind(":levelId", levelIdStr.c_str(), sqlite3pp::nocopy);
     insertCmd.bind(":assetName", model->GetAssetName(), sqlite3pp::nocopy);
     int res = insertCmd.execute();
 
@@ -116,10 +117,11 @@ int GibEngine::World::Database::SaveSkybox(Skybox* skybox)
 int GibEngine::World::Database::SaveInstance(int modelId, glm::vec3 position, glm::vec3 rotationAxis, float rotationAngle, glm::vec3 scale)
 {
     sqlite3pp::command insertCmd(*db, CREATE_INSTANCE_QUERY);
-    insertCmd.bind(":modelId", std::to_string(modelId).c_str(), sqlite3pp::nocopy);
+	std::string modelIdStr = std::to_string(modelId);
+    insertCmd.bind(":modelId", modelIdStr.c_str(), sqlite3pp::nocopy);
 
-    const char *rotationAn = std::to_string(rotationAngle).c_str();
-    insertCmd.bind(":rotationAngle", rotationAn, sqlite3pp::nocopy);
+    std::string rotationAn = std::to_string(rotationAngle);
+    insertCmd.bind(":rotationAngle", rotationAn.c_str(), sqlite3pp::nocopy);
     
     std::string positionStr = std::string();
     std::string scaleStr = std::string();

@@ -47,7 +47,7 @@ void APIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum seve
 	//GibEngine::Logger::LogWrite(level, "%s: %s", errString.c_str(), message​);
 }
 
-bool GibEngine::GLFW::ResizeFramebuffer = false;
+GibEngine::GLFW::_WindowResizeEvent GibEngine::GLFW::WindowResizeEvent = { 0 };
 
 void GibEngine::GLFW::ErrorCallback(int error, const char* description)
 {
@@ -58,8 +58,8 @@ void GibEngine::GLFW::SetWindowSizeCallback(GLFWwindow* window, int width, int h
 {
 	Logger::Instance->info("Window Resized: {} x {}", width, height);
 
-	if (ResizeFramebuffer)
-	{
-		glViewport(0, 0, width, height);
-	}
+	WindowResizeEvent.Raised = true;
+	WindowResizeEvent.Width = width;
+	WindowResizeEvent.Height = height;
+	WindowResizeEvent.ResizeFramebuffer = true;
 }

@@ -71,7 +71,7 @@ int GibEngine::Model::GetID() const
 
 const char* GibEngine::Model::GetName() const
 {
-	return GetName();
+	return Entity::GetName();
 }
 
 const char* GibEngine::Model::GetAssetName() const

@@ -23,7 +23,8 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 	menubar->SetOnExitCallback(exitCallback);
 	menubar->SetOnOpenFileDialogCallback(openWorldFileCallback);
 
-	dock = new Components::Dock();
+	GibEngine::World::Level* level = worldDb->FindLevel(1);
+	dock = new Components::Dock(level, renderPipeline);
 }
 
 GibEditor::Editor::~Editor()
@@ -36,19 +37,17 @@ void GibEditor::Editor::Render()
 {    
     Game::Render();
 
-	//ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Always);
-	//ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT), ImGuiSetCond_Always);
+	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT), ImGuiSetCond_Always);
 
-	//if (ImGui::Begin("", (bool*)0, ROOT_PANEL_FLAGS))
-	//{
-	//	menubar->Render();
-	//}
+	if (ImGui::Begin("", (bool*)0, ROOT_PANEL_FLAGS))
+	{
+		menubar->Render();
+	}
 
-	//dock->Render();
+	dock->Render();
 
-	//ImGui::End();
- //   
-    this->Update();
+	ImGui::End();
 }
 
 void GibEditor::Editor::Update()

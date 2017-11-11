@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 
 #include "glm/vec3.hpp"
 
@@ -61,6 +62,6 @@ namespace GibEngine
 		void SetName(const char* entityName);
 
 		EntityType GetType() const;
-		std::string GetTypeName() const;
+		const char* GetTypeName() const;
 	};
 }

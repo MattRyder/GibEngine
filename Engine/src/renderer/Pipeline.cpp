@@ -141,6 +141,11 @@ GibEngine::Renderer::RenderPass* GibEngine::Renderer::Pipeline::GetRenderPass(Re
 	return this->passes.at(type);
 }
 
+GibEngine::Renderer::Framebuffer* GibEngine::Renderer::Pipeline::GetFramebuffer()
+{
+	return framebuffer;
+}
+
 void GibEngine::Renderer::Pipeline::SetCameraBase(CameraBase* camera)
 {
 	this->camera = camera;

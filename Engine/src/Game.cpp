@@ -98,7 +98,6 @@ GibEngine::Game::~Game()
 void GibEngine::Game::Render()
 {
 	this->renderPipeline->Render();
-	Update();
 }
 
 void GibEngine::Game::Update()
@@ -106,6 +105,13 @@ void GibEngine::Game::Update()
 	currentFrameTime = static_cast<float>(glfwGetTime());
 	float deltaTime = currentFrameTime - lastFrameTime;
 	lastFrameTime = currentFrameTime;
+
+	// Handle GLFW state changes
+	if (GLFW::WindowResizeEvent.Raised)
+	{
+		this->renderPipeline->ResizeFramebuffer(GLFW::WindowResizeEvent.Width, GLFW::WindowResizeEvent.Height);
+		GLFW::WindowResizeEvent.Raised = false;
+	}
 
 	this->playerCamera->Update(deltaTime, inputManager->GetMousePosition(), inputManager->GetScrollState(), inputManager->GetKeyboardState());
 
@@ -146,7 +152,6 @@ bool GibEngine::Game::initializeGL(GibEngine::Renderer::ShaderLanguage shaderLan
 	this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, this->windowTitle, nullptr, nullptr);
 
 	// Setup GLFW callbacks:
-	GLFW::ResizeFramebuffer = true;
 	glfwSetErrorCallback(GLFW::ErrorCallback);
 	//glfwSetFramebufferSizeCallback(window, GLFW::SetWindowSizeCallback);
 	glfwSetWindowSizeCallback(window, GLFW::SetWindowSizeCallback);

@@ -19,8 +19,8 @@
 
 #include "cxxopts.hpp"
 
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
  
 namespace GibEngine
 {
@@ -39,14 +39,13 @@ namespace GibEngine
 		Skybox* skybox;
 		PointLight* light;
 
-		World::Database* worldDb;
+		void ParseOptions(int argc, char** argv);
 
-		Renderer::ShaderLanguage shaderLanguage = GibEngine::Renderer::ShaderLanguage::GLES_3;
-
+	protected:
+		Renderer::ShaderLanguage shaderLanguage = Renderer::ShaderLanguage::GLSL_420;
 		Renderer::Pipeline* renderPipeline;
 		Input::InputManager* inputManager;
-
-		void ParseOptions(int argc, char** argv);
+		World::Database* worldDb;
 
 	public:
 		Game(int argc, char** argv);

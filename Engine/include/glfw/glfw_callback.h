@@ -12,9 +12,17 @@ namespace GibEngine
 {
 	class GLFW
 	{
+
 	public:
-		// Whether to sync the framebuffer & window size, or keep framebuffer at default size
-		static bool ResizeFramebuffer;
+		struct _WindowResizeEvent
+		{
+			int Width;
+			int Height;
+			bool ResizeFramebuffer;
+			bool Raised;
+		};
+
+		static _WindowResizeEvent WindowResizeEvent;
 
 		static void ErrorCallback(int error, const char* description);
 		static void SetWindowSizeCallback(GLFWwindow* window, int width, int height);

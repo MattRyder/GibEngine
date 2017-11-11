@@ -6,8 +6,10 @@ GibEngine::Entity::Entity(EntityType type) : entityId(Id++)
 {
     this->entityType = type;
 
-	std::string* nameStr = new std::string(GetTypeName() + " (#" + std::to_string(entityId) + ")");
-	this->entityName = nameStr->c_str();
+	std::stringstream name;
+	name << GetTypeName() << "(ID #" << std::to_string(entityId) << ")";
+
+	this->entityName = strdup(name.str().c_str());
     this->entityPosition = glm::vec3();
 }
 
@@ -23,7 +25,7 @@ GibEngine::EntityType GibEngine::Entity::GetType() const
     return this->entityType;
 }
 
-std::string GibEngine::Entity::GetTypeName() const
+const char* GibEngine::Entity::GetTypeName() const
 {
     return GibEngine::EntityTypeStrings[static_cast<int>(this->entityType)];
 }
