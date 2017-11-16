@@ -32,16 +32,17 @@ GibEngine::Game::Game(int argc, char** argv)
 
 	this->inputManager = new Input::InputManager(window);
 
-	PointLight* light = new PointLight(
+	light = new PointLight(
 		glm::vec3(0, 5.0f, 0),
 		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.9f, 0.9f, 0.9f),
 		-3.8f,
 		1.5f);
 
-	this->worldDb = new World::Database("demo.gwo");
 
 	if(!true)
 	{
+		GibEngine::World::Database* worldDb = new World::Database("demo.gwo");
+
 		// Keep to rebuild a demo world when schema changes:
 		GibEngine::Model* model = new GibEngine::Model("woodhouse/woodhouse.obj");
 		glm::mat4 inst = glm::mat4();
@@ -53,51 +54,30 @@ GibEngine::Game::Game(int argc, char** argv)
 		Skybox* skybox = new Skybox("stormy", "png");
 		lvl->SetSkybox(skybox);
 
-		worldDb->SaveLevel(lvl);		
+		worldDb->SaveLevel(lvl);
+
+		delete skybox;
+		delete model;
+		delete lvl;
+		delete worldDb;
 	}
-
-	World::Level* savedLevel = worldDb->FindLevel(1);
-
-	// Set the Render pipeline up with known OpenGL supported types:
-	this->renderPipeline = new Renderer::Pipeline(WINDOW_WIDTH, WINDOW_HEIGHT, shaderLanguage, playerCamera);
-
-	Renderer::RenderPass* deferredGeoPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_GEOMETRY);	
-	for(auto m : savedLevel->GetModels())
-	{
-		deferredGeoPass->AddDrawable(m);
-	}
-
-	Renderer::RenderPass* deferredLightingPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING);
-
-	int b = 3;	
-	for(int x = -b; x < b; x++)
-		for (int y = -b; y < b; y++)
-		{
-			PointLight* lightDup = new PointLight(*light);
-			lightDup->SetPosition(glm::vec3(1 * 2.5, 7.5, 1 * 2.5));
-
-			float r = rand() % 100 / 100.0;
-			float g = rand() % 100 / 100.0;
-			float bb = rand() % 100 / 100.0;
-
-			lightDup->SetDiffuseColor(glm::vec3(r, g, bb));
-			deferredLightingPass->AddLight(lightDup);
-		}
-
-	 Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);	
-	 Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);
-	 skyboxPass->SetSkybox(savedLevel->GetSkybox());
 }
 
 GibEngine::Game::~Game()
 {
-	glfwDestroyWindow(this->window);
-	delete this->windowTitle;
+	glfwDestroyWindow(window);
+
+	delete inputManager;
+	delete renderPipeline;
+	delete playerCamera;
 }
 
 void GibEngine::Game::Render()
 {
-	this->renderPipeline->Render();
+	if (this->renderPipeline != nullptr)
+	{
+		this->renderPipeline->Render();
+	}
 }
 
 void GibEngine::Game::Update()
@@ -120,9 +100,54 @@ void GibEngine::Game::Update()
 		this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING)->TakeScreenshot();
 	}
 
-	this->renderPipeline->Update(deltaTime);
+	if (this->renderPipeline != nullptr)
+	{
+		this->renderPipeline->Update(deltaTime);
+	}
 
 	glfwPollEvents();
+}
+
+void GibEngine::Game::LoadLevel(World::Level* level)
+{
+	// TODO: Replace with a clearPipeline() func:
+	if (this->renderPipeline != nullptr)
+	{
+		delete this->renderPipeline;
+	}
+
+	this->renderPipeline = new Renderer::Pipeline(WINDOW_WIDTH, WINDOW_HEIGHT, shaderLanguage, playerCamera);
+
+	Renderer::RenderPass* deferredGeoPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_GEOMETRY);
+	for (auto m : level->GetModels())
+	{
+		deferredGeoPass->SetPassEnabled(true);
+		deferredGeoPass->AddDrawable(m);
+	}
+
+	Renderer::RenderPass* deferredLightingPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING);
+	deferredLightingPass->SetPassEnabled(true);
+
+	int b = 3;
+	for (int x = -b; x < b; x++)
+		for (int y = -b; y < b; y++)
+		{
+			PointLight* lightDup = new PointLight(*light);
+			lightDup->SetPosition(glm::vec3(1 * 2.5, 7.5, 1 * 2.5));
+
+			float r = rand() % 100 / 100.0;
+			float g = rand() % 100 / 100.0;
+			float bb = rand() % 100 / 100.0;
+
+			lightDup->SetDiffuseColor(glm::vec3(r, g, bb));
+			deferredLightingPass->AddLight(lightDup);
+		}
+
+	Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);
+	Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);
+	skyboxPass->SetPassEnabled(true);
+
+	skyboxPass->SetSkybox(level->GetSkybox());
 }
 
 bool GibEngine::Game::initializeGL(GibEngine::Renderer::ShaderLanguage shaderLanguage)
@@ -224,6 +249,11 @@ void GibEngine::Game::ToggleVsync() { }
 GLFWwindow* GibEngine::Game::GetWindow()
 {
 	return this->window;
+}
+
+GibEngine::Renderer::Pipeline * GibEngine::Game::GetRenderPipeline() const
+{
+	return renderPipeline;
 }
 
 void GibEngine::Game::SetWindowTitle(const char *windowTitle)

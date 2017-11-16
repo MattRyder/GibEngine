@@ -4,7 +4,18 @@ GibEngine::World::Level::Level(int id, const char* name) : DatabaseEntity(id)
 {
     this->name = name;
 
-    this->models = new std::vector<GibEngine::Model*>();
+    this->models = std::vector<GibEngine::Model*>();
+}
+
+GibEngine::World::Level::~Level()
+{
+	for (auto model : models)
+	{
+		delete model;
+	}
+
+	delete name;
+	delete skybox;
 }
 
 void GibEngine::World::Level::SetSkybox(GibEngine::Skybox* skybox)
@@ -14,7 +25,7 @@ void GibEngine::World::Level::SetSkybox(GibEngine::Skybox* skybox)
 
 void GibEngine::World::Level::AddModel(GibEngine::Model* model)
 {
-    this->models->push_back(model);
+    this->models.push_back(model);
 }
 
 int GibEngine::World::Level::GetId()
@@ -34,5 +45,5 @@ GibEngine::Skybox* GibEngine::World::Level::GetSkybox()
 
 std::vector<GibEngine::Model*> GibEngine::World::Level::GetModels()
 {
-    return *this->models;
+    return this->models;
 }

@@ -16,7 +16,7 @@ namespace GibEngine
 	{
 		class RenderPass
 		{
-			bool passEnabled = true;
+			bool passEnabled = false;
 			bool lightingBindRequired;
 
 			void BindLightUniform3f(const char* lightUniformName, const glm::vec3 lightUniformValue);
@@ -37,15 +37,20 @@ namespace GibEngine
 			void LoadQuadData();
 
 		public:
-			RenderPass(API::IGraphicsApi *graphicsApi, Shader *shader);
-			RenderPass(API::IGraphicsApi *graphicsApi, Shader *shader, Framebuffer *framebuffer);
+			RenderPass(API::IGraphicsApi* graphicsApi, Shader* shader);
+			RenderPass(API::IGraphicsApi* graphicsApi, Shader* shader, Framebuffer* framebuffer);
+
+			virtual ~RenderPass();
 
 			virtual void Render();
 			virtual void Update(float deltaTime) = 0;
 
-			virtual void AddDrawable(Model *drawable);
-			virtual void AddLight(LightBase *light);
-			virtual void SetCameraBase(CameraBase *camera);
+			virtual void AddDrawable(Model* drawable);
+			virtual void AddLight(LightBase* light);
+			virtual void SetCameraBase(CameraBase* camera);
+
+			Shader* GetShader() const;
+			bool IsEnabled() const;
 
 			void BindLights();
 			void FlagLightingBindRequired();

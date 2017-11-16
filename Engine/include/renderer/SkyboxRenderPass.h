@@ -9,7 +9,7 @@ namespace GibEngine
 	{
 		class SkyboxRenderPass : public RenderPass
 		{
-			Skybox *skybox;
+			Skybox *skybox = nullptr;
 
 		public:
 			SkyboxRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader);

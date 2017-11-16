@@ -18,7 +18,17 @@ GibEngine::Renderer::Pipeline::Pipeline(int framebufferWidth, int framebufferHei
 	this->passes = std::map<RenderPassType, RenderPass*>();
 }
 
-GibEngine::Renderer::Pipeline::~Pipeline() { }
+GibEngine::Renderer::Pipeline::~Pipeline()
+{
+	for (auto passObj : this->passes)
+	{
+		delete passObj.second->GetShader();
+		delete passObj.second;
+	}
+	
+	delete graphicsApi;
+	delete framebuffer;
+}
 
 void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 {
@@ -98,11 +108,19 @@ void GibEngine::Renderer::Pipeline::Render()
 
 	graphicsApi->UpdateCamera(camera);
 
-	this->GetRenderPass(RenderPassType::DEFERRED_GEOMETRY)->Render();
+	RenderPass* pass = GetRenderPass(RenderPassType::DEFERRED_GEOMETRY);
+	if (pass->IsEnabled())
+	{
+		pass->Render();
+	}
 
 	graphicsApi->UnbindFramebuffer();
 
-	this->GetRenderPass(RenderPassType::DEFERRED_LIGHTING)->Render();
+	pass = GetRenderPass(RenderPassType::DEFERRED_LIGHTING);
+	if (pass->IsEnabled())
+	{
+		pass->Render();
+	}
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->GetBuffer().framebufferId);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -110,13 +128,11 @@ void GibEngine::Renderer::Pipeline::Render()
 	// NB: This can fail with GL_INVALID_OPERATION, usually means the GPU is expecting a different renderbuffer storage format than the FB depth attachment
 	glBlitFramebuffer(0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-	this->GetRenderPass(RenderPassType::SKYBOX)->Render();
-
 	// Gotta do the skybox pass forward renderered:
-	RenderPass* skyboxRenderPass = GetRenderPass(RenderPassType::SKYBOX);
-	if (skyboxRenderPass != nullptr)
+	pass = GetRenderPass(RenderPassType::SKYBOX);
+	if (pass->IsEnabled())
 	{
-		skyboxRenderPass->Render();
+		pass->Render();
 	}
 }
 

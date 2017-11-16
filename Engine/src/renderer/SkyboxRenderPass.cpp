@@ -20,6 +20,11 @@ void GibEngine::Renderer::SkyboxRenderPass::Render()
 
 void GibEngine::Renderer::SkyboxRenderPass::Update(float deltaTime)
 {
+	if (skybox == nullptr)
+	{
+		return;
+	}
+
 	glm::mat4 matrix = glm::rotate(skybox->GetModelMatrix(), glm::radians(skybox->SKYBOX_MOVE_SPEED * deltaTime), glm::vec3(0, 1, 0));
 	skybox->SetModelMatrix(matrix);
 }
@@ -27,6 +32,11 @@ void GibEngine::Renderer::SkyboxRenderPass::Update(float deltaTime)
 void GibEngine::Renderer::SkyboxRenderPass::SetSkybox(Skybox* skybox)
 {
 	this->skybox = skybox;
+
+	if (skybox == nullptr)
+	{
+		return;
+	}
 
 	MeshUploadTicket* ticket = graphicsApi->UploadMesh(skybox);
 	skybox->SetMeshUploadTicket(ticket);

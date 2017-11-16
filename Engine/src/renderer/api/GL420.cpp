@@ -329,6 +329,8 @@ void GibEngine::Renderer::API::GL420::UploadTexture2D(GibEngine::Texture *textur
 	{
 		texture->SetTextureId(textureId);
 	}
+
+	delete texData->Data;
 }
 
 void GibEngine::Renderer::API::GL420::UploadTextureCubemap(GibEngine::Texture *texture)

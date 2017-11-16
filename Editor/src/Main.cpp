@@ -23,6 +23,8 @@ int main(int argc, char** argv)
 
 		editor->Update();
     }
+
+	delete editor;
 }
 
 void SetupImGuiStyle()

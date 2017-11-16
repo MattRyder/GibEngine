@@ -4,18 +4,27 @@
 GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 {
 	std::function<void()> exitCallback = [&]() -> void { glfwSetWindowShouldClose(GetWindow(), true); };
-	std::function<void()> openWorldFileCallback = [&]() -> void
+	auto openWorldFileCallback = [&]() -> void
 	{
 		nfdchar_t* outPath = nullptr;
 		nfdresult_t res = NFD_OpenDialog("gwo", GibEngine::File::GetWorkingDirectory().c_str(), &outPath);
 
 		if (res == NFD_OKAY)
 		{
-			std::cout << "Success!" << std::endl;
+			GibEngine::Logger::Instance->info("Loading World: {}", outPath);
+			GibEngine::World::Database* db = new GibEngine::World::Database(outPath);
+
+			GibEngine::World::Level* level = db->FindLevel(1);
+			this->LoadLevel(level);
+
+			dock = new Components::Dock(level, this->GetRenderPipeline());
+
+			db->Disconnect();
+			delete db;
 		}
 		else if(res != NFD_CANCEL)
 		{
-			std::cout << "Error: " << std::endl;
+			GibEngine::Logger::Instance->error("Error loading World: {}", outPath);
 		}
 	};
 
@@ -23,8 +32,7 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 	menubar->SetOnExitCallback(exitCallback);
 	menubar->SetOnOpenFileDialogCallback(openWorldFileCallback);
 
-	GibEngine::World::Level* level = worldDb->FindLevel(1);
-	dock = new Components::Dock(level, renderPipeline);
+	dock = new Components::Dock(nullptr, nullptr);
 }
 
 GibEditor::Editor::~Editor()

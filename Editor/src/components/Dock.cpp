@@ -23,15 +23,19 @@ void GibEditor::Components::Dock::Render()
 			ImGui::NextColumn();
 		}
 
-		for (auto model : level->GetModels())
+		if (level != nullptr)
 		{
-			ImGui::Text("%s", model->GetName());
-			ImGui::NextColumn();
-			ImGui::Text("%s", model->GetTypeName());
-			ImGui::NextColumn();
+			for (auto model : level->GetModels())
+			{
+				ImGui::Text("%s", model->GetName());
+				ImGui::NextColumn();
+				ImGui::Text("%s", model->GetTypeName());
+				ImGui::NextColumn();
+			}
+
+			ImGui::Columns(1);
 		}
 
-		ImGui::Columns(1);
 		ImGui::EndDock();
 	}
 
@@ -39,7 +43,10 @@ void GibEditor::Components::Dock::Render()
 	if (ImGui::BeginDock("Game")) 
 	{
 		ImVec2 windowSize = ImGui::GetWindowSize();
-		ImGui::Image((void*)pipeline->GetFramebuffer()->GetBuffer().textures[GibEngine::Renderer::FramebufferType::ALBEDO], windowSize, ImVec2(0, 1), ImVec2(1, 0));
+		if (pipeline != nullptr)
+		{
+			ImGui::Image((void*)pipeline->GetFramebuffer()->GetBuffer().textures[GibEngine::Renderer::FramebufferType::ALBEDO], windowSize, ImVec2(0, 1), ImVec2(1, 0));
+		}
 		ImGui::EndDock();
 	}
 

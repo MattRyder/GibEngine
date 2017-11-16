@@ -34,18 +34,15 @@ namespace GibEngine
 		float currentFrameTime = 0, lastFrameTime = 0;
 
 		// TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
-		FreeCamera* playerCamera;
-		Model* model;
-		Skybox* skybox;
-		PointLight* light;
+		FreeCamera* playerCamera = nullptr;
+		PointLight* light = nullptr;
 
 		void ParseOptions(int argc, char** argv);
 
 	protected:
 		Renderer::ShaderLanguage shaderLanguage = Renderer::ShaderLanguage::GLSL_420;
-		Renderer::Pipeline* renderPipeline;
-		Input::InputManager* inputManager;
-		World::Database* worldDb;
+		Renderer::Pipeline* renderPipeline = nullptr;
+		Input::InputManager* inputManager = nullptr;
 
 	public:
 		Game(int argc, char** argv);
@@ -54,13 +51,15 @@ namespace GibEngine
 		virtual void Render();
 		virtual void Update();
 
+		virtual void LoadLevel(World::Level* level);
+
 		bool initializeGL(GibEngine::Renderer::ShaderLanguage shaderVersion);
 		void ToggleVsync();
 
-		void SetWindowTitle(const char *windowTitle);
+		void SetWindowTitle(const char* windowTitle);
 		void SetWindowSize(int windowWidth, int windowHeight);
 
 		GLFWwindow* GetWindow();
-		glm::vec2 GetWindowSize();
+		Renderer::Pipeline* GetRenderPipeline() const;
 	};
 }

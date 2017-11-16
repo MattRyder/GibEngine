@@ -29,5 +29,5 @@ TEST_F(EntityTest, GetType)
 
 TEST_F(EntityTest, GetTypeName)
 {
-	ASSERT_EQ(entity->GetTypeName(), "Entity");
+	ASSERT_STREQ(entity->GetTypeName(), "Entity");
 }

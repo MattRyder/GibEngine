@@ -12,12 +12,13 @@ namespace GibEngine
         class Level : DatabaseEntity
         {
             const char* name;
-            Skybox* skybox;
+            Skybox* skybox = nullptr;
 
-            std::vector<GibEngine::Model*>* models;
+            std::vector<GibEngine::Model*> models;
 
         public:
             Level(int id, const char* name);
+			~Level();
 
             int GetId();
             const char* GetName();

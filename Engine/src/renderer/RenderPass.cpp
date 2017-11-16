@@ -10,6 +10,7 @@ GLfloat GibEngine::Renderer::RenderPass::QuadTextureData[] = {
 
 GibEngine::Renderer::RenderPass::RenderPass(API::IGraphicsApi* graphicsApi, Shader *shader)
 {
+	this->quadMesh = nullptr;
 	this->graphicsApi = graphicsApi;
 	this->shader = shader;
 }
@@ -18,6 +19,14 @@ GibEngine::Renderer::RenderPass::RenderPass(API::IGraphicsApi* graphicsApi, Shad
 	: RenderPass(graphicsApi, shader)
 {
 	this->framebuffer = framebuffer;
+}
+
+GibEngine::Renderer::RenderPass::~RenderPass()
+{
+	if (quadMesh != nullptr)
+	{
+		delete quadMesh;
+	}
 }
 
 void GibEngine::Renderer::RenderPass::LoadQuadData()
@@ -66,6 +75,16 @@ void GibEngine::Renderer::RenderPass::AddLight(LightBase *light)
 void GibEngine::Renderer::RenderPass::SetCameraBase(CameraBase * camera)
 {
 	this->camera = camera;
+}
+
+GibEngine::Shader* GibEngine::Renderer::RenderPass::GetShader() const
+{
+	return shader;
+}
+
+bool GibEngine::Renderer::RenderPass::IsEnabled() const
+{
+	return passEnabled;
 }
 
 void GibEngine::Renderer::RenderPass::BindLights()

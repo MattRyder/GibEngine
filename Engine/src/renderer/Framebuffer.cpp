@@ -82,6 +82,8 @@ GibEngine::Renderer::Framebuffer::~Framebuffer()
 
 	glDeleteFramebuffers(1, &geometryBuffer.depthTargetId);
 	glDeleteFramebuffers(1, &geometryBuffer.framebufferId);
+
+	geometryBuffer = { 0 };
 }
 
 void GibEngine::Renderer::Framebuffer::Bind()
