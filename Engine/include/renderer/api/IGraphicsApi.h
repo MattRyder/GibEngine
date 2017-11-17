@@ -18,6 +18,8 @@ namespace GibEngine
                 
             public:
                 enum BufferIndex { VERTEX, INDEX, INSTANCE_MATRIX, BUFFERINDEX_LAST };
+
+				virtual ~IGraphicsApi() { }
                 
                 virtual void BindCamera(GibEngine::CameraBase *camera) = 0;
                 virtual void BindFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer) = 0;

@@ -2,6 +2,33 @@
 
 GibEngine::Mesh::Mesh() : Entity(EntityType::MODEL) { }
 
+GibEngine::Mesh::~Mesh()
+{
+	uploadTicket->buffers.clear();
+	uploadTicket->buffers.swap(std::vector<unsigned int>());
+
+	delete uploadTicket;
+
+	instanceMatrices.clear();
+	vertices.clear();
+	std::vector<Vertex>().swap(vertices);
+	
+	indices.clear();
+	std::vector<unsigned int>().swap(indices);
+
+	for (auto material : materials)
+	{
+		for (auto texture : material->Textures)
+		{
+			delete texture;
+		}
+
+		material->Textures.clear();
+		delete material;
+	}
+	materials.clear();	
+}
+
 GibEngine::Mesh::Mesh(const char* directory, aiMesh *mesh, const aiScene* scene) : Entity(EntityType::MODEL)
 {
 	this->directory = directory;

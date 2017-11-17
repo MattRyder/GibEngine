@@ -15,7 +15,7 @@ namespace GibEngine
 
             public:
 				GL420();
-				virtual ~GL420();
+				virtual ~GL420() override;
 
                 virtual void BindCamera(CameraBase *camera) override;
                 virtual void BindFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer) override;

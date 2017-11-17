@@ -96,6 +96,7 @@ namespace GibEngine
 		static const int MOVE_SPEED = 10;
 
 		Mesh();
+		~Mesh();
 		Mesh(const char *directory, aiMesh *mesh, const aiScene *scene);
 		Mesh(std::vector<Vertex> vertices);
 

@@ -4,6 +4,14 @@ GibEngine::Renderer::UniformBufferManager::UniformBufferManager()
 {
 }
 
+GibEngine::Renderer::UniformBufferManager::~UniformBufferManager()
+{
+	for (unsigned int i = 0; i < MAX_UNIFORM_BUFFER_COUNT; i++)
+	{
+		delete buffers[i];
+	}
+}
+
 GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::Create(const char* bufferName, size_t bufferSize)
 {
 	unsigned int bufferIndex = GetAvailableBufferIndex();

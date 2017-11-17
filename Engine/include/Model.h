@@ -24,10 +24,10 @@ namespace GibEngine
 		Model();
 		Model(const char* modelFilename);
 		Model(Mesh* mesh);
+		~Model();
 
 		void ProcessNode(aiNode* node, const aiScene* scene);
 
-		void UpdateInstances();
 		void AddInstance(glm::mat4 modelMatrix);
 		virtual void Update(double deltaTime) override;
 

@@ -38,6 +38,11 @@ GibEngine::Game::Game(int argc, char** argv)
 		-3.8f,
 		1.5f);
 
+	if (currentLevel != nullptr)
+	{
+		Logger::Instance->info("Loading Level: \"{}\"", currentLevel->GetName());
+		this->LoadLevel(currentLevel);
+	}
 
 	if(!true)
 	{
@@ -66,7 +71,10 @@ GibEngine::Game::Game(int argc, char** argv)
 GibEngine::Game::~Game()
 {
 	glfwDestroyWindow(window);
+	glfwTerminate();
 
+	delete light;
+	delete currentLevel;
 	delete inputManager;
 	delete renderPipeline;
 	delete playerCamera;
@@ -213,7 +221,9 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 		("h,help", "Outputs this help text");
 
 	opts.add_options("Game")
-		("title", "Set the window title", cxxopts::value<std::string>());
+		("title", "Set the window title", cxxopts::value<std::string>())
+		("world", "Loads a GibEngine World Object (*.gwo)", cxxopts::value<std::string>())
+		("levelID", "Loads the selected level from the GWO", cxxopts::value<unsigned int>());
 
 	opts.add_options("Rendering")
 		("gles", "Use OpenGL ES 3 Client API")
@@ -241,6 +251,18 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 	if(title.size() > 0)
 	{
 		this->SetWindowTitle(windowTitle->c_str());
+	}
+
+	// Load a level if world provided:
+	std::string worldPath = opts["world"].as<std::string>();
+	if (worldPath.size() > 0)
+	{
+		unsigned int levelID = opts["levelID"].as<unsigned int>();
+		
+		GibEngine::World::Database* db = new World::Database(worldPath.c_str());
+		currentLevel = db->FindLevel(levelID);
+
+		delete db;
 	}
 }
 

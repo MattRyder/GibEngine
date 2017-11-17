@@ -1,5 +1,4 @@
 #include "world/Database.h"
-#include <iostream>
 
 GibEngine::World::Database::Database(const char* databaseFilepath)
 {
@@ -18,6 +17,12 @@ GibEngine::World::Database::Database(const char* databaseFilepath)
             Logger::Instance->error("Failed to create WorldDb: {}", errorMessage);
         }
     }
+}
+
+GibEngine::World::Database::~Database()
+{
+	Disconnect();
+	delete db;
 }
 
 void GibEngine::World::Database::Disconnect()

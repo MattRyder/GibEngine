@@ -1,10 +1,12 @@
 #pragma once
 
+#include <iostream>
 #include <glm/glm.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 
 #include "sqlite3pp/sqlite3pp.h"
 
@@ -26,6 +28,7 @@ namespace GibEngine
 
         public:
             Database(const char* databaseFilepath);
+			~Database();
 
 			void Disconnect();
             

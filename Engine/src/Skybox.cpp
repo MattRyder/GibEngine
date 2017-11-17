@@ -19,7 +19,10 @@ GibEngine::Skybox::Skybox(const char* skyboxTextureName, const char* skyboxTextu
 	skyboxCubemap = Texture::LoadCubemap(skyboxTextureDir, "png");
 }
 
-GibEngine::Skybox::~Skybox() { }
+GibEngine::Skybox::~Skybox()
+{
+	delete skyboxCubemap;
+}
 
 GibEngine::Texture* GibEngine::Skybox::GetCubemap()
 {

@@ -17,6 +17,17 @@ GibEngine::Model::Model(Mesh* mesh) : Model()
 	this->meshes.push_back(mesh);
 }
 
+GibEngine::Model::~Model()
+{
+	for (auto mesh : meshes)
+	{
+		delete mesh;
+	}
+	meshes.clear();
+
+	delete modelFile;
+}
+
 void GibEngine::Model::ProcessNode(aiNode* node, const aiScene* scene)
 {
 	for (GLuint i = 0; i < node->mNumMeshes; i++)

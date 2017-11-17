@@ -1,5 +1,7 @@
 #include "renderer/api/GLES3.h"
 
+GibEngine::Renderer::API::GLES3::~GLES3() { }
+
 void GibEngine::Renderer::API::GLES3::BindCamera(GibEngine::CameraBase *camera)
 {	
 	int projLoc = glGetUniformLocation(currentShaderID, "camera.ProjectionMatrix");

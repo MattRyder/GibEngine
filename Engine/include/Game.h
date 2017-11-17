@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+//#include <vld.h>
 
 #include "GL/gl3w.h"
 #include "GLFW/glfw3.h"
@@ -41,6 +42,7 @@ namespace GibEngine
 
 	protected:
 		Renderer::ShaderLanguage shaderLanguage = Renderer::ShaderLanguage::GLSL_420;
+		World::Level* currentLevel = nullptr;
 		Renderer::Pipeline* renderPipeline = nullptr;
 		Input::InputManager* inputManager = nullptr;
 

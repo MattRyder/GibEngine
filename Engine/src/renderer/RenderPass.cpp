@@ -27,6 +27,11 @@ GibEngine::Renderer::RenderPass::~RenderPass()
 	{
 		delete quadMesh;
 	}
+
+	for (auto light : lights)
+	{
+		delete light;
+	}
 }
 
 void GibEngine::Renderer::RenderPass::LoadQuadData()

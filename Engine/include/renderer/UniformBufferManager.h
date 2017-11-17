@@ -44,8 +44,6 @@ namespace GibEngine
 			virtual ~UniformBuffer()
 			{
 				glDeleteBuffers(1, &bufferId);
-
-				delete this->uniformBlockName;
 			}
 
 			void Update(GLvoid* newData)
@@ -83,6 +81,7 @@ namespace GibEngine
 			unsigned int GetAvailableBufferIndex();
 		public:
 			UniformBufferManager();
+			~UniformBufferManager();
 
 			UniformBuffer* Create(const char* bufferName, size_t bufferSize);
 			UniformBuffer* Create(const char* bufferName, size_t bufferSize, GLvoid *bufferData);

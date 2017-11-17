@@ -32,13 +32,15 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 	menubar->SetOnExitCallback(exitCallback);
 	menubar->SetOnOpenFileDialogCallback(openWorldFileCallback);
 
-	dock = new Components::Dock(nullptr, nullptr);
+	dock = new Components::Dock(currentLevel, GetRenderPipeline());
 }
 
 GibEditor::Editor::~Editor()
 {
 	delete menubar;
 	delete dock;
+
+	Sleep(2000);
 }
 
 void GibEditor::Editor::Render()
