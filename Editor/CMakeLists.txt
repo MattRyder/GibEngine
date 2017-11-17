@@ -17,7 +17,8 @@ set(EDITOR_INCLUDE_DIRS
 
 include_directories(${EDITOR_INCLUDE_DIRS})
 
-file(GLOB_RECURSE SHADER_FILES ${CMAKE_SOURCE_DIR}/Assets/Shaders/*.glsl)
+file(GLOB_RECURSE GLES3_SHADER_FILES ${CMAKE_SOURCE_DIR}/Assets/Shaders/300_es/*.glsl)
+file(GLOB_RECURSE GL420_SHADER_FILES ${CMAKE_SOURCE_DIR}/Assets/Shaders/420/*.glsl)
 
 include_directories("thirdparty/imgui/")
 file(
@@ -29,7 +30,6 @@ file(
 		"thirdparty/imgui/imgui_impl_glfw_gl3.cpp"
 		"thirdparty/imgui/*.h"
 )
-source_group(ImGui FILES ${IMGUI_FILES})
 
 include_directories("thirdparty/simpleini")
 file(
@@ -37,7 +37,6 @@ file(
 	"thirdparty/simpleini/ConvertUTF.h"
 	"thirdparty/simpleini/ConvertUTF.c"
 	"thirdparty/simpleini/SimpleIni.h")
-source_group(SimpleIni FILES ${SIMPLEINI_FILES})
 
 include_directories("thirdparty/nativefiledialog")
 file(
@@ -47,7 +46,6 @@ file(
 	"thirdparty/nativefiledialog/nfd_win.cpp"
 	"thirdparty/nativefiledialog/nfs_cocoa.m"
 	"thirdparty/nativefiledialog/*.h")
-source_group(NativeFileDialog FILES ${NFD_FILES})
 
 file(
 	GLOB COMPONENT_FILES
@@ -73,9 +71,16 @@ add_executable(GibEditor
   src/WindowsDirectoryChangeObserver.cpp
   src/Editor.cpp
   src/Main.cpp
-  ${SHADER_FILES})
+  ${GLES3_SHADER_FILES}
+  ${GL420_SHADER_FILES})
 
-source_group("Shaders" FILES ${SHADER_FILES})
+source_group("ThirdParty\\ImGui" FILES ${IMGUI_FILES})
+source_group("ThirdParty\\SimpleIni" FILES ${SIMPLEINI_FILES})
+source_group("ThirdParty\\NativeFileDialog" FILES ${NFD_FILES})
+
+source_group("Shaders\\GLES3" FILES ${GLES3_SHADER_FILES})
+source_group("Shaders\\GL420" FILES ${GL420_SHADER_FILES})
+
 source_group("Components" FILES ${COMPONENT_FILES})
 
 target_link_libraries(GibEditor GibEngine ${GTK3_LIBRARIES})

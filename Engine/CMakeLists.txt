@@ -65,31 +65,39 @@ set(SQLITE3PP_SRC
 
 include_directories(include/sqlite3pp/)
 
-set(SOURCE_TREE
-  ${SQLITE3PP_SRC}
-  include/GL/gl3w.h
+# Split the engine src into respective namespaces for `source_group`ing
+set(THIRDPARTY_INCLUDES
   include/stb/stb_image.h
   include/stb/stb_image_write.h
-  include/CameraBase.h
-  include/Entity.h
-  include/File.h
-  include/FreeCamera.h
-  include/Game.h
-  include/Logger.h
-  include/Mesh.h
-  include/Model.h
-  include/Shader.h
-  include/Skybox.h
-  include/Texture.h
-  include/LightBase.h
-  include/PointLight.h
+  include/GL/gl3w.h)
+
+set(THIRDPARTY_SRC
+  src/glfw/glfw_callback.cpp
+  src/gl3w/gl3w.c
+)
+
+set(WORLD_INCLUDES
   include/world/Database.h
   include/world/DatabaseQuery.h
   include/world/DatabaseEntity.h
   include/world/World.h
-  include/world/Level.h
+  include/world/Level.h)
+
+set(WORLD_SRC
+  src/world/Database.cpp
+  src/world/DatabaseEntity.cpp
+  src/world/World.cpp
+  src/world/Level.cpp)
+
+set(INPUT_INCLUDES
   include/input/Controller.h
-  include/input/InputManager.h
+  include/input/InputManager.h)
+
+set(INPUT_SRC
+  src/input/Controller.cpp
+  src/input/InputManager.cpp)
+
+set(RENDERER_INCLUDES
   include/renderer/api/IGraphicsApi.h
   include/renderer/api/GL420.h
   include/renderer/api/GLES3.h
@@ -102,30 +110,9 @@ set(SOURCE_TREE
   include/renderer/DeferredGeometryPass.h
   include/renderer/DeferredLightingPass.h
   include/renderer/RenderToTexturePass.h
-  include/renderer/Framebuffer.h
-  include/glfw/glfw_callback.h
+  include/renderer/Framebuffer.h)
 
-  src/glfw/glfw_callback.cpp
-  src/gl3w/gl3w.c
-  src/CameraBase.cpp
-  src/Entity.cpp
-  src/File.cpp
-  src/FreeCamera.cpp
-  src/Game.cpp
-  src/Logger.cpp
-  src/Mesh.cpp
-  src/Model.cpp
-  src/Shader.cpp
-  src/Skybox.cpp
-  src/Texture.cpp
-  src/LightBase.cpp
-  src/PointLight.cpp
-  src/world/Database.cpp
-  src/world/DatabaseEntity.cpp
-  src/world/World.cpp
-  src/world/Level.cpp
-  src/input/Controller.cpp
-  src/input/InputManager.cpp
+set(RENDERER_SRC
   src/renderer/api/GLES3.cpp
   src/renderer/api/GL420.cpp
   src/renderer/UniformBufferManager.cpp
@@ -138,7 +125,63 @@ set(SOURCE_TREE
   src/renderer/RenderToTexturePass.cpp
   src/renderer/Framebuffer.cpp)
 
-add_library(GibEngine ${SOURCE_TREE})
+set(ROOT_INCLUDES
+  include/glfw/glfw_callback.h
+  include/CameraBase.h
+  include/Entity.h
+  include/File.h
+  include/FreeCamera.h
+  include/Game.h
+  include/Logger.h
+  include/Mesh.h
+  include/Model.h
+  include/Shader.h
+  include/Skybox.h
+  include/Texture.h
+  include/LightBase.h
+  include/PointLight.h)
+
+set(ROOT_SRC
+  src/CameraBase.cpp
+  src/Entity.cpp
+  src/File.cpp
+  src/FreeCamera.cpp
+  src/Game.cpp
+  src/Logger.cpp
+  src/Mesh.cpp
+  src/Model.cpp
+  src/Shader.cpp
+  src/Skybox.cpp
+  src/Texture.cpp
+  src/LightBase.cpp
+  src/PointLight.cpp)
+
+
+add_library(GibEngine
+  ${SQLITE3PP_SRC}
+  ${THIRDPARTY_INCLUDES}
+  ${THIRDPARTY_SRC}
+  ${WORLD_INCLUDES}
+  ${WORLD_SRC}
+  ${INPUT_INCLUDES}
+  ${INPUT_SRC}
+  ${RENDERER_INCLUDES}
+  ${RENDERER_SRC}
+  ${ROOT_INCLUDES}
+  ${ROOT_SRC})
+
+# Setup source_groups
+source_group("Header Files" FILES ${ROOT_INCLUDES})
+source_group("Header Files\\ThirdParty" FILES ${THIRDPARTY_INCLUDES})
+source_group("Header Files\\World" FILES ${WORLD_INCLUDES})
+source_group("Header Files\\Input" FILES ${INPUT_INCLUDES})
+source_group("Header Files\\Renderer" FILES ${RENDERER_INCLUDES})
+source_group("Source Files" FILES ${ROOT_SRC})
+source_group("Source Files\\ThirdParty" FILES ${THIRDPARTY_SRC})
+source_group("Source Files\\ThirdParty\\SQLite3pp" FILES ${SQLITE3PP_SRC})
+source_group("Source Files\\World" FILES ${WORLD_SRC})
+source_group("Source Files\\Input" FILES ${INPUT_SRC})
+source_group("Source Files\\Renderer" FILES ${RENDERER_SRC})
 
 if(WIN32)
   LIST(APPEND GIBENGINE_LIBRARIES opengl32)
