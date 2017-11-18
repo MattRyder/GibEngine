@@ -16,6 +16,5 @@ namespace GibEngine
 
 			virtual void Update(float deltaTime) override;
 		};
-
 	}
 }

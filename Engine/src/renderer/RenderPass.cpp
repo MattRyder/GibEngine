@@ -28,10 +28,7 @@ GibEngine::Renderer::RenderPass::~RenderPass()
 		delete quadMesh;
 	}
 
-	for (auto light : lights)
-	{
-		delete light;
-	}
+	lights.clear();
 }
 
 void GibEngine::Renderer::RenderPass::LoadQuadData()
@@ -85,6 +82,11 @@ void GibEngine::Renderer::RenderPass::SetCameraBase(CameraBase * camera)
 GibEngine::Shader* GibEngine::Renderer::RenderPass::GetShader() const
 {
 	return shader;
+}
+
+std::vector<GibEngine::LightBase*> GibEngine::Renderer::RenderPass::GetLights() const
+{
+	return lights;
 }
 
 bool GibEngine::Renderer::RenderPass::IsEnabled() const
@@ -142,7 +144,8 @@ void GibEngine::Renderer::RenderPass::BindLights()
 		if (light->GetType() == EntityType::POINT_LIGHT)
 		{
 			PointLight *pointLight = reinterpret_cast<PointLight *>(light);
-			
+			//Logger::Instance->info("LA: {}", pointLight->GetLinearAttenuation());
+
 			glUniform1f(
 				glGetUniformLocation(shader->GetShaderId(), linearAttenuation.c_str()),
 				pointLight->GetLinearAttenuation()

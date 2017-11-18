@@ -44,6 +44,37 @@ void GibEngine::PointLight::SetQuadraticAttenuation(float attenuation)
 	this->quadraticAtten = attenuation;
 }
 
-void GibEngine::PointLight::Update(float deltaTime)
+bool moveDown = false;
+void GibEngine::PointLight::Update(double deltaTime)
 {
+	glm::vec3 p = GetPosition();
+
+	if (p.y > 10.0f) { moveDown = true; }
+	else if (p.y < 1.0f) { moveDown = false; }
+
+	float x = 1.0f * deltaTime;
+	p.y += (moveDown) ? -x : x;
+	//SetPosition(p);
+
+	//float la = GetQuadraticAttenuation();
+
+	//if (la > 3.0f) { moveDown = true; }
+	//else if (la < -3.0f) { moveDown = false; }
+
+	//float x = 0.25f * deltaTime;
+	//la += (moveDown) ? -x : x;
+	//SetQuadraticAttenuation(la);
+	//this->lightVolumeRadius = GenerateLightVolumeRadius();
+
+	//float la = GetQuadraticAttenuation();
+
+	//if (la > 3.0f) { moveDown = true; }
+	//else if (la < -3.0f) { moveDown = false; }
+
+	//float x = 0.25f * deltaTime;
+	//la += (moveDown) ? -x : x;
+	//SetQuadraticAttenuation(la);
+	//this->lightVolumeRadius = GenerateLightVolumeRadius();
+
+	//Logger::Instance->info("LA: {}, QA: {}, LVR: {}", GetLinearAttenuation(), GetQuadraticAttenuation(), lightVolumeRadius);
 }

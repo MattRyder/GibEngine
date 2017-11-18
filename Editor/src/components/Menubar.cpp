@@ -1,5 +1,10 @@
 #include "components/Menubar.h"
 
+GibEditor::Components::Menubar::Menubar(GibEngine::World::Level * level)
+{
+	this->level = level;
+}
+
 void GibEditor::Components::Menubar::Render()
 {
 	if (ImGui::BeginMenuBar())
@@ -15,6 +20,7 @@ void GibEditor::Components::Menubar::Render()
 
 		if (ImGui::BeginMenu("View"))
 		{
+			if (ImGui::MenuItem("Toggle Wireframe Mode")) { this->toggleWireframeCallbackFunc(level); }
 			ImGui::EndMenu();
 		}
 
@@ -25,6 +31,11 @@ void GibEditor::Components::Menubar::Render()
 
 		ImGui::EndMenuBar();
 	}
+}
+
+void GibEditor::Components::Menubar::SetLevel(GibEngine::World::Level* level)
+{
+	this->level = level;
 }
 
 void GibEditor::Components::Menubar::SetOnExitCallback(const std::function<void()> &exitCallbackFunc)
@@ -40,4 +51,9 @@ void GibEditor::Components::Menubar::SetOnOpenFileDialogCallback(const std::func
 void GibEditor::Components::Menubar::SetOnSaveFileDialogCallback(const std::function<void()>& saveFileDialogCallbackFunc)
 {
 	this->saveFileDialogCallbackFunc = saveFileDialogCallbackFunc;
+}
+
+void GibEditor::Components::Menubar::SetToggleWireframeCallback(const std::function<void(GibEngine::World::Level*)>& toggleWireframeCallbackFunc)
+{
+	this->toggleWireframeCallbackFunc = toggleWireframeCallbackFunc;
 }

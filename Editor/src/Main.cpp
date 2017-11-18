@@ -22,16 +22,11 @@ int main(int argc, char** argv)
 		glfwSwapBuffers(editor->GetWindow());
 
 		editor->Update();
-
-		glfwSetWindowShouldClose(editor->GetWindow(), true);
     }
 
 	ImGui_ImplGlfwGL3_Shutdown();
 
 	delete editor;
-
-	Sleep(5000);
-	int i = 0;
 }
 
 void SetupImGuiStyle()

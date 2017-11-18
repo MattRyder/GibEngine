@@ -27,10 +27,19 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 			GibEngine::Logger::Instance->error("Error loading World: {}", outPath);
 		}
 	};
+	auto toggleWireframeCallback = [&](auto currentLevel) -> void
+	{
+		for (auto model : currentLevel->GetModels())
+		{
+			model->SetWireframeMode(true);
+		}
+	};
 
-	menubar = new Components::Menubar();
+	menubar = new Components::Menubar(currentLevel);
 	menubar->SetOnExitCallback(exitCallback);
 	menubar->SetOnOpenFileDialogCallback(openWorldFileCallback);
+	menubar->SetToggleWireframeCallback(toggleWireframeCallback);
+
 
 	dock = new Components::Dock(currentLevel, GetRenderPipeline());
 }

@@ -50,6 +50,8 @@ namespace GibEngine
 			virtual void SetCameraBase(CameraBase* camera);
 
 			Shader* GetShader() const;
+			std::vector<LightBase*> GetLights() const;
+
 			bool IsEnabled() const;
 
 			void BindLights();

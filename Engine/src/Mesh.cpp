@@ -170,6 +170,11 @@ GibEngine::MeshUploadTicket * GibEngine::Mesh::GetMeshUploadTicket() const
 	return this->uploadTicket;
 }
 
+GibEngine::Mesh::Flags GibEngine::Mesh::GetFlags() const
+{
+	return flags;
+}
+
 void GibEngine::Mesh::Update(double deltaTime) { }
 
 std::vector<GibEngine::Texture*> GibEngine::Mesh::LoadMaterialTextures(aiMaterial* material, aiTextureType type, GibEngine::TextureType textureType)
@@ -197,4 +202,9 @@ bool GibEngine::Mesh::IsUploaded()
 void GibEngine::Mesh::SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept)
 {
 	this->uploadTicket = meshUploadReciept;
+}
+
+void GibEngine::Mesh::SetFlags(Flags flags)
+{
+	this->flags = flags;
 }

@@ -77,23 +77,14 @@ namespace GibEngine
 
 	class Mesh : public Entity
 	{
-		MeshUploadTicket* uploadTicket = nullptr;
-
-		std::vector<glm::mat4> instanceMatrices;
-
-		// Flags that the instance matrices must be updated on the GFX server
-		bool instanceMatricesDirty;
-
-		std::vector<Vertex> vertices;
-		std::vector<GLuint> indices;
-		std::vector<Material*> materials;
-
-		glm::vec3 movementDir;
-
-		const char* directory;
-
 	public:
 		static const int MOVE_SPEED = 10;
+
+		enum Flags
+		{
+			RENDER_ENABLED = 1 << 0,
+			RENDER_WIREFRAME = 1 << 1,
+		};
 
 		Mesh();
 		~Mesh();
@@ -107,6 +98,7 @@ namespace GibEngine
 		std::vector<unsigned int> GetIndices() const;
 		std::vector<Material*> GetMaterials() const;
 		MeshUploadTicket* GetMeshUploadTicket() const;
+		Flags GetFlags() const;
 		std::vector<Vertex> GetVertices() const;
 
 		bool IsInstanceMatricesDirty() const;
@@ -119,7 +111,25 @@ namespace GibEngine
 		void SetVertices(std::vector<Vertex> vertices);
 		void SetInstanceMatricesDirty(bool isDirty);
 		void SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept);
+		void SetFlags(Flags flags);
 
 		virtual void Update(double deltaTime) override;
+
+	private:
+		MeshUploadTicket* uploadTicket = nullptr;
+		Flags flags = Flags::RENDER_ENABLED;
+
+		std::vector<glm::mat4> instanceMatrices;
+
+		// Flags that the instance matrices must be updated on the GFX server
+		bool instanceMatricesDirty;
+
+		std::vector<Vertex> vertices;
+		std::vector<GLuint> indices;
+		std::vector<Material*> materials;
+
+		glm::vec3 movementDir;
+
+		const char* directory;
 	};
 }

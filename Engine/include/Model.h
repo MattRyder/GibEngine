@@ -36,5 +36,8 @@ namespace GibEngine
 		const char* GetAssetName() const;
 		std::vector<Mesh*> GetMeshes();
 		std::vector<glm::mat4> GetModelInstances() const;
+
+		void SetWireframeMode(bool wireframeOn);
+		void SetShouldRender(bool shouldRender);
 	};
 }

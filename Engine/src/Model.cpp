@@ -37,10 +37,10 @@ void GibEngine::Model::ProcessNode(aiNode* node, const aiScene* scene)
 	}
 
 	//Then process all the child nodes:
-	for (unsigned int i = 0; i < node->mNumChildren; i++) {
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
+	{
 		ProcessNode(node->mChildren[i], scene);
 	}
-
 }
 
 void GibEngine::Model::LoadModel(File* modelFile)
@@ -98,4 +98,22 @@ std::vector<GibEngine::Mesh*> GibEngine::Model::GetMeshes()
 std::vector<glm::mat4> GibEngine::Model::GetModelInstances() const
 {
 	return meshes.at(0)->GetInstanceMatrices();
+}
+
+void GibEngine::Model::SetWireframeMode(bool wireframeOn)
+{
+	for (auto mesh : meshes)
+	{
+		Mesh::Flags f = static_cast<Mesh::Flags>(mesh->GetFlags() ^ (wireframeOn ? Mesh::Flags::RENDER_WIREFRAME : ~Mesh::Flags::RENDER_WIREFRAME));
+		mesh->SetFlags(f);
+	}
+}
+
+void GibEngine::Model::SetShouldRender(bool shouldRender)
+{
+	for (auto mesh : GetMeshes())
+	{
+		Mesh::Flags f = static_cast<Mesh::Flags>(mesh->GetFlags() ^ (shouldRender ? Mesh::Flags::RENDER_ENABLED : ~Mesh::Flags::RENDER_ENABLED));
+		mesh->SetFlags(f);
+	}
 }

@@ -104,10 +104,19 @@ void GibEngine::Renderer::API::GL420::DrawPrimitive(MeshUploadTicket* meshUpload
 
 void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh)
 {
+	Mesh::Flags flags = mesh->GetFlags();
+	if (flags && !Mesh::Flags::RENDER_ENABLED)
+	{
+		return;
+	}
+
 	MeshUploadTicket* meshUploadTicket = mesh->GetMeshUploadTicket();
 
 	glBindVertexArray(meshUploadTicket->vertexArrayObject);
-	glDrawElementsInstanced(GL_TRIANGLES, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
+
+	GLuint drawMode = (flags & Mesh::Flags::RENDER_WIREFRAME) ? GL_LINES : GL_TRIANGLES;
+
+	glDrawElementsInstanced(drawMode, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
 		0, mesh->GetInstanceMatrices().size());
 	glBindVertexArray(0);
 }
