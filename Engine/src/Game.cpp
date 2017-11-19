@@ -33,10 +33,10 @@ GibEngine::Game::Game(int argc, char** argv)
 	this->inputManager = new Input::InputManager(window);
 
 	light = new PointLight(
-		glm::vec3(0, 5.0f, 0),
-		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.9f, 0.9f, 0.9f),
-		-3.8f,
-		1.5f);
+		glm::vec3(0, 1.65f, 0),
+		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.0f, 0.0f), glm::vec3(0.9f, 0.9f, 0.9f),
+		0.75f, // -1.0 -- 1.0
+		1.0f); // 0.0 -- 1.0
 
 	if (currentLevel != nullptr)
 	{
@@ -136,26 +136,46 @@ void GibEngine::Game::LoadLevel(World::Level* level)
 	Renderer::RenderPass* deferredLightingPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING);
 	deferredLightingPass->SetPassEnabled(true);
 
-	int b = 3;
-	for (int x = -b; x < b; x++)
-		for (int y = -b; y < b; y++)
-		{
-			PointLight* lightDup = new PointLight(*light);
-			lightDup->SetPosition(glm::vec3(1 * 2.5, 7.5, 1 * 2.5));
+	deferredLightingPass->AddLight(light);
+	Logger::Instance->info("Light At: {}", glm::to_string(light->GetPosition()));
+	int b = 2;
+	//for (int x = 0; x < b; x++)
+	//	for (int y = 0; y < b; y++)
+	//	{
+			PointLight* lightDup = new PointLight(
+				glm::vec3(-9.0, 6.0, -15.0), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.0f, 0.0f, 0.75f), glm::vec3(0.9f, 0.9f, 0.9f),
+				0.75f, // -1.0 -- 1.0
+				1.0f);
 
-			float r = rand() % 100 / 100.0;
-			float g = rand() % 100 / 100.0;
-			float bb = rand() % 100 / 100.0;
+			//float r = rand() % 100 / 100.0;
+			//float g = rand() % 100 / 100.0;
+			//float bb = rand() % 100 / 100.0;
 
-			lightDup->SetDiffuseColor(glm::vec3(r, g, bb));
+			lightDup->SetDiffuseColor(glm::vec3(0.0, 0.0, 0.75));
 			deferredLightingPass->AddLight(lightDup);
-		}
+		//}
 
 	Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);
 	Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);
 	skyboxPass->SetPassEnabled(true);
 
 	skyboxPass->SetSkybox(level->GetSkybox());
+
+	Renderer::RenderPass* forwardPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_LIGHTING);
+	forwardPass->SetPassEnabled(true);
+
+	Model* sphere = new Model("default/sphere/sphere.obj");
+	sphere->SetWireframeMode(true);
+
+	for (auto light : deferredLightingPass->GetLights())
+	{
+		glm::mat4 imat = glm::mat4();
+		imat[3] = glm::vec4(light->GetPosition(), 1.0f);
+		sphere->AddInstance(imat);
+		Logger::Instance->info("Light At: {}", glm::to_string(imat[3]));
+	}
+
+	forwardPass->AddDrawable(sphere);
 }
 
 bool GibEngine::Game::initializeGL(GibEngine::Renderer::ShaderLanguage shaderLanguage)

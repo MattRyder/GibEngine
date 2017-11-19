@@ -48,8 +48,6 @@ GibEditor::Editor::~Editor()
 {
 	delete menubar;
 	delete dock;
-
-	Sleep(2000);
 }
 
 void GibEditor::Editor::Render()

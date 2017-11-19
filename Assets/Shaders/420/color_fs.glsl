@@ -37,10 +37,10 @@ in VertexShader {
   vec2 TexCoords;
 } VS;
 
-uniform sampler2D texture_diffuse1;
-uniform sampler2D texture_specular1;
-uniform sampler2D texture_normal1;
-uniform sampler2D texture_depth1;
+uniform sampler2D texture_diffuse0;
+uniform sampler2D texture_specular0;
+uniform sampler2D texture_normal0;
+uniform sampler2D texture_depth0;
 
 // layout(binding = 5) uniform sampler2D texture_depthMap;
 
@@ -58,12 +58,13 @@ out vec4 frag_color;
 
 void main() {	
     
-	frag_color = texture(texture_diffuse1, VS.TexCoords);
+    vec3 diffuseColor = texture(texture_diffuse0, VS.TexCoords).rgb;
+    vec3 normalColor = texture(texture_normal0, VS.TexCoords).rgb;
+    vec3 specularColor = texture(texture_specular0, VS.TexCoords).rgb;
 	
 	// gammaw
-	// float gamma = 1.0;
-	// vec3 frag_rgb = vec3(0.0);
-
-	// frag_rgb = pow(frag_rgb, vec3(1.0/gamma));
-	// frag_color = vec4(frag_rgb, 1.0);
+	 float gamma = 1.0;
+	 vec3 frag_rgb = (diffuseColor + normalColor + specularColor);
+	 frag_rgb = pow(frag_rgb, vec3(1.0/gamma));
+	 frag_color = vec4(frag_rgb, 1.0);
 }

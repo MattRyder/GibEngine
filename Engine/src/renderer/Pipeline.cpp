@@ -134,6 +134,12 @@ void GibEngine::Renderer::Pipeline::Render()
 	{
 		pass->Render();
 	}
+
+	pass = GetRenderPass(RenderPassType::FORWARD_LIGHTING);
+	if (pass->IsEnabled())
+	{
+		pass->Render();
+	}
 }
 
 void GibEngine::Renderer::Pipeline::Update(float deltaTime)
