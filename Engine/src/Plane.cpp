@@ -8,50 +8,35 @@ GibEngine::Plane::Plane(unsigned int length, unsigned int width, unsigned int in
 	const int lengthEnd = length / intervalSize;
 
 	std::vector<Vertex> vertices;
+	std::vector<glm::vec3> positions;
 
-	Vertex v;
 	for (unsigned int x = 0; x < width; x += intervalSize)
 	{
 		for (unsigned int y = 0; y < length; y += intervalSize)
 		{
 			if (y == 0)
 			{
-				v = {};
-				v.Position = glm::vec3(x, 0, y);
-				vertices.push_back(v);
-
-				v = {};
-				v.Position = glm::vec3(x, 0, length);
-				vertices.push_back(v);
+				positions.push_back(glm::vec3(x, 0, y));
+				positions.push_back(glm::vec3(x, 0, length));
 			}
 
-			v = {};
-			v.Position = glm::vec3(x, 0, y);
-			vertices.push_back(v);
-
-			v = {};
-			v.Position = glm::vec3(width, 0, y);
-			vertices.push_back(v);
-
+			positions.push_back(glm::vec3(x, 0, y));
+			positions.push_back(glm::vec3(width, 0, y));
 		}
 	}
 
-	v = {};
-	v.Position = glm::vec3(widthEnd, 0, lengthEnd);
-	vertices.push_back(v);
+	positions.push_back(glm::vec3(widthEnd, 0, lengthEnd));
+	positions.push_back(glm::vec3(0, 0, lengthEnd));
+	positions.push_back(glm::vec3(widthEnd, 0, lengthEnd));
+	positions.push_back(glm::vec3(widthEnd, 0, 0));
 
-	v = {};
-	v.Position = glm::vec3(0, 0, lengthEnd);
-	vertices.push_back(v);
-
-	v = {};
-	v.Position = glm::vec3(widthEnd, 0, lengthEnd);
-	vertices.push_back(v);
-
-	v = {};
-	v.Position = glm::vec3(widthEnd, 0, 0);
-	vertices.push_back(v);
-
+	Vertex v;
+	for (auto position : positions)
+	{
+		v = { };
+		v.Position = position;
+		vertices.push_back(v);
+	}
 
 	Mesh* mesh = new Mesh(vertices);
 

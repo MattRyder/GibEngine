@@ -30,8 +30,8 @@ GibEngine::Game::Game(int argc, char** argv)
 	this->playerCamera->SetPosition(glm::vec3(0, 15, 0));
 	this->playerCamera->LookAt(0, 0, 0);
 
-	int size = 100;
-	gridPlane = new Plane(size, size, 1);
+	int size = 1500;
+	gridPlane = new Plane(size, size, 10);
 	glm::mat4 mat = glm::mat4();
 	mat[3] = glm::vec4(-(size / 2), 0, -(size / 2), 1.0);
 	gridPlane->AddInstance(mat);
