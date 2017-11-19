@@ -30,6 +30,13 @@ GibEngine::Game::Game(int argc, char** argv)
 	this->playerCamera->SetPosition(glm::vec3(0, 15, 0));
 	this->playerCamera->LookAt(0, 0, 0);
 
+	int size = 100;
+	gridPlane = new Plane(size, size, 1);
+	glm::mat4 mat = glm::mat4();
+	mat[3] = glm::vec4(-(size / 2), 0, -(size / 2), 1.0);
+	gridPlane->AddInstance(mat);
+	gridPlane->SetWireframeMode(true);
+
 	this->inputManager = new Input::InputManager(window);
 
 	light = new PointLight(
@@ -78,6 +85,7 @@ GibEngine::Game::~Game()
 	delete inputManager;
 	delete renderPipeline;
 	delete playerCamera;
+	delete gridPlane;
 }
 
 void GibEngine::Game::Render()
@@ -137,7 +145,6 @@ void GibEngine::Game::LoadLevel(World::Level* level)
 	deferredLightingPass->SetPassEnabled(true);
 
 	deferredLightingPass->AddLight(light);
-	Logger::Instance->info("Light At: {}", glm::to_string(light->GetPosition()));
 	int b = 2;
 	//for (int x = 0; x < b; x++)
 	//	for (int y = 0; y < b; y++)
@@ -172,9 +179,9 @@ void GibEngine::Game::LoadLevel(World::Level* level)
 		glm::mat4 imat = glm::mat4();
 		imat[3] = glm::vec4(light->GetPosition(), 1.0f);
 		sphere->AddInstance(imat);
-		Logger::Instance->info("Light At: {}", glm::to_string(imat[3]));
 	}
 
+	forwardPass->AddDrawable(gridPlane);
 	forwardPass->AddDrawable(sphere);
 }
 

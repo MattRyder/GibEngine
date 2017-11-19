@@ -116,8 +116,16 @@ void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh)
 
 	GLuint drawMode = (flags & Mesh::Flags::RENDER_WIREFRAME) ? GL_LINES : GL_TRIANGLES;
 
-	glDrawElementsInstanced(drawMode, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
-		0, mesh->GetInstanceMatrices().size());
+	if (flags & Mesh::Flags::RENDER_ARRAYS)
+	{
+		glDrawArrays(drawMode, 0, meshUploadTicket->totalVertices);
+	}
+	else 
+	{
+		glDrawElementsInstanced(drawMode, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
+			0, mesh->GetInstanceMatrices().size());
+	}
+
 	glBindVertexArray(0);
 }
 

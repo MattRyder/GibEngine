@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Mesh.h"
+#include "Model.h"
 
 namespace GibEngine
 {
-	class Plane : public Mesh
+	class Plane : public Model
 	{
 	public:
 		Plane(unsigned int length, unsigned int width, unsigned int intervalSize);

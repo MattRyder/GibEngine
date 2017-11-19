@@ -135,6 +135,7 @@ set(ROOT_INCLUDES
   include/Logger.h
   include/Mesh.h
   include/Model.h
+  include/Plane.h
   include/Shader.h
   include/Skybox.h
   include/Texture.h
@@ -150,6 +151,7 @@ set(ROOT_SRC
   src/Logger.cpp
   src/Mesh.cpp
   src/Model.cpp
+  src/Plane.cpp
   src/Shader.cpp
   src/Skybox.cpp
   src/Texture.cpp

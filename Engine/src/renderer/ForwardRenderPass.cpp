@@ -20,7 +20,11 @@ void GibEngine::Renderer::ForwardRenderPass::Render()
 				mesh->SetInstanceMatricesDirty(false);
 			}
 
-			graphicsApi->BindMaterial(mesh->GetMaterials()[0]);
+			if (mesh->GetMaterials().size() > 0)
+			{
+				graphicsApi->BindMaterial(mesh->GetMaterials()[0]);
+			}
+
 			graphicsApi->DrawMesh(mesh);
 		}
 	}

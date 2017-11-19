@@ -84,6 +84,7 @@ namespace GibEngine
 		{
 			RENDER_ENABLED = 1 << 0,
 			RENDER_WIREFRAME = 1 << 1,
+			RENDER_ARRAYS = 1 << 2,
 		};
 
 		Mesh();

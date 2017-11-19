@@ -12,6 +12,7 @@
 #include "Model.h"
 #include "Shader.h"
 #include "Skybox.h"
+#include "Plane.h"
 #include "FreeCamera.h"
 #include "PointLight.h"
 #include "renderer/Pipeline.h"
@@ -45,6 +46,7 @@ namespace GibEngine
 		World::Level* currentLevel = nullptr;
 		Renderer::Pipeline* renderPipeline = nullptr;
 		Input::InputManager* inputManager = nullptr;
+		Plane* gridPlane = nullptr;
 
 	public:
 		Game(int argc, char** argv);
