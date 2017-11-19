@@ -143,7 +143,6 @@ void GibEngine::Renderer::API::GL420::DrawSkybox(GibEngine::Skybox *skybox)
 	glDepthFunc(GL_LESS);
 	glDepthRange(0.0f, 1.0f);
 
-	UnbindFramebuffer();
 	glBindVertexArray(0);
 }
 

@@ -22,7 +22,7 @@ in VertexShader {
     vec3 CameraPosition;
 } VS;
 
-out vec4 fragColor;
+layout(location = 3) out vec4 fragColor;
 
 void main() {
     vec3 fragmentDiffuse = texture(framebuffer_Albedo, VS.TexCoords).rgb;

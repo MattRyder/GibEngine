@@ -114,7 +114,6 @@ void GibEngine::Renderer::Pipeline::Render()
 		pass->Render();
 	}
 
-	graphicsApi->UnbindFramebuffer();
 
 	pass = GetRenderPass(RenderPassType::DEFERRED_LIGHTING);
 	if (pass->IsEnabled())
@@ -122,11 +121,13 @@ void GibEngine::Renderer::Pipeline::Render()
 		pass->Render();
 	}
 
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->GetBuffer().framebufferId);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	//graphicsApi->UnbindFramebuffer();
+
+	//glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->GetBuffer().framebufferId);
+	//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 	// NB: This can fail with GL_INVALID_OPERATION, usually means the GPU is expecting a different renderbuffer storage format than the FB depth attachment
-	glBlitFramebuffer(0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	//glBlitFramebuffer(0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 	// Gotta do the skybox pass forward renderered:
 	pass = GetRenderPass(RenderPassType::SKYBOX);
@@ -140,6 +141,8 @@ void GibEngine::Renderer::Pipeline::Render()
 	{
 		pass->Render();
 	}
+
+	graphicsApi->UnbindFramebuffer();
 }
 
 void GibEngine::Renderer::Pipeline::Update(float deltaTime)

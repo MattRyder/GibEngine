@@ -45,7 +45,7 @@ void GibEditor::Components::Dock::Render()
 		ImVec2 windowSize = ImGui::GetWindowSize();
 		if (pipeline != nullptr)
 		{
-			ImGui::Image((void*)pipeline->GetFramebuffer()->GetBuffer().textures[GibEngine::Renderer::FramebufferType::ALBEDO], windowSize, ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::Image((void*)pipeline->GetFramebuffer()->GetBuffer().textures[GibEngine::Renderer::FramebufferType::RENDER_TO_TEXTURE], windowSize, ImVec2(0, 1), ImVec2(1, 0));
 		}
 		ImGui::EndDock();
 	}
