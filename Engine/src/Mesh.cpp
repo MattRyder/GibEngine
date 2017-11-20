@@ -5,8 +5,6 @@ GibEngine::Mesh::Mesh() : Entity(EntityType::MODEL) { }
 GibEngine::Mesh::~Mesh()
 {
 	uploadTicket->buffers.clear();
-	uploadTicket->buffers.swap(std::vector<unsigned int>());
-
 	delete uploadTicket;
 
 	instanceMatrices.clear();

@@ -27,7 +27,7 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 			GibEngine::Logger::Instance->error("Error loading World: {}", outPath);
 		}
 	};
-	auto toggleWireframeCallback = [&](auto currentLevel) -> void
+	auto toggleWireframeCallback = [&](GibEngine::World::Level* currentLevel) -> void
 	{
 		for (auto model : currentLevel->GetModels())
 		{
