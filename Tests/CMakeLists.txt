@@ -22,10 +22,10 @@ ExternalProject_Add(googletest
 set(GOOGLETEST_INCLUDE_DIR ${GTEST_BUILD_DIR}/include)
 set(GOOGLETEST_LIB_DIR ${GTEST_BUILD_DIR}/lib)
 
-if(MSVC)
-  set(GTEST_DLL ${CMAKE_BINARY_DIR}/lib/googletest/lib/gtest${CMAKE_SHARED_LIBRARY_SUFFIX})
+if(MSVC OR APPLE)
+  # dll, dylib, same thing
+  set(GTEST_DLL ${CMAKE_BINARY_DIR}/lib/googletest/lib/${CMAKE_SHARED_LIBRARY_PREFIX}gtest${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
-
 
 set(TESTS_INCLUDE_DIRS
   ${PROJECT_SOURCE_DIR}/include;
@@ -69,7 +69,7 @@ add_test(
     COMMAND $<TARGET_FILE:GibTest>
     )
 
-if(MSVC)
+if(MSVC OR APPLE)
 	add_custom_command(TARGET GibTest POST_BUILD
 					   COMMAND ${CMAKE_COMMAND} -E copy_if_different
 					   ${GTEST_DLL}

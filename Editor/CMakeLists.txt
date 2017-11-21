@@ -3,11 +3,15 @@ project(Editor CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
-if(UNIX)
+if(UNIX AND NOT APPLE)
 	find_package(GTK3 REQUIRED)
 	if(GTK3_FOUND)
 		include_directories(${GTK3_INCLUDE_DIRS})
 	endif()
+elseif(APPLE)
+	FIND_LIBRARY(CORE_FOUNDATION_LIBRARY CoreFoundation)
+	MARK_AS_ADVANCED(CORE_FOUNDATION_LIBRARY)
+	SET(OSX_LIBRARIES ${CORE_FOUNDATION_LIBRARY})
 endif()
 
 set(EDITOR_INCLUDE_DIRS
@@ -83,7 +87,7 @@ source_group("Shaders\\GL420" FILES ${GL420_SHADER_FILES})
 
 source_group("Components" FILES ${COMPONENT_FILES})
 
-target_link_libraries(GibEditor GibEngine ${GTK3_LIBRARIES})
+target_link_libraries(GibEditor GibEngine ${GTK3_LIBRARIES} ${OSX_LIBRARIES})
 
 add_custom_command(TARGET GibEditor PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory

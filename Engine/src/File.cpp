@@ -8,10 +8,10 @@ std::string GibEngine::File::GetWorkingDirectory()
 
 	std::string::size_type position = std::string(buffer).find_last_of("\\/");
 	return std::string(buffer).substr(0, position);
-#elif __linux__
+#elif __linux__ || __APPLE__
 	char buffer[PATH_MAX];
 	if (getcwd(buffer, sizeof(buffer)) == NULL) { return NULL; }
-	return std::string(buffer);
+    return std::string(buffer);
 #endif
 }
 

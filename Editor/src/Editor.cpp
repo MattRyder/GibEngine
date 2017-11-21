@@ -6,6 +6,7 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 	std::function<void()> exitCallback = [&]() -> void { glfwSetWindowShouldClose(GetWindow(), true); };
 	auto openWorldFileCallback = [&]() -> void
 	{
+		#ifndef __APPLE__
 		nfdchar_t* outPath = nullptr;
 		nfdresult_t res = NFD_OpenDialog("gwo", GibEngine::File::GetWorkingDirectory().c_str(), &outPath);
 
@@ -26,6 +27,7 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 		{
 			GibEngine::Logger::Instance->error("Error loading World: {}", outPath);
 		}
+		#endif
 	};
 	auto toggleWireframeCallback = [&](GibEngine::World::Level* currentLevel) -> void
 	{

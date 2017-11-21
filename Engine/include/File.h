@@ -15,7 +15,7 @@
 /* Fast asset path descriptors, keep things consistent
  * All definitions must be terminated with a forward-slash:
 */
-#define ASSET_RELATIVE_PATH "/../../Assets/"
+#define ASSET_RELATIVE_PATH "/../Assets/"
 #define SCREENSHOT_RELATIVE_PATH "/Screenshots/"
 
 #define MODEL_RELATIVE_PATH ASSET_RELATIVE_PATH "Models/"
