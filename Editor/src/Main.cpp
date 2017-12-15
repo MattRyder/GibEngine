@@ -6,9 +6,9 @@ ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 int main(int argc, char** argv)
 {    
-    GibEditor::Editor *editor = new GibEditor::Editor(argc, argv);
+    GibEditor::Editor* editor = new GibEditor::Editor(argc, argv);
 
-    ImGui_ImplGlfwGL3_Init(editor->GetWindow(), true);
+    ImGui_ImplGlfwGL3_Init(editor->GetWindow(), !true);
 	SetupImGuiStyle();
 
     while (!glfwWindowShouldClose(editor->GetWindow()))
@@ -17,23 +17,23 @@ int main(int argc, char** argv)
 
 		editor->Render();
 
-		ImGui::Render();
-
 		glfwSwapBuffers(editor->GetWindow());
 
 		editor->Update();
     }
+
+	ImGui_ImplGlfwGL3_Shutdown();
 
 	delete editor;
 }
 
 void SetupImGuiStyle()
 {
-	ImGuiIO &io = ImGui::GetIO();
+	ImGuiIO& io = ImGui::GetIO();
 
-	GibEngine::File *uiFontFile = GibEngine::File::GetFontFile("Arimo-Regular.ttf");
-	io.Fonts->AddFontFromFileTTF(uiFontFile->GetPath(), 22.0f);
-
+	GibEngine::File* uiFontFile = GibEngine::File::GetFontFile("Arimo-Regular.ttf");
+	io.Fonts->AddFontFromFileTTF(uiFontFile->GetPath(), 24.0f);
+	
 	ImGui::GetStyle().WindowPadding = ImVec2(0, 0);
 	ImGui::GetStyle().WindowRounding = 0;
 
@@ -70,4 +70,5 @@ void SetupImGuiStyle()
 	style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.15f, 0.31f, 0.38f, 1.00f);
 	style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.15f, 0.31f, 0.61f, 1.00f);
 
+	delete uiFontFile;
 }

@@ -21,7 +21,7 @@ uniform sampler2D framebuffer_Position;
 uniform sampler2D framebuffer_Albedo;
 uniform sampler2D framebuffer_Normal;
 
-const int LIGHT_COUNT = 2 * 2;
+const int LIGHT_COUNT = 2;
 uniform Light pointLights[LIGHT_COUNT];
 
 void main() {

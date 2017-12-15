@@ -28,15 +28,55 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 		}
 	};
 
-	menubar = new Components::Menubar();
+	auto toggleWireframeCallback = [&](GibEngine::World::Level* currentLevel) -> void
+	{
+		for (auto model : currentLevel->GetModels())
+		{
+			model->SetWireframeMode(true);
+		}
+	};
+
+	auto toggleUiRenderCallback = [&]() -> void 
+	{
+		flags = static_cast<Flags>(flags ^ Flags::DISABLE_UI_RENDER);
+	};
+
+	auto saveWorldCallback = [&](GibEngine::World::Level* currentLevel) -> void
+	{
+		nfdchar_t* outPath = nullptr;
+		nfdresult_t res = NFD_SaveDialog("gwo", GibEngine::File::GetWorkingDirectory().c_str(), &outPath);
+
+		if (res == NFD_OKAY)
+		{
+			GibEngine::Logger::Instance->info("Saving World: {}", outPath);
+			GibEngine::World::Database* db = new GibEngine::World::Database(outPath);
+
+			if (db->SaveLevel(currentLevel))
+			{
+				GibEngine::Logger::Instance->info("Saved!");
+			}
+
+			db->Disconnect();
+			delete outPath;
+			delete db;
+		}
+	};
+
+	menubar = new Components::Menubar(currentLevel);
 	menubar->SetOnExitCallback(exitCallback);
 	menubar->SetOnOpenFileDialogCallback(openWorldFileCallback);
+	menubar->SetOnSaveFileDialogCallback(saveWorldCallback);
+	menubar->SetToggleWireframeCallback(toggleWireframeCallback);
+	menubar->SetToggleUiRenderCallback(toggleUiRenderCallback);
 
-	dock = new Components::Dock(nullptr, nullptr);
+	dock = new Components::Dock(currentLevel, GetRenderPipeline());
+
+	statusBar = new Components::StatusBar();
 }
 
 GibEditor::Editor::~Editor()
 {
+	delete statusBar;
 	delete menubar;
 	delete dock;
 }
@@ -55,12 +95,34 @@ void GibEditor::Editor::Render()
 
 	dock->Render();
 
+	//statusBar->Render();
+
 	ImGui::End();
+
+	ImGui::Render();
 }
 
 void GibEditor::Editor::Update()
 {
    Game::Update();
+
+   bool isGameConsumingMouseInput = inputManager->GetMouseButtonState()[GLFW_MOUSE_BUTTON_1]
+	   && dock->GetSelectedDock() == Components::Dock::Type::GAME;
+
+   inputManager->SetUpdatingMouseState(isGameConsumingMouseInput);
+
+   if (keydownInterval > 0.05f)
+   {
+	   if (inputManager->GetKeyboardState()[GLFW_KEY_TAB])
+	   {
+		   flags = static_cast<Flags>(flags ^ Flags::DISABLE_UI_RENDER);
+		   keydownInterval = 0;
+	   }
+   }
+   else
+   {
+	   keydownInterval += GetDeltaTime();
+   }
 }
 
 void GibEditor::Editor::SetWindowShouldClose(bool value)

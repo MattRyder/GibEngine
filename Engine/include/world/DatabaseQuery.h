@@ -81,11 +81,25 @@ namespace GibEngine
         )";
 
         static const char* SELECT_MODEL_INSTANCES_QUERY = R"(
-            SELECT Position, RotationAxis, RotationAngle, Scale FROM ModelsInstances WHERE ModelId = ?;
+            SELECT Id, Position, RotationAxis, RotationAngle, Scale FROM ModelsInstances WHERE ModelId = ?;
         )";
 
         static const char* SELECT_LEVEL_SKYBOX_QUERY = R"(
             SELECT AssetName FROM Skyboxes WHERE Id = ?;
         )";
+
+		static const char* UPDATE_SKYBOX_QUERY = R"(
+			UPDATE Skyboxes
+			SET AssetName = :assetName, Extension = :extension
+			WHERE Id = ?;
+		)";
+
+		static const char* UPDATE_MODEL_INSTANCES_QUERY = R"(
+			UPDATE ModelsInstances
+			SET Position = :position, RotationAxis = :rotationAxis, RotationAngle = :rotationAngle, Scale = :scale
+			WHERE Id = :id;
+		)";
+
+		static const char* MODEL_INSTANCE_DELETE_QUERY = "DELETE FROM ModelsInstances WHERE Id = :id;";
     }
 }

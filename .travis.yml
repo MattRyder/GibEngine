@@ -15,6 +15,8 @@ addons:
       - xorg-dev
       - libglu1-mesa-dev
       - libgtk-3-dev
+      - libassimp-dev
+      - libglm-dev
 
 script:
   - sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-5 /usr/bin/g++

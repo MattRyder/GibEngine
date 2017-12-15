@@ -11,6 +11,17 @@ GibEngine::Renderer::API::GL420::~GL420()
 	delete uniformBufferManager;
 }
 
+void GibEngine::Renderer::API::GL420::BlitFramebuffer(unsigned int framebufferSource, unsigned int framebufferDest, unsigned int framebufferWidth, unsigned int framebufferHeight, unsigned int framebufferFlags)
+{
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferSource);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebufferDest);
+
+	// NB: This can fail with GL_INVALID_OPERATION, usually means the GPU is expecting a different renderbuffer storage format than the FB depth attachment
+	glBlitFramebuffer(0, 0, framebufferWidth, framebufferHeight, 0, 0, framebufferWidth, framebufferHeight, framebufferFlags, GL_NEAREST);
+
+	UnbindFramebuffer();
+}
+
 void GibEngine::Renderer::API::GL420::BindCamera(GibEngine::CameraBase *camera)
 {
 	const char* CAMERA_BUFFER_NAME = "cameraUBO";
@@ -51,6 +62,7 @@ void GibEngine::Renderer::API::GL420::BindMaterial(GibEngine::Material* material
 		if (textureLocation == -1)
 		{
 			Logger::Instance->error("Cannot find texture2D sampler: {}", textureUniformName.c_str());
+			//continue;
 		}
 
 		glUniform1i(textureLocation, static_cast<float>(i));
@@ -104,11 +116,28 @@ void GibEngine::Renderer::API::GL420::DrawPrimitive(MeshUploadTicket* meshUpload
 
 void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh)
 {
+	Mesh::Flags flags = mesh->GetFlags();
+	if (flags && !Mesh::Flags::RENDER_ENABLED)
+	{
+		return;
+	}
+
 	MeshUploadTicket* meshUploadTicket = mesh->GetMeshUploadTicket();
 
 	glBindVertexArray(meshUploadTicket->vertexArrayObject);
-	glDrawElementsInstanced(GL_TRIANGLES, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
-		0, mesh->GetInstanceMatrices().size());
+
+	GLuint drawMode = (flags & Mesh::Flags::RENDER_WIREFRAME) ? GL_LINES : GL_TRIANGLES;
+
+	if (flags & Mesh::Flags::RENDER_ARRAYS)
+	{
+		glDrawArrays(drawMode, 0, meshUploadTicket->totalVertices);
+	}
+	else 
+	{
+		glDrawElementsInstanced(drawMode, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
+			0, mesh->GetInstanceMatrices().size());
+	}
+
 	glBindVertexArray(0);
 }
 
@@ -126,7 +155,6 @@ void GibEngine::Renderer::API::GL420::DrawSkybox(GibEngine::Skybox *skybox)
 	glDepthFunc(GL_LESS);
 	glDepthRange(0.0f, 1.0f);
 
-	UnbindFramebuffer();
 	glBindVertexArray(0);
 }
 
@@ -322,7 +350,7 @@ void GibEngine::Renderer::API::GL420::UploadTexture2D(GibEngine::Texture *textur
 
 	if (textureId == 0)
 	{
-		Logger::Instance->error("GLES3::UploadTexture2D Failed!\nError: {}\nTexture: {}",
+		Logger::Instance->error("GL420::UploadTexture2D Failed!\nError: {}\nTexture: {}",
 			0, texture->GetFilename()->c_str());
 	}
 	else
@@ -364,6 +392,7 @@ void GibEngine::Renderer::API::GL420::UploadTextureCubemap(GibEngine::Texture *t
 		}
 
 		glTexImage2D(cubemapTargets[i], 0, textureFormat, imgData->Width, imgData->Height, 0, textureFormat, GL_UNSIGNED_BYTE, imgData->Data);
+		delete imgData->Data;
 	}
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -374,6 +403,7 @@ void GibEngine::Renderer::API::GL420::UploadTextureCubemap(GibEngine::Texture *t
 
 	if (textureId > 0)
 	{
+		texture->SetLoaded(true);
 		texture->SetTextureId(textureId);
 	}
 }

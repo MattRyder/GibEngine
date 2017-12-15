@@ -102,6 +102,11 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 
 void GibEngine::Renderer::Pipeline::Render()
 {	
+	if (renderingPaused)
+	{
+		return;
+	}
+
 	graphicsApi->BindFramebuffer(framebuffer);
 
 	graphicsApi->ClearFramebuffer();
@@ -113,8 +118,10 @@ void GibEngine::Renderer::Pipeline::Render()
 	{
 		pass->Render();
 	}
-
+	
 	graphicsApi->UnbindFramebuffer();
+
+	graphicsApi->ClearFramebuffer();
 
 	pass = GetRenderPass(RenderPassType::DEFERRED_LIGHTING);
 	if (pass->IsEnabled())
@@ -122,17 +129,28 @@ void GibEngine::Renderer::Pipeline::Render()
 		pass->Render();
 	}
 
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->GetBuffer().framebufferId);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	graphicsApi->BlitFramebuffer(framebuffer->GetBuffer().framebufferId, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_DEPTH_BUFFER_BIT);
 
-	// NB: This can fail with GL_INVALID_OPERATION, usually means the GPU is expecting a different renderbuffer storage format than the FB depth attachment
-	glBlitFramebuffer(0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 	// Gotta do the skybox pass forward renderered:
 	pass = GetRenderPass(RenderPassType::SKYBOX);
 	if (pass->IsEnabled())
 	{
 		pass->Render();
+	}
+
+	pass = GetRenderPass(RenderPassType::FORWARD_LIGHTING);
+	if (pass->IsEnabled())
+	{
+		pass->Render();
+	}
+
+
+	pass = GetRenderPass(RenderPassType::RENDER_TO_TEXTURE);
+	if (pass->IsEnabled())
+	{
+		// Blit the Game framebuffer to the default framebuffer
+		graphicsApi->BlitFramebuffer(0, framebuffer->GetBuffer().framebufferId, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 }
 
@@ -143,6 +161,11 @@ void GibEngine::Renderer::Pipeline::Update(float deltaTime)
 		RenderPass* rpass = pass.second;
 		rpass->Update(deltaTime);
 	}
+}
+
+bool GibEngine::Renderer::Pipeline::IsRenderPaused()
+{
+	return renderingPaused;
 }
 
 GibEngine::Renderer::RenderPass* GibEngine::Renderer::Pipeline::GetRenderPass(RenderPassType type)
@@ -165,6 +188,11 @@ GibEngine::Renderer::Framebuffer* GibEngine::Renderer::Pipeline::GetFramebuffer(
 void GibEngine::Renderer::Pipeline::SetCameraBase(CameraBase* camera)
 {
 	this->camera = camera;
+}
+
+void GibEngine::Renderer::Pipeline::SetRenderPaused(bool renderingPaused)
+{
+	this->renderingPaused = renderingPaused;
 }
 
 void GibEngine::Renderer::Pipeline::ResizeFramebuffer(int width, int height)

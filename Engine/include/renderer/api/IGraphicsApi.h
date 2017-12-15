@@ -18,7 +18,11 @@ namespace GibEngine
                 
             public:
                 enum BufferIndex { VERTEX, INDEX, INSTANCE_MATRIX, BUFFERINDEX_LAST };
+
+				virtual ~IGraphicsApi() { }
                 
+				virtual void BlitFramebuffer(unsigned int framebufferSource, unsigned int framebufferDest, unsigned int framebufferWidth, unsigned int framebufferHeight, unsigned int framebufferFlags) = 0;
+
                 virtual void BindCamera(GibEngine::CameraBase *camera) = 0;
                 virtual void BindFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer) = 0;
 				virtual void BindMaterial(GibEngine::Material *material) = 0;
@@ -30,6 +34,8 @@ namespace GibEngine
 				virtual void BindUniform3fv(unsigned int uniformLocation, unsigned int count, const float *uniformValue) = 0;
 
                 virtual GibEngine::Renderer::Framebuffer* CreateFramebuffer(int framebufferWidth, int framebufferHeight) = 0;
+
+				// TODO: Remove, unused API function
                 virtual MeshUploadTicket* CreateFullscreenQuad() = 0;
 
 				virtual void ClearFramebuffer() = 0;

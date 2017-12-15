@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+//#include <vld.h>
 
 #include "GL/gl3w.h"
 #include "GLFW/glfw3.h"
@@ -11,6 +12,7 @@
 #include "Model.h"
 #include "Shader.h"
 #include "Skybox.h"
+#include "Plane.h"
 #include "FreeCamera.h"
 #include "PointLight.h"
 #include "renderer/Pipeline.h"
@@ -31,7 +33,7 @@ namespace GibEngine
 		GLFWwindow* window;
 		const char* windowTitle = ENGINE_NAME;
 
-		float currentFrameTime = 0, lastFrameTime = 0;
+		float lastFrameTime = 0;
 
 		// TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
 		FreeCamera* playerCamera = nullptr;
@@ -41,8 +43,10 @@ namespace GibEngine
 
 	protected:
 		Renderer::ShaderLanguage shaderLanguage = Renderer::ShaderLanguage::GLSL_420;
+		World::Level* currentLevel = nullptr;
 		Renderer::Pipeline* renderPipeline = nullptr;
 		Input::InputManager* inputManager = nullptr;
+		Plane* gridPlane = nullptr;
 
 	public:
 		Game(int argc, char** argv);
@@ -61,5 +65,6 @@ namespace GibEngine
 
 		GLFWwindow* GetWindow();
 		Renderer::Pipeline* GetRenderPipeline() const;
+		float GetDeltaTime();
 	};
 }

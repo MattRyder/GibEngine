@@ -9,12 +9,11 @@ namespace GibEngine
 {
     namespace World
     {
-        class Level : DatabaseEntity
+        class Level : public DatabaseEntity<Level>
         {
             const char* name;
-            Skybox* skybox = nullptr;
-
-            std::vector<GibEngine::Model*> models;
+            DatabaseEntity<Skybox>* skybox;
+            std::vector<DatabaseEntity<Model>*> modelEntities;
 
         public:
             Level(int id, const char* name);
@@ -23,11 +22,18 @@ namespace GibEngine
             int GetId();
             const char* GetName();
 
-            void AddModel(GibEngine::Model* model);
-            void SetSkybox(GibEngine::Skybox* skybox);
+            void AddModel(DatabaseEntity<GibEngine::Model>* model);
+            void SetSkybox(DatabaseEntity<GibEngine::Skybox>* skybox);
 
-            std::vector<GibEngine::Model*> GetModels();
+			/*
+				Adds a model via it's asset name, a quicker version of adding via DatabaseEntity
+			 */
+			DatabaseEntity<Model>* AddModel(const char* modelFilename);
+
+			std::vector<Model*> GetModels();
+			std::vector<DatabaseEntity<Model>*> GetModelEntities();
             GibEngine::Skybox* GetSkybox();
+			DatabaseEntity<Skybox>* GetSkyboxEntity();
         };
     }
 }

@@ -6,7 +6,6 @@ layout(location = 2) in vec2 v_TexCoords;
 layout(location = 3) in vec3 v_Tangent;
 layout(location = 4) in vec3 v_Bitangent;
 layout(location = 5) in mat4 v_InstanceMatrix;
-//layout(location = 5) in int bone_id;
 
 uniform mat4 u_Matrix;
 uniform mat4 lightSpaceMatrix;
@@ -21,12 +20,6 @@ out VertexShader {
   vec3 TanFragPosition;
   vec2 TexCoords;
 } VS;
-
-// out mat4 vs_InstanceMatrix;
-// out mat3 vs_InverseTangentMatrix;
-// out vec4 vs_FragmentLightSpace;
-// out vec3 vs_Normal, vs_FragmentPosition, vs_TanViewPosition, vs_TanFragPosition;
-// out vec2 vs_TexCoords;
 
 layout (std140) uniform cameraUBO {
   mat4 ProjectionMatrix;

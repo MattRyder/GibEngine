@@ -39,13 +39,6 @@ float linearDepth(float depthValue) {
 }
 
 void main() {
-  // g_Position = texture(texture_diffuse0, TexCoords);
-  // // g_Position = vec4(FragmentPosition, 1.0);  
-  // // g_Position.a = linearDepth(gl_FragCoord.z);
-  // g_Normal = normalize(texture(texture_normal0, TexCoords).rgb);
-  // g_Albedo.rgb = texture(texture_diffuse0, TexCoords).rgb;
-  // g_Albedo.a = texture(texture_specular0, TexCoords).r;
-
   fragColor[0] = vec4(FragmentPosition, 1.0);  
   fragColor[0].a = linearDepth(gl_FragCoord.z);
   fragColor[1] = vec4(normalize(texture(texture_normal0, TexCoords).rgb), 0.0);

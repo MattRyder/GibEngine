@@ -17,7 +17,7 @@ void GibEngine::Renderer::DeferredLightingPass::Render()
 	RenderPass::BindLights();
 
 	buffer_t buffer = framebuffer->GetBuffer();
-	const char* framebufferStrings[FRAMEBUFFERTYPE_LAST] = { "framebuffer_Position", "framebuffer_Normal", "framebuffer_Albedo" };
+	const char* framebufferStrings[FRAMEBUFFERTYPE_LAST] = { "framebuffer_Position",  "framebuffer_Normal", "framebuffer_Albedo", "framebuffer_Texture" };
 
 	for (unsigned int i = 0; i < FRAMEBUFFER_TEXTURE_COUNT; i++)
 	{
@@ -28,9 +28,19 @@ void GibEngine::Renderer::DeferredLightingPass::Render()
 		graphicsApi->BindTexture2D(i, buffer.textures[i]);
 	}
 
+	glDepthMask(GL_FALSE);
 	graphicsApi->DrawPrimitive(quadMesh->GetMeshUploadTicket());
+	glDepthMask(GL_TRUE);
 
 	graphicsApi->UnbindShader();
 }
 
-void GibEngine::Renderer::DeferredLightingPass::Update(float deltaTime) { }
+void GibEngine::Renderer::DeferredLightingPass::Update(float deltaTime)
+{
+	for (auto light : lights)
+	{
+		light->Update(deltaTime);
+	}
+
+	FlagLightingBindRequired();
+}

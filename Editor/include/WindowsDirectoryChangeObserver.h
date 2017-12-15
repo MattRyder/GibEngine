@@ -5,7 +5,7 @@
 #include <Windows.h>
 #include <fileapi.h>
 
-#include "IObserver.h"
+#include "Observer.h"
 
 namespace GibEditor
 {

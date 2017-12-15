@@ -1,36 +1,42 @@
 #version 300 es
 
-in vec4 v_Position;
+in vec3 v_Position;
+in vec3 v_Normal;
+in vec2 v_TexCoords;
+in vec3 v_Tangent;
+in vec3 v_Bitangent;
+in mat4 v_InstanceMatrix;
 
-// layout(location = 0) in vec3 v_Position;
-// layout(location = 1) in vec3 v_Normal;
-// layout(location = 2) in vec2 v_texCoords;
+out mat4 InstanceMatrix;
+out mat3 InverseTangentMatrix;
+out vec3 Normal;
+out vec3 FragmentPosition;
+out vec3 TanViewPosition;
+out vec3 TanFragPosition;
+out vec2 TexCoords;
 
-// uniform mat4 modelMatrix;
-// uniform vec3 surfaceAmbient, surfaceDiffuse, surfaceSpecular;
-// out mat4 vs_ViewMatrix;
-// out vec3 eyePosition, eyeNormal;
-// out vec3 vs_surfaceAmbient, vs_surfaceDiffuse, vs_surfaceSpecular;
-// out vec2 texCoords;
+struct Camera {
+  mat4 ProjectionMatrix;
+  mat4 ViewMatrix;
+  vec3 CameraPosition;
+};
 
-// layout (std140) uniform cameraUniformBuffer {
-//   mat4 ProjectionMatrix;
-//   mat4 ViewMatrix;
-// };
+uniform Camera camera;
 
 void main() {
+  TexCoords = v_TexCoords;
+  InstanceMatrix = v_InstanceMatrix;
 
-  gl_Position = v_Position;
+  mat3 normalMatrix = transpose(inverse(mat3(InstanceMatrix)));
+  vec3 norm_Tangent = normalize(vec3(normalMatrix * v_Tangent));
+  vec3 norm_Bitangent = normalize(vec3(normalMatrix * v_Bitangent));
+  vec3 norm_Normal = normalize(vec3(normalMatrix * v_Normal));
+  InverseTangentMatrix = transpose(mat3(norm_Tangent, norm_Bitangent, norm_Normal));
 
-  // texCoords = v_texCoords;
-  // vs_ViewMatrix = ViewMatrix;
-  
-  // vs_surfaceAmbient = surfaceAmbient;
-  // vs_surfaceDiffuse = surfaceDiffuse;
-  // vs_surfaceSpecular = surfaceSpecular;
-  
-  // eyePosition = vec3(ViewMatrix * modelMatrix * vec4(v_Position, 1.0));
-  // eyeNormal = vec3(ViewMatrix * modelMatrix * vec4(v_Position, 0.0));
-  
-  // gl_Position = ProjectionMatrix * ViewMatrix * modelMatrix * vec4(v_Position, 1.0);
+  FragmentPosition = vec3(InstanceMatrix * vec4(v_Position, 1.0));
+
+  gl_Position = camera.ProjectionMatrix * camera.ViewMatrix * InstanceMatrix * vec4(v_Position, 1.0);
+
+  TanViewPosition = InverseTangentMatrix * camera.CameraPosition;
+  TanFragPosition = InverseTangentMatrix * FragmentPosition;
 }

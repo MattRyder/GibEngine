@@ -1,5 +1,16 @@
 #include "renderer/api/GLES3.h"
 
+GibEngine::Renderer::API::GLES3::~GLES3() { }
+
+void GibEngine::Renderer::API::GLES3::BlitFramebuffer(unsigned int framebufferSource, unsigned int framebufferDest, unsigned int framebufferWidth, unsigned int framebufferHeight, unsigned int framebufferFlags)
+{
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferSource);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebufferDest);
+
+	// NB: This can fail with GL_INVALID_OPERATION, usually means the GPU is expecting a different renderbuffer storage format than the FB depth attachment
+	glBlitFramebuffer(0, 0, framebufferWidth, framebufferHeight, 0, 0, framebufferWidth, framebufferHeight, framebufferFlags, GL_NEAREST);
+}
+
 void GibEngine::Renderer::API::GLES3::BindCamera(GibEngine::CameraBase *camera)
 {	
 	int projLoc = glGetUniformLocation(currentShaderID, "camera.ProjectionMatrix");
@@ -85,15 +96,33 @@ void GibEngine::Renderer::API::GLES3::DrawPrimitive(MeshUploadTicket* meshUpload
 
 	glBindVertexArray(meshUploadTicket->vertexArrayObject);
 	glDrawArrays(GL_TRIANGLE_STRIP, FIRST_INDEX, meshUploadTicket->totalVertices);
+	glBindVertexArray(0);
 }
 
 void GibEngine::Renderer::API::GLES3::DrawMesh(GibEngine::Mesh *mesh)
 {
+	Mesh::Flags flags = mesh->GetFlags();
+	if (flags && !Mesh::Flags::RENDER_ENABLED)
+	{
+		return;
+	}
+
 	MeshUploadTicket* meshUploadTicket = mesh->GetMeshUploadTicket();
 
 	glBindVertexArray(meshUploadTicket->vertexArrayObject);
-	glDrawElementsInstanced(GL_TRIANGLES, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
-		0, mesh->GetInstanceMatrices().size());
+
+	GLuint drawMode = (flags & Mesh::Flags::RENDER_WIREFRAME) ? GL_LINES : GL_TRIANGLES;
+
+	if (flags & Mesh::Flags::RENDER_ARRAYS)
+	{
+		glDrawArrays(drawMode, 0, meshUploadTicket->totalVertices);
+	}
+	else
+	{
+		glDrawElementsInstanced(drawMode, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
+			0, mesh->GetInstanceMatrices().size());
+	}
+
 	glBindVertexArray(0);
 }
 
@@ -192,8 +221,9 @@ bool GibEngine::Renderer::API::GLES3::UpdateMeshInstances(MeshUploadTicket *mesh
 	return true;
 }
 
-bool GibEngine::Renderer::API::GLES3::UpdateCamera(CameraBase * camera)
+bool GibEngine::Renderer::API::GLES3::UpdateCamera(CameraBase* camera)
 {
+	BindCamera(camera);
 	return true;
 }
 

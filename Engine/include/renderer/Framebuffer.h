@@ -15,6 +15,7 @@ namespace GibEngine
 			POSITION,
 			ALBEDO,
 			NORMAL,
+			RENDER_TO_TEXTURE,
 			FRAMEBUFFERTYPE_LAST
 		};
 

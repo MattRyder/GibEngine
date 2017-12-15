@@ -24,17 +24,23 @@ namespace GibEngine
 		Model();
 		Model(const char* modelFilename);
 		Model(Mesh* mesh);
+		~Model();
 
 		void ProcessNode(aiNode* node, const aiScene* scene);
 
-		void UpdateInstances();
-		void AddInstance(glm::mat4 modelMatrix);
 		virtual void Update(double deltaTime) override;
+
+		void AddInstance(World::DatabaseEntity<Mesh::Instance>* modelMatrix);
+		void UpdateInstance(unsigned int index, World::DatabaseEntity<Mesh::Instance>* modelMatrix);
+		void DeleteInstance(World::DatabaseEntity<Mesh::Instance>* modelMatrix);
 
 		int GetID() const override;
 		const char* GetName() const override;
 		const char* GetAssetName() const;
 		std::vector<Mesh*> GetMeshes();
-		std::vector<glm::mat4> GetModelInstances() const;
+		std::vector<World::DatabaseEntity<Mesh::Instance>*> GetModelInstances() const;
+
+		void SetWireframeMode(bool wireframeOn);
+		void SetShouldRender(bool shouldRender);
 	};
 }

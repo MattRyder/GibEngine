@@ -26,7 +26,6 @@ if(MSVC)
   set(GTEST_DLL ${CMAKE_BINARY_DIR}/lib/googletest/lib/gtest${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
 
-
 set(TESTS_INCLUDE_DIRS
   ${PROJECT_SOURCE_DIR}/include;
   ${GOOGLETEST_INCLUDE_DIR};

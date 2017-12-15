@@ -15,7 +15,7 @@ void GibEngine::Renderer::DeferredGeometryPass::Render()
 		{
 			if (mesh->IsInstanceMatricesDirty())
 			{
-				graphicsApi->UpdateMeshInstances(mesh->GetMeshUploadTicket(), mesh->GetInstanceMatrices());
+				UpdateMeshInstances(mesh->GetMeshUploadTicket(), mesh->GetInstanceMatrices());
 				mesh->SetInstanceMatricesDirty(false);
 			}
 

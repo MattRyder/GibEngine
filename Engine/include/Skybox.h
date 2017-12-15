@@ -59,8 +59,9 @@ namespace GibEngine
 	class Skybox : public Mesh
 	{
 		Texture *skyboxCubemap;
-		glm::mat4 modelMatrix;
 		const char* textureExtension;
+
+		World::DatabaseEntity<Mesh::Instance>* skyboxModelInstance;
 
 	public:
 		const int SKYBOX_MOVE_SPEED = 1;
@@ -69,10 +70,8 @@ namespace GibEngine
 		~Skybox();
 
 		Texture* GetCubemap();
-		glm::mat4 GetModelMatrix();
+		World::DatabaseEntity<Mesh::Instance>* GetMeshInstance();
 		const char* GetExtension();
-
-		void SetModelMatrix(glm::mat4 modelMatrix);
 
 		virtual void Update(double deltaTime) override;
 	};

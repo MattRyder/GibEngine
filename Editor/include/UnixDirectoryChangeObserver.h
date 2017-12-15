@@ -1,6 +1,6 @@
 #pragma once
 
-#include "IObserver.h"
+#include "Observer.h"
 
 namespace GibEditor
 {

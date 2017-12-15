@@ -1,19 +1,41 @@
 #include "components/Dock.h"
 
-int gameTextureId = 2;
-
-GibEditor::Components::Dock::Dock(GibEngine::World::Level* level, GibEngine::Renderer::Pipeline* pipeline) : level(level), pipeline(pipeline) { }
+GibEditor::Components::Dock::Dock(GibEngine::World::Level* level, GibEngine::Renderer::Pipeline* pipeline) : level(level), pipeline(pipeline)
+{
+	cbrowser = new Components::ContentBrowser(level, pipeline);
+}
 
 void GibEditor::Components::Dock::Render()
 {
 	ImGui::BeginDockspace();
 
+	if (ImGui::BeginDock("Game"))
+	{
+		ImVec2 windowSize = ImGui::GetWindowSize();
+
+		if (ImGui::IsWindowHovered())
+		{
+			selectedDock = Dock::Type::GAME;
+		}
+
+		if (pipeline != nullptr)
+		{
+			ImGui::Image((void*)pipeline->GetFramebuffer()->GetBuffer().textures[GibEngine::Renderer::FramebufferType::RENDER_TO_TEXTURE], windowSize, ImVec2(0, 1), ImVec2(1, 0));
+		}
+		ImGui::EndDock();
+	}
+
 	ImGui::SetNextDock(ImGuiDockSlot_Left);
 
 	if (ImGui::BeginDock("Scene Explorer"))
 	{
-		const int COLUMN_COUNT = 2;
-		const char* COLUMN_TITLES[COLUMN_COUNT] = { "Name", "Type" };
+		if (ImGui::IsWindowHovered())
+		{
+			selectedDock = Dock::Type::SCENE_TREE;
+		}
+
+		const int COLUMN_COUNT = 3;
+		const char* COLUMN_TITLES[COLUMN_COUNT] = { "Name", "Type", "Instance Count" };
 
 		ImGui::Columns(COLUMN_COUNT);
 
@@ -25,31 +47,72 @@ void GibEditor::Components::Dock::Render()
 
 		if (level != nullptr)
 		{
-			for (auto model : level->GetModels())
+			for (auto model : level->GetModelEntities())
 			{
-				ImGui::Text("%s", model->GetName());
+				auto modelEntity = model->GetEntity();
+
+				bool modelClicked = false;
+
+				if (ImGui::Selectable(modelEntity->GetName()))
+				{
+					modelClicked = true;
+				}
 				ImGui::NextColumn();
-				ImGui::Text("%s", model->GetTypeName());
+
+				if (ImGui::Selectable(modelEntity->GetTypeName()))
+				{
+					modelClicked = true;
+				}
 				ImGui::NextColumn();
+
+				if(ImGui::Selectable(std::to_string(modelEntity->GetModelInstances().size()).c_str()))
+				{
+					modelClicked = true;
+				}
+				ImGui::NextColumn();
+
+				if (modelClicked)
+				{
+					delete inspector;
+					inspector = new EntityInspector<GibEngine::Model>(model);
+				}
 			}
 
 			ImGui::Columns(1);
 		}
 
 		ImGui::EndDock();
-	}
 
-	ImGui::SetNextDock(ImGuiDockSlot_Right);
-	if (ImGui::BeginDock("Game")) 
-	{
-		ImVec2 windowSize = ImGui::GetWindowSize();
-		if (pipeline != nullptr)
+		ImGui::SetNextDock(ImGuiDockSlot_Bottom);
+
+		if (ImGui::BeginDock("ContentExplorer", (bool*)0, ImGuiWindowFlags_MenuBar))
 		{
-			ImGui::Image((void*)pipeline->GetFramebuffer()->GetBuffer().textures[GibEngine::Renderer::FramebufferType::ALBEDO], windowSize, ImVec2(0, 1), ImVec2(1, 0));
-		}
-		ImGui::EndDock();
-	}
+			cbrowser->Render();
 
+			ImGui::EndDock();
+		}
+
+		if (inspector != nullptr)
+		{
+			ImGui::SetNextDock(ImGuiDockSlot_Right);
+
+			if (ImGui::BeginDock("Inspector"))
+			{
+				if (ImGui::IsWindowHovered())
+				{
+					selectedDock = Dock::Type::ENTITY_INSPECTOR;
+				}
+
+				inspector->Render();
+				ImGui::EndDock();
+			}
+		}
+	}
 
 	ImGui::EndDockspace();
+}
+
+GibEditor::Components::Dock::Type GibEditor::Components::Dock::GetSelectedDock() const
+{
+	return selectedDock;
 }

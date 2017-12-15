@@ -28,7 +28,6 @@ uniform mat4 lightSpaceMatrix;
 uniform Camera camera;
 
 void main() {
-  vec2 scaleXY = vec2(v_InstanceMatrix[0][0], v_InstanceMatrix[2][2]);
   TexCoords = v_TexCoords;
   InstanceMatrix = v_InstanceMatrix;
 

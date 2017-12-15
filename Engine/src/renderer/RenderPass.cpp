@@ -27,6 +27,8 @@ GibEngine::Renderer::RenderPass::~RenderPass()
 	{
 		delete quadMesh;
 	}
+
+	lights.clear();
 }
 
 void GibEngine::Renderer::RenderPass::LoadQuadData()
@@ -80,6 +82,11 @@ void GibEngine::Renderer::RenderPass::SetCameraBase(CameraBase * camera)
 GibEngine::Shader* GibEngine::Renderer::RenderPass::GetShader() const
 {
 	return shader;
+}
+
+std::vector<GibEngine::LightBase*> GibEngine::Renderer::RenderPass::GetLights() const
+{
+	return lights;
 }
 
 bool GibEngine::Renderer::RenderPass::IsEnabled() const
@@ -137,7 +144,8 @@ void GibEngine::Renderer::RenderPass::BindLights()
 		if (light->GetType() == EntityType::POINT_LIGHT)
 		{
 			PointLight *pointLight = reinterpret_cast<PointLight *>(light);
-			
+			//Logger::Instance->info("LA: {}", pointLight->GetLinearAttenuation());
+
 			glUniform1f(
 				glGetUniformLocation(shader->GetShaderId(), linearAttenuation.c_str()),
 				pointLight->GetLinearAttenuation()
@@ -196,6 +204,19 @@ void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot()
 
 	delete[] date;
 	delete[] frameBuffer;
+}
+
+void GibEngine::Renderer::RenderPass::UpdateMeshInstances(GibEngine::MeshUploadTicket* ticket, std::vector<World::DatabaseEntity<Mesh::Instance>*> instances)
+{
+	std::vector<glm::mat4> instanceMatrices;
+	for (auto dbInstance : instances)
+	{
+		if (dbInstance->GetState() != World::DatabaseEntityState::DELETED)
+		{
+			instanceMatrices.push_back(dbInstance->GetEntity()->GetMatrix());
+		}
+	}
+	graphicsApi->UpdateMeshInstances(ticket, instanceMatrices);
 }
 
 void GibEngine::Renderer::RenderPass::BindLightUniform3f(const char* lightUniformName, const glm::vec3 lightUniformValue)

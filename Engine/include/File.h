@@ -15,7 +15,12 @@
 /* Fast asset path descriptors, keep things consistent
  * All definitions must be terminated with a forward-slash:
 */
+#ifdef __unix__
+#define ASSET_RELATIVE_PATH "/../Assets/"
+#else
 #define ASSET_RELATIVE_PATH "/../../Assets/"
+#endif
+
 #define SCREENSHOT_RELATIVE_PATH "/Screenshots/"
 
 #define MODEL_RELATIVE_PATH ASSET_RELATIVE_PATH "Models/"
@@ -30,6 +35,8 @@ namespace GibEngine
         const char* path;
         static std::string* GetPathForType(const char* filePath);
 
+		static std::vector<File*> GetDirectoryListInternal(const char* rootDirectory);
+
     public:
         File(const char* filePath);
         ~File();
@@ -39,6 +46,8 @@ namespace GibEngine
 
 		static std::string* GetScreenshotPath();
 
+		static std::vector<File*> GetDirectoryList(const char* rootDirectory);
+
 		static File* GetFontFile(const char* fontName);
         static File* GetModelFile(const char* modelName);
         static File* GetShaderFile(const char* shaderName);
@@ -47,6 +56,8 @@ namespace GibEngine
 
         const char* GetDirectory();
         const char* GetPath();
+		const char* GetExtension();
+		const char* GetFilename();
         
         const char* ReadFile();
 

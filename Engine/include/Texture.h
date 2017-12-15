@@ -45,7 +45,7 @@ namespace GibEngine
 		unsigned int textureId;
 		bool isUploaded;
 
-		Cubemap* cubemap;
+		Cubemap* cubemap = nullptr;
 		TextureData* imageData;
 		bool isLoaded = false;
 
@@ -60,7 +60,6 @@ namespace GibEngine
 	public:
 		static const char* TextureTypeStrings[4];
 		
-
 		~Texture();
 
 		static Texture* Load(TextureType type, std::string *fileName);

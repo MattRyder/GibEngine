@@ -8,8 +8,9 @@ Ks 0.500000 0.500000 0.500000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd Textures/BrickRound0105_5_S.jpg
-map_Ks Textures/BrickRound0105_5_SPEC.png
-bump Textures/BrickRound0105_5_S_BUMP.png
+map_Kd Textures/diffuse.jpg
+map_Ks Textures/specular.png
+bump Textures/normal.png
+disp -mm -.95 .02 Textures/displacement.png
 
 

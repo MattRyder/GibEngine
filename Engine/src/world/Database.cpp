@@ -1,5 +1,4 @@
 #include "world/Database.h"
-#include <iostream>
 
 GibEngine::World::Database::Database(const char* databaseFilepath)
 {
@@ -18,6 +17,12 @@ GibEngine::World::Database::Database(const char* databaseFilepath)
             Logger::Instance->error("Failed to create WorldDb: {}", errorMessage);
         }
     }
+}
+
+GibEngine::World::Database::~Database()
+{
+	Disconnect();
+	delete db;
 }
 
 void GibEngine::World::Database::Disconnect()
@@ -45,74 +50,94 @@ bool GibEngine::World::Database::SaveLevel(Level* level)
 {
     int levelId = level->GetId();
 
-    int skyboxId = SaveSkybox(level->GetSkybox());
-    if(skyboxId == -1)
-    {
-        Logger::Instance->error("Failed to set Level Skybox! {}", level->GetSkybox()->GetName());
-        return false;
-    }
-    SetLevelSkybox(levelId, skyboxId);
+	if (level->GetSkyboxEntity() != nullptr && level->GetSkyboxEntity()->GetState() != DatabaseEntityState::CLEAN)
+	{
+		int skyboxId = SaveSkybox(level->GetSkyboxEntity());
+		if (skyboxId == -1)
+		{
+			Logger::Instance->error("Failed to set Level Skybox! {}", level->GetSkybox()->GetName());
+			return false;
+		}
+		SetLevelSkybox(levelId, skyboxId);
+	}
 
-    for(auto model : level->GetModels())
+
+    for(auto model : level->GetModelEntities())
     {
-        int modelId = SaveModel(levelId, model);
-        if(modelId == -1)
+        if(!SaveModel(levelId, model))
         {
-            Logger::Instance->error("Failed to create WorldDb Model! {}", model->GetAssetName());
+            Logger::Instance->error("Failed to create WorldDb Model! {}", model->GetEntity()->GetAssetName());
             return false;
         }
 
-        for(auto modelMatrix : model->GetModelInstances())
+        for(auto modelInstance : model->GetEntity()->GetModelInstances())
         {
-            glm::vec3 pos = glm::vec3(modelMatrix[3][0], modelMatrix[3][1], modelMatrix[3][2]);
-            glm::vec3 scale = glm::vec3(modelMatrix[0][0], modelMatrix[1][1], modelMatrix[2][2]);
-            int instanceId = SaveInstance(modelId, pos, glm::vec3(), 0.0f, scale);
-            if(modelId == -1)
-            {
-                Logger::Instance->error("Failed to create WorldDb Model Instance: {}", model->GetAssetName());
-                return false;
-            }
+			if (!SaveInstance(model->GetId(), modelInstance))
+			{
+				Logger::Instance->info("Failed to save ModelInstance for Model: {}", model->GetEntity()->GetAssetName());
+			}
         }
     }
 
     return true;
 }
 
-int GibEngine::World::Database::SaveModel(int levelId, Model* model)
+bool GibEngine::World::Database::SaveModel(int levelId, GibEngine::World::DatabaseEntity<Model>* model)
 {
-    sqlite3pp::command insertCmd(*db, CREATE_MODEL_QUERY);
-	std::string levelIdStr = std::to_string(levelId);
-    insertCmd.bind(":levelId", levelIdStr.c_str(), sqlite3pp::nocopy);
-    insertCmd.bind(":assetName", model->GetAssetName(), sqlite3pp::nocopy);
-    int res = insertCmd.execute();
+	switch (model->GetState())
+	{
+	case DatabaseEntityState::CLEAN:
+		return true;
+	case DatabaseEntityState::DIRTY:
+		return false;
+	case DatabaseEntityState::NEW:
+		sqlite3pp::command insertCmd(*db, CREATE_MODEL_QUERY);
+		std::string levelIdStr = std::to_string(levelId);
+		insertCmd.bind(":levelId", levelIdStr.c_str(), sqlite3pp::nocopy);
+		insertCmd.bind(":assetName", model->GetEntity()->GetAssetName(), sqlite3pp::nocopy);
+		int res = insertCmd.execute();
 
-    if(res != SQLITE_OK)
-    {
-        const char* errorMessage = db->error_msg();
-        Logger::Instance->error("Failed to create WorldDb Model! SQLite Error: {}", errorMessage);
-        return -1;
-    }
+		if (res != SQLITE_OK)
+		{
+			const char* errorMessage = db->error_msg();
+			Logger::Instance->error("Failed to create WorldDb Model! SQLite Error: {}", errorMessage);
+			return false;
+		}
 
-    return GetLastAutoincrementId();
+		model->SetId(GetLastAutoincrementId());
+		return true;
+	}
+
+	return false;
 }
 
-int GibEngine::World::Database::SaveSkybox(Skybox* skybox)
+bool GibEngine::World::Database::SaveSkybox(World::DatabaseEntity<Skybox>* skybox)
 {
-    sqlite3pp::command insertCmd(*db, CREATE_SKYBOX_QUERY);
-    insertCmd.bind(":assetName", skybox->GetName(), sqlite3pp::nocopy);
-    insertCmd.bind(":extension", skybox->GetExtension(), sqlite3pp::nocopy);
-    int res = insertCmd.execute();
+	switch (skybox->GetState())
+	{
+	case DatabaseEntityState::CLEAN:
+		return true;
+	case DatabaseEntityState::DIRTY:
+		return false; // not implemented yet
+	case DatabaseEntityState::NEW:
+		sqlite3pp::command insertCmd(*db, CREATE_SKYBOX_QUERY);
+		insertCmd.bind(":assetName", skybox->GetEntity()->GetName(), sqlite3pp::nocopy);
+		insertCmd.bind(":extension", skybox->GetEntity()->GetExtension(), sqlite3pp::nocopy);
+		int res = insertCmd.execute();
 
-    if(res != SQLITE_OK)
-    {
-        const char* errorMessage = db->error_msg();
-        Logger::Instance->error("Failed to create WorldDb Skybox! SQLite Error: {}", errorMessage);
-        return -1;
-    }
+		if (res != SQLITE_OK)
+		{
+			const char* errorMessage = db->error_msg();
+			Logger::Instance->error("Failed to create WorldDb Skybox! SQLite Error: {}", errorMessage);
+			return false;
+		}
 
-    return GetLastAutoincrementId();
+		skybox->SetId(GetLastAutoincrementId());
+		return true;
+	}
+  
+	return false;
 }
-
 
 int GibEngine::World::Database::SaveInstance(int modelId, glm::vec3 position, glm::vec3 rotationAxis, float rotationAngle, glm::vec3 scale)
 {
@@ -120,9 +145,12 @@ int GibEngine::World::Database::SaveInstance(int modelId, glm::vec3 position, gl
 	std::string modelIdStr = std::to_string(modelId);
     insertCmd.bind(":modelId", modelIdStr.c_str(), sqlite3pp::nocopy);
 
-    std::string rotationAn = std::to_string(rotationAngle);
-    insertCmd.bind(":rotationAngle", rotationAn.c_str(), sqlite3pp::nocopy);
-    
+	if (rotationAngle != 0.0f)
+	{
+		std::string rotationAn = std::to_string(rotationAngle);
+		insertCmd.bind(":rotationAngle", rotationAn.c_str(), sqlite3pp::nocopy);
+	}
+
     std::string positionStr = std::string();
     std::string scaleStr = std::string();
     std::string rotationAxisStr = std::string();
@@ -132,7 +160,6 @@ int GibEngine::World::Database::SaveInstance(int modelId, glm::vec3 position, gl
         rotationAxisStr += std::to_string(rotationAxis[i]) + ", ";
         scaleStr += std::to_string(scale[i]) + ", ";
     }
-
     insertCmd.bind(":position", positionStr, sqlite3pp::nocopy);    
     insertCmd.bind(":rotationAxis", rotationAxisStr.c_str(), sqlite3pp::nocopy);
     if(glm::length(scale) > 0)
@@ -145,11 +172,101 @@ int GibEngine::World::Database::SaveInstance(int modelId, glm::vec3 position, gl
     if(res != SQLITE_OK)
     {
         const char* errorMessage = db->error_msg();
-        Logger::Instance->error("Failed to create WorldDb Model! SQLite Error: {}", errorMessage);
+        Logger::Instance->error("Failed to save Model Instance! SQLite Error: {}", errorMessage);
         return -1;
     }
 
     return GetLastAutoincrementId();
+}
+
+bool GibEngine::World::Database::UpdateInstance(int modelId, GibEngine::World::DatabaseEntity<Mesh::Instance>* meshInstance)
+{
+	sqlite3pp::command updateCmd(*db, UPDATE_MODEL_INSTANCES_QUERY);
+	
+	updateCmd.bind(":rotationAngle", "", sqlite3pp::nocopy);
+
+	std::string positionStr = std::string();
+	std::string scaleStr = std::string();
+	std::string rotationAxisStr = std::string();
+	for (int i = 0; i < 3; i++)
+	{
+		positionStr += std::to_string(meshInstance->GetEntity()->GetPosition()[i]) + ", ";
+		//rotationAxisStr += std::to_string(rotationAxis[i]) + ", ";
+		scaleStr += std::to_string(meshInstance->GetEntity()->GetScale()[i]) + ", ";
+	}
+
+	updateCmd.bind(":position", positionStr, sqlite3pp::nocopy);
+	updateCmd.bind(":rotationAxis", rotationAxisStr, sqlite3pp::nocopy);
+	if (glm::length(meshInstance->GetEntity()->GetScale()) > 0)
+	{
+		updateCmd.bind(":scale", scaleStr, sqlite3pp::nocopy);
+	}
+
+	unsigned int id = meshInstance->GetId();
+	std::string idStr = std::to_string(meshInstance->GetId());
+	updateCmd.bind(":id", idStr.c_str(), sqlite3pp::nocopy);
+
+	int res = updateCmd.execute();
+
+	if (res != SQLITE_OK)
+	{
+		const char* errorMessage = db->error_msg();
+		Logger::Instance->error("Failed to update Model Instance! SQLite Error: {}", errorMessage);
+		return false;
+	}
+
+	return true;
+}
+
+bool GibEngine::World::Database::DeleteInstance(World::DatabaseEntity<Mesh::Instance>* meshInstance)
+{
+	switch (meshInstance->GetState())
+	{
+	case DatabaseEntityState::NEW:
+		return true;
+	default:
+		sqlite3pp::command deleteCmd(*db, MODEL_INSTANCE_DELETE_QUERY);
+		std::string idStr = std::to_string(meshInstance->GetId());
+		deleteCmd.bind(":id", idStr.c_str(), sqlite3pp::nocopy);
+
+		int res = deleteCmd.execute();
+
+		if (res != SQLITE_OK)
+		{
+			const char* errorMessage = db->error_msg();
+			Logger::Instance->error("Failed to delete Model Instance! SQLite Error: {}", errorMessage);
+			return false;
+		}
+
+		return true;
+	}
+}
+
+bool GibEngine::World::Database::SaveInstance(int modelId, World::DatabaseEntity<Mesh::Instance>* meshInstance)
+{
+	switch (meshInstance->GetState())
+	{
+	case DatabaseEntityState::CLEAN:
+		return true;
+	case DatabaseEntityState::DIRTY:
+		return UpdateInstance(modelId, meshInstance);
+	case DatabaseEntityState::DELETED:
+		return DeleteInstance(meshInstance);
+	case DatabaseEntityState::NEW:
+		auto modelMatrix = meshInstance->GetEntity()->GetMatrix();
+		glm::vec3 pos = glm::vec3(modelMatrix[3][0], modelMatrix[3][1], modelMatrix[3][2]);
+		glm::vec3 scale = glm::vec3(modelMatrix[0][0], modelMatrix[1][1], modelMatrix[2][2]);
+		int instanceId = SaveInstance(modelId, pos, glm::vec3(), 0.0f, scale);
+		if (instanceId == -1)
+		{
+			Logger::Instance->error("Failed to create WorldDb Model Instance");
+			return false;
+		}
+
+		meshInstance->SetId(instanceId);
+		return true;
+	}
+	return false;
 }
 
 GibEngine::World::Level* GibEngine::World::Database::FindLevel(int id)
@@ -171,7 +288,9 @@ GibEngine::World::Level* GibEngine::World::Database::FindLevel(int id)
         if(skyboxName != nullptr && skyboxExt != nullptr)
         {
             Skybox* skybox = new Skybox(skyboxName, skyboxExt);
-            level->SetSkybox(skybox);
+			DatabaseEntity<Skybox>* skyboxDbEntity = new DatabaseEntity<Skybox>(0, skybox);
+
+            level->SetSkybox(skyboxDbEntity);
         }        
         
         sqlite3pp::query mQry(*db, SELECT_LEVEL_MODELS_QUERY);
@@ -190,13 +309,14 @@ GibEngine::World::Level* GibEngine::World::Database::FindLevel(int id)
 
             for(auto iIter = iQry.begin(); iIter != iQry.end(); ++iIter)
             {
+				int instanceId = 0;
                 const char* position;
                 const char* rotationAxis;
                 const char* rotationAngle;
                 const char* scale;
 
-                std::tie(position, rotationAxis, rotationAngle, scale) =
-                (*iIter).get_columns<const char*, const char*, const char*, const char*>(0, 1, 2, 3);   
+                std::tie(instanceId, position, rotationAxis, rotationAngle, scale) =
+                (*iIter).get_columns<int, const char*, const char*, const char*, const char*>(0, 1, 2, 3, 4);   
 
                 glm::vec3 vecPosition = (position != nullptr) ? ReadVec3(position) : glm::vec3();
                 glm::vec3 vecRotationAxis = (rotationAxis != nullptr) ? ReadVec3(rotationAxis) : glm::vec3();
@@ -209,7 +329,7 @@ GibEngine::World::Level* GibEngine::World::Database::FindLevel(int id)
 
                 glm::mat4 matRotation = glm::mat4();
                 
-                if(rotationAngle != NULL)
+                if(rotationAngle != NULL && strlen(rotationAngle) > 0)
                 {
                     float rotationAngleF = std::stof(rotationAngle);
                     matRotation = glm::rotate(matRotation, rotationAngleF, vecRotationAxis);
@@ -220,14 +340,19 @@ GibEngine::World::Level* GibEngine::World::Database::FindLevel(int id)
                 
                 matrix = matScale * matRotation * matTransform;
 
-                model->AddInstance(matrix);
+				Mesh::Instance* instance = new Mesh::Instance(matrix);
+				World::DatabaseEntity<Mesh::Instance>* dbInstance = new World::DatabaseEntity<Mesh::Instance>(instanceId, instance);
+                model->AddInstance(dbInstance);
             }
 
-            level->AddModel(model);
+			DatabaseEntity<Model>* modelDbEntity = new DatabaseEntity<Model>(modelId, model);
+            level->AddModel(modelDbEntity);
         }
 
-        return level;
+		return level;
     }
+
+
 
     return nullptr;
 }
@@ -242,7 +367,7 @@ int GibEngine::World::Database::GetLastAutoincrementId()
     return id;
 }
 
-bool GibEngine::World::Database::SetLevelSkybox(int levelId, int skyboxId)
+int GibEngine::World::Database::SetLevelSkybox(int levelId, int skyboxId)
 {
     sqlite3pp::command insertCmd(*db, SET_LEVEL_SKYBOX_QUERY);
 	std::string levelIdStr = std::to_string(levelId);
@@ -263,6 +388,11 @@ bool GibEngine::World::Database::SetLevelSkybox(int levelId, int skyboxId)
 
 glm::vec3 GibEngine::World::Database::ReadVec3(const char* vec3String)
 {
+	if (std::string(vec3String).size() == 0)
+	{
+		return glm::vec3();
+	}
+
     char* mutVec3Str = strdup(vec3String);                
     char* value = std::strtok(mutVec3Str, ",");
 

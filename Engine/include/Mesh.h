@@ -11,6 +11,7 @@
 
 #include "Entity.h"
 #include "Texture.h"
+#include "world/DatabaseEntity.h"
 
 namespace GibEngine
 {
@@ -36,34 +37,6 @@ namespace GibEngine
 		std::vector<Texture*> Textures;
 	} Material;
 
-	typedef struct material_uniform_block_t
-	{
-		GLfloat AmbientColor[3];
-		GLfloat DiffuseColor[3];
-		GLfloat SpecularColor[3];
-		GLfloat Opacity;
-		GLuint Shininess;
-		GLuint Textures[static_cast<int>(TextureType::TEXTURETYPE_LAST)];
-
-		material_uniform_block_t(const Material *material)
-		{
-			for (unsigned int i = 0; i < 3; i++)
-			{
-				AmbientColor[i] = material->AmbientColor[i];
-				DiffuseColor[i] = material->DiffuseColor[i];
-				SpecularColor[i] = material->SpecularColor[i];
-			}
-
-			Opacity = material->Opacity;
-			Shininess = material->Shininess;
-
-			for (unsigned int i = 0; i < material->Textures.size(); i++)
-			{
-				Textures[i] = material->Textures.at(i)->GetTextureId();
-			}
-		}
-	} MaterialBuffer;
-
 	// An object containing information regarding how to reference
 	// the Mesh via the graphics server
 	struct MeshUploadTicket
@@ -77,35 +50,56 @@ namespace GibEngine
 
 	class Mesh : public Entity
 	{
-		MeshUploadTicket* uploadTicket = nullptr;
-
-		std::vector<glm::mat4> instanceMatrices;
-
-		// Flags that the instance matrices must be updated on the GFX server
-		bool instanceMatricesDirty;
-
-		std::vector<Vertex> vertices;
-		std::vector<GLuint> indices;
-		std::vector<Material*> materials;
-
-		glm::vec3 movementDir;
-
-		const char* directory;
-
 	public:
 		static const int MOVE_SPEED = 10;
 
+		class Instance
+		{
+			glm::mat4 matrix;
+
+		public:
+			Instance(glm::mat4 matrix) : matrix(matrix) { }
+			Instance() : Instance(glm::mat4()) { }
+
+			glm::mat4 GetMatrix() { return matrix; }
+
+			glm::vec3 GetPosition()
+			{ 
+				return glm::vec3(matrix[3][0], matrix[3][1], matrix[3][2]);
+			}
+
+			glm::vec3 GetScale()
+			{
+				return glm::vec3(matrix[0][0], matrix[1][1], matrix[2][2]);
+			}
+
+			void SetMatrix(glm::mat4 matrix)
+			{
+				this->matrix = matrix;
+			}
+		};
+
+		enum Flags
+		{
+			RENDER_ENABLED = 1 << 0,
+			RENDER_WIREFRAME = 1 << 1,
+			RENDER_ARRAYS = 1 << 2,
+		};
+
 		Mesh();
+		~Mesh();
 		Mesh(const char *directory, aiMesh *mesh, const aiScene *scene);
 		Mesh(std::vector<Vertex> vertices);
 
-		void AddInstance(glm::mat4 modelMatrix);
-		void SetInstance(unsigned int index, glm::mat4 modelMatrix);
+		void AddInstance(World::DatabaseEntity<Instance>* meshInstance);
+		void UpdateInstance(unsigned int index, World::DatabaseEntity<Instance>* meshInstance);
+		void DeleteInstance(World::DatabaseEntity<Mesh::Instance>* meshInstance);
 
-		std::vector<glm::mat4> GetInstanceMatrices() const;
+		std::vector<World::DatabaseEntity<Instance>*> GetInstanceMatrices() const;
 		std::vector<unsigned int> GetIndices() const;
 		std::vector<Material*> GetMaterials() const;
 		MeshUploadTicket* GetMeshUploadTicket() const;
+		Flags GetFlags() const;
 		std::vector<Vertex> GetVertices() const;
 
 		bool IsInstanceMatricesDirty() const;
@@ -118,7 +112,25 @@ namespace GibEngine
 		void SetVertices(std::vector<Vertex> vertices);
 		void SetInstanceMatricesDirty(bool isDirty);
 		void SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept);
+		void SetFlags(Flags flags);
 
 		virtual void Update(double deltaTime) override;
+
+	private:
+		MeshUploadTicket* uploadTicket = nullptr;
+		Flags flags = Flags::RENDER_ENABLED;
+
+		std::vector<World::DatabaseEntity<Instance>*> instanceMatrices;
+
+		// Flags that the instance matrices must be updated on the GFX server
+		bool instanceMatricesDirty;
+
+		std::vector<Vertex> vertices;
+		std::vector<GLuint> indices;
+		std::vector<Material*> materials;
+
+		glm::vec3 movementDir;
+
+		const char* directory;
 	};
 }

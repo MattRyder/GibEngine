@@ -4,21 +4,34 @@ GibEngine::Renderer::ForwardRenderPass::ForwardRenderPass(API::IGraphicsApi* gra
 
 void GibEngine::Renderer::ForwardRenderPass::Render()
 {
-	RenderPass::SetCameraBase(RenderPass::camera);
-	shader->Begin();
+	glEnable(GL_BLEND);
+
+	graphicsApi->BindShader(shader->GetShaderId());
+
+	graphicsApi->BindCamera(RenderPass::camera);
 
 	for (Model* model : drawablesList)
 	{
 		for (Mesh* mesh : model->GetMeshes())
 		{
-			//mesh->LoadMaterial(shader->GetShaderId());
-			//glBindVertexArray(mesh->GetVAO());
-			//glDrawElementsInstanced(GL_TRIANGLES, mesh->GetIndicesSize(), GL_UNSIGNED_INT, 0, mesh->GetInstanceCount());
-			//glBindVertexArray(0);
+			if (mesh->IsInstanceMatricesDirty())
+			{
+				UpdateMeshInstances(mesh->GetMeshUploadTicket(), mesh->GetInstanceMatrices());
+				mesh->SetInstanceMatricesDirty(false);
+			}
+
+			if (mesh->GetMaterials().size() > 0)
+			{
+				graphicsApi->BindMaterial(mesh->GetMaterials()[0]);
+			}
+
+			graphicsApi->DrawMesh(mesh);
 		}
 	}
 
-	shader->End();
+	graphicsApi->UnbindShader();
+
+	glDisable(GL_BLEND);
 }
 
 void GibEngine::Renderer::ForwardRenderPass::Update(float deltaTime)

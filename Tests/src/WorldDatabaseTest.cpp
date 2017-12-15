@@ -17,24 +17,40 @@ TEST_F(WorldDatabaseTest, CreateLevel)
 TEST_F(WorldDatabaseTest, SaveModelToLevel)
 {
     int levelId = level->GetId();
-    int modelId = database->SaveModel(levelId, model);
 
-    ASSERT_TRUE(modelId > 0);
+	World::DatabaseEntity<Model>* modelDbEntity = new World::DatabaseEntity<Model>(0, model);
+
+    bool success = database->SaveModel(levelId, modelDbEntity);
+
+	ASSERT_TRUE(success);
+    ASSERT_TRUE(modelDbEntity->GetId() > 0);
+
+	delete modelDbEntity;
 }
 
 TEST_F(WorldDatabaseTest, SaveInstanceToModel)
 {
     int levelId = level->GetId();
-    int modelId = database->SaveModel(levelId, model);
-    glm::vec3 v = glm::vec3();
-    int instanceId = database->SaveInstance(modelId, v, v, 0.0f, v);
 
-    ASSERT_TRUE(instanceId > 0);
+	World::DatabaseEntity<Model>* modelDbEntity = new World::DatabaseEntity<Model>(0, model);
+    int modelId = database->SaveModel(levelId, modelDbEntity);
+
+	Mesh::Instance* meshInstance = new Mesh::Instance();
+	World::DatabaseEntity<Mesh::Instance>* newDbInstance = new World::DatabaseEntity<Mesh::Instance>(0, meshInstance);
+
+	database->SaveInstance(modelId, newDbInstance);
+
+    ASSERT_TRUE(newDbInstance->GetId() > 0);
+
+	delete newDbInstance;
+	delete modelDbEntity;
 }
 
 TEST_F(WorldDatabaseTest, FindLevel)
 {
-    level->SetSkybox(skybox);
+	World::DatabaseEntity<Skybox>* skyInstance = new World::DatabaseEntity<Skybox>(0, skybox);
+    level->SetSkybox(skyInstance);
+
     database->SaveLevel(level);
 
     Level* level = database->FindLevel(1);

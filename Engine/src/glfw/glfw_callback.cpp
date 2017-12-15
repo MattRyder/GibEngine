@@ -62,4 +62,6 @@ void GibEngine::GLFW::SetWindowSizeCallback(GLFWwindow* window, int width, int h
 	WindowResizeEvent.Width = width;
 	WindowResizeEvent.Height = height;
 	WindowResizeEvent.ResizeFramebuffer = true;
+
+	glViewport(0, 0, width, height);
 }

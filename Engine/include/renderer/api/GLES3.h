@@ -11,6 +11,11 @@ namespace GibEngine
             class GLES3 : public IGraphicsApi
             {
             public:
+				GLES3() = default;
+				virtual ~GLES3() override;
+
+				virtual void BlitFramebuffer(unsigned int framebufferSource, unsigned int framebufferDest, unsigned int framebufferWidth, unsigned int framebufferHeight, unsigned int framebufferFlags) override;
+
                 virtual void BindCamera(GibEngine::CameraBase *camera) override;
                 virtual void BindFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer) override;
 				virtual void BindMaterial(GibEngine::Material *material) override;

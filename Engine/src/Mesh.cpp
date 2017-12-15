@@ -1,14 +1,42 @@
 #include "../include/Mesh.h"
 
-GibEngine::Mesh::Mesh() : Entity(EntityType::MODEL) { }
+GibEngine::Mesh::Mesh() : Entity(EntityType::MODEL), instanceMatrices() { }
 
-GibEngine::Mesh::Mesh(const char* directory, aiMesh *mesh, const aiScene* scene) : Entity(EntityType::MODEL)
+GibEngine::Mesh::~Mesh()
+{
+	if (uploadTicket != nullptr)
+	{
+		uploadTicket->buffers.clear();
+	}
+	delete uploadTicket;
+
+	instanceMatrices.clear();
+	vertices.clear();
+	std::vector<Vertex>().swap(vertices);
+	
+	indices.clear();
+	std::vector<unsigned int>().swap(indices);
+
+	for (auto material : materials)
+	{
+		for (auto texture : material->Textures)
+		{
+			delete texture;
+		}
+
+		material->Textures.clear();
+		delete material;
+	}
+	materials.clear();	
+}
+
+GibEngine::Mesh::Mesh(const char* directory, aiMesh *mesh, const aiScene* scene) : Mesh()
 {
 	this->directory = directory;
 	ProcessMesh(mesh, scene);
 }
 
-GibEngine::Mesh::Mesh(std::vector<Vertex> vertices) : Entity(EntityType::MODEL)
+GibEngine::Mesh::Mesh(std::vector<Vertex> vertices) : Mesh()
 {
 	this->vertices = vertices;
 	this->instanceMatricesDirty = false;
@@ -107,20 +135,32 @@ bool GibEngine::Mesh::IsInstanceMatricesDirty() const
 	return this->instanceMatricesDirty;
 }
 
-std::vector<glm::mat4> GibEngine::Mesh::GetInstanceMatrices() const
+std::vector<GibEngine::World::DatabaseEntity<GibEngine::Mesh::Instance>*> GibEngine::Mesh::GetInstanceMatrices() const
 {
 	return this->instanceMatrices;
 }
 
-void GibEngine::Mesh::AddInstance(glm::mat4 modelMatrix)
+void GibEngine::Mesh::AddInstance(GibEngine::World::DatabaseEntity<GibEngine::Mesh::Instance>* meshInstance)
 {
-	this->instanceMatrices.push_back(modelMatrix);
+	this->instanceMatrices.push_back(meshInstance);
 	this->instanceMatricesDirty = true;
 }
 
-void GibEngine::Mesh::SetInstance(unsigned int index, glm::mat4 modelMatrix)
+void GibEngine::Mesh::UpdateInstance(unsigned int index, GibEngine::World::DatabaseEntity<GibEngine::Mesh::Instance>* meshInstance)
 {
-	this->instanceMatrices.insert(this->instanceMatrices.begin() + index, modelMatrix);
+	if (index >= instanceMatrices.size())
+	{
+		return;
+	}
+
+	this->instanceMatrices[index] = meshInstance;
+	this->instanceMatricesDirty = true;
+}
+
+void GibEngine::Mesh::DeleteInstance(World::DatabaseEntity<Mesh::Instance>* meshInstance)
+{
+	meshInstance->SetState(World::DatabaseEntityState::DELETED);
+	instanceMatricesDirty = true;
 }
 
 std::vector<GibEngine::Vertex> GibEngine::Mesh::GetVertices() const
@@ -141,6 +181,11 @@ std::vector<GibEngine::Material*> GibEngine::Mesh::GetMaterials() const
 GibEngine::MeshUploadTicket * GibEngine::Mesh::GetMeshUploadTicket() const
 {
 	return this->uploadTicket;
+}
+
+GibEngine::Mesh::Flags GibEngine::Mesh::GetFlags() const
+{
+	return flags;
 }
 
 void GibEngine::Mesh::Update(double deltaTime) { }
@@ -170,4 +215,9 @@ bool GibEngine::Mesh::IsUploaded()
 void GibEngine::Mesh::SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept)
 {
 	this->uploadTicket = meshUploadReciept;
+}
+
+void GibEngine::Mesh::SetFlags(Flags flags)
+{
+	this->flags = flags;
 }

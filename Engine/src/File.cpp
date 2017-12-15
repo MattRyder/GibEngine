@@ -27,11 +27,60 @@ std::string* GibEngine::File::GetScreenshotPath()
 	return GetPathForType(SCREENSHOT_RELATIVE_PATH);
 }
 
+std::vector<GibEngine::File*> GibEngine::File::GetDirectoryList(const char * rootDirectory)
+{
+	return GetDirectoryListInternal(rootDirectory);
+}
+
 std::string* GibEngine::File::GetPathForType(const char* filePath)
 {
     std::string *pathStr = new std::string(File::GetWorkingDirectory());
     pathStr->append(filePath);
     return pathStr;
+}
+
+std::vector<GibEngine::File*> GibEngine::File::GetDirectoryListInternal(const char* rootDirectory)
+{
+	std::vector<File*> directoryList = std::vector<File*>();
+
+#ifdef WIN32
+	HANDLE hFind;
+	WIN32_FIND_DATA data;
+
+	hFind = FindFirstFile(std::string(rootDirectory).append("/*").c_str(), &data);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do {
+			if (strcmp(data.cFileName, ".") == 0 || strcmp(data.cFileName, "..") == 0)
+			{
+				continue;
+			}
+
+			if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+			{
+				std::string subdir = std::string(rootDirectory) + "//" + data.cFileName;
+				const char* subdirectoryPath = subdir.c_str();
+				std::vector<File*> dirList = GetDirectoryListInternal(subdirectoryPath);
+				directoryList.insert(directoryList.end(), dirList.begin(), dirList.end());
+			}
+			else
+			{
+				// rootDir + "\\" + cFileName + NULL
+				char* filepath = new char[strlen(rootDirectory) + strlen(data.cFileName) + 3];
+				strcpy(filepath, rootDirectory);
+				strcat(filepath, "\\");
+				strcat(filepath, data.cFileName);
+
+				File* file = new File(filepath);
+				directoryList.push_back(file);
+			}
+		} while (FindNextFile(hFind, &data));
+		FindClose(hFind);
+	}
+#elif __unix__
+#endif
+
+	return directoryList;
 }
 
 GibEngine::File* GibEngine::File::GetFontFile(const char * fontName)
@@ -92,6 +141,18 @@ const char* GibEngine::File::GetDirectory()
 const char* GibEngine::File::GetPath()
 {
     return this->path;
+}
+
+const char * GibEngine::File::GetExtension()
+{
+	std::string pathStr(path);
+	return strdup(pathStr.substr(pathStr.find_last_of(".") + 1).c_str());
+}
+
+const char * GibEngine::File::GetFilename()
+{
+	std::string pathStr(path);
+	return strdup(pathStr.substr(pathStr.find_last_of("/") + 1).c_str());
 }
 
 const char* GibEngine::File::ReadFile()

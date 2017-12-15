@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 
+#include "world/DatabaseEntity.h"
 #include "Shader.h"
 #include "FreeCamera.h"
 #include "UniformBufferManager.h"
@@ -50,12 +51,16 @@ namespace GibEngine
 			virtual void SetCameraBase(CameraBase* camera);
 
 			Shader* GetShader() const;
+			std::vector<LightBase*> GetLights() const;
+
 			bool IsEnabled() const;
 
 			void BindLights();
 			void FlagLightingBindRequired();
 
 			void TakeScreenshot();
+
+			void UpdateMeshInstances(MeshUploadTicket* ticket, std::vector<World::DatabaseEntity<Mesh::Instance>*> instances);
 
 			void SetPassEnabled(bool value);
 		};

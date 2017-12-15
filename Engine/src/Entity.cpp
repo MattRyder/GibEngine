@@ -30,6 +30,11 @@ const char* GibEngine::Entity::GetTypeName() const
     return GibEngine::EntityTypeStrings[static_cast<int>(this->entityType)];
 }
 
+const char* GibEngine::Entity::GetTypeString(GibEngine::EntityType type)
+{
+	return EntityTypeStrings[static_cast<int>(type)];
+}
+
 int GibEngine::Entity::GetID() const
 {
     return this->entityId;

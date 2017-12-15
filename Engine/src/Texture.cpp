@@ -38,6 +38,15 @@ GibEngine::TextureData* GibEngine::Texture::LoadTextureData(std::string *texture
 GibEngine::Texture::~Texture()
 {
     delete this->fileName;
+
+	if (cubemap != nullptr)
+	{
+		delete cubemap->directory;
+		for (auto texData : cubemap->textures)
+		{
+			delete texData;	
+		}
+	}
 }
 
 GibEngine::Texture* GibEngine::Texture::Load(GibEngine::TextureType type, std::string *fileName)

@@ -32,6 +32,7 @@ namespace GibEngine
 		class Pipeline
 		{
 			static const char* ShaderLanguageStrings[];
+			bool renderingPaused = false;
 
 			Framebuffer* framebuffer;
 			CameraBase* camera;
@@ -51,10 +52,12 @@ namespace GibEngine
 			void Render();
 			void Update(float deltaTime);
 
+			bool IsRenderPaused();
 			RenderPass* GetRenderPass(RenderPassType type);
 			Framebuffer* GetFramebuffer();
 
 			void SetCameraBase(CameraBase *camera);
+			void SetRenderPaused(bool renderingPaused);
 
 			void ResizeFramebuffer(int width, int height);
 		};

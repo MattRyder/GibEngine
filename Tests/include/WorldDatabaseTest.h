@@ -15,7 +15,7 @@ public:
 	{
 		database = new Database(FILENAME);
 
-		level = database->CreateLevel(LEVEL_NAME);
+		level = database->CreateLevel(strdup(LEVEL_NAME));
 		skybox = new Skybox(SKYBOX_NAME[0], SKYBOX_NAME[1]);
 
 		model = new Model(MODEL_NAME);
@@ -26,7 +26,10 @@ public:
 	{
 		database->Disconnect();
 		int res = std::remove(FILENAME);
-		delete database;
+
+		// delete database;
+		// delete level;
+		// delete model;
 	}
 
 	const char* FILENAME = "test.db";
@@ -37,6 +40,7 @@ public:
 	Database* database;
 	Level* level;
 	Skybox* skybox;
+
 	Model* model;
 	glm::mat4 modelMatrix;
 };

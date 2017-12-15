@@ -63,5 +63,7 @@ namespace GibEngine
 
 		EntityType GetType() const;
 		const char* GetTypeName() const;
+
+		static const char* GetTypeString(EntityType type);
 	};
 }

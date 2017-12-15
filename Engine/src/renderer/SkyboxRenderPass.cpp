@@ -9,7 +9,8 @@ void GibEngine::Renderer::SkyboxRenderPass::Render()
 	
 	graphicsApi->BindCamera(RenderPass::camera);
 
-	glUniformMatrix4fv(glGetUniformLocation(shader->GetShaderId(), "skyboxModelMatrix"), 1, GL_FALSE, glm::value_ptr(skybox->GetModelMatrix()));
+	glm::mat4 skyboxMatrix = skybox->GetInstanceMatrices().at(0)->GetEntity()->GetMatrix();
+	glUniformMatrix4fv(glGetUniformLocation(shader->GetShaderId(), "skyboxModelMatrix"), 1, GL_FALSE, glm::value_ptr(skyboxMatrix));
 
 	graphicsApi->BindTextureCubemap(0, skybox->GetCubemap()->GetTextureId());
 
@@ -25,8 +26,7 @@ void GibEngine::Renderer::SkyboxRenderPass::Update(float deltaTime)
 		return;
 	}
 
-	glm::mat4 matrix = glm::rotate(skybox->GetModelMatrix(), glm::radians(skybox->SKYBOX_MOVE_SPEED * deltaTime), glm::vec3(0, 1, 0));
-	skybox->SetModelMatrix(matrix);
+	skybox->Update(deltaTime);
 }
 
 void GibEngine::Renderer::SkyboxRenderPass::SetSkybox(Skybox* skybox)
