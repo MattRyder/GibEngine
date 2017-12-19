@@ -13,8 +13,8 @@ GibEngine::World::Level::~Level()
 		delete modelEntity;
 	}
 
-	delete name;
 	delete skybox->GetEntity();
+	delete skybox;
 }
 
 void GibEngine::World::Level::SetSkybox(DatabaseEntity<GibEngine::Skybox>* skybox)
@@ -31,6 +31,11 @@ void GibEngine::World::Level::SetSkybox(DatabaseEntity<GibEngine::Skybox>* skybo
 void GibEngine::World::Level::AddModel(GibEngine::World::DatabaseEntity<GibEngine::Model>* model)
 {
     this->modelEntities.push_back(model);
+}
+
+void GibEngine::World::Level::AddLight(DatabaseEntity<GibEngine::PointLight>* light)
+{
+	this->pointLightEntities.push_back(light);
 }
 
 int GibEngine::World::Level::GetId()
@@ -83,18 +88,12 @@ GibEngine::World::DatabaseEntity<GibEngine::Model>* GibEngine::World::Level::Add
 	return entity;
 }
 
-std::vector<GibEngine::Model*> GibEngine::World::Level::GetModels()
-{
-	std::vector<Model*> models;
-	for (auto modelEntity : modelEntities)
-	{
-		models.push_back(modelEntity->GetEntity());
-	}
-
-	return models;
-}
-
 std::vector<GibEngine::World::DatabaseEntity<GibEngine::Model>*> GibEngine::World::Level::GetModelEntities()
 {
 	return this->modelEntities;
+}
+
+std::vector<GibEngine::World::DatabaseEntity<GibEngine::PointLight>*> GibEngine::World::Level::GetPointLightEntities()
+{
+	return this->pointLightEntities;
 }

@@ -7,6 +7,7 @@
 #include "IComponent.h"
 #include "Entity.h"
 #include "Model.h"
+#include "PointLight.h"
 #include "world/DatabaseEntity.h"
 
 namespace GibEditor
@@ -83,7 +84,7 @@ namespace GibEditor
 				glm::vec3 rot = glm::vec3();
 				glm::vec3 scale = glm::vec3(matrix[0][0], matrix[1][1], matrix[2][2]);
 
-				if (ImGui::DragFloat3("Position", glm::value_ptr(pos), 1.0f, -1000.0f, 1000.0f))
+				if (ImGui::DragFloat3("Position", glm::value_ptr(pos), INCREMENT_SLOW, -1000.0f, 1000.0f))
 				{
 					matrix[3] = glm::vec4(pos[0], pos[1], pos[2], 1.0f);
 					selectedInstance.instance->Modify()->SetMatrix(matrix);
@@ -94,11 +95,11 @@ namespace GibEditor
 				{
 				}
 
-				if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), 1.0f, -1000.0f, 1000.0f))
+				if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), INCREMENT_SLOW, -1000.0f, 1000.0f))
 				{
-					matrix[1][1] = scale[0];
-					matrix[2][2] = scale[1];
-					matrix[3][3] = scale[2];
+					matrix[0][0] = scale[0];
+					matrix[1][1] = scale[1];
+					matrix[2][2] = scale[2];
 
 					selectedInstance.instance->Modify()->SetMatrix(matrix);
 					entity->Modify()->UpdateInstance(selectedInstance.index, selectedInstance.instance);
@@ -106,6 +107,55 @@ namespace GibEditor
 			}
 
 			ImGui::PopStyleVar();
+		}
+
+		template<>
+		inline void EntityInspector<GibEngine::PointLight>::Render()
+		{
+			GibEngine::PointLight* light = entity->GetEntity();
+
+			ImGui::Text((std::string("Entity ID: ") + std::to_string(light->GetID())).c_str());
+			ImGui::Text((std::string("Type: ") + light->GetTypeName()).c_str());
+
+			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
+
+			glm::vec3 pos = light->GetPosition();
+			if (ImGui::DragFloat3("Position", glm::value_ptr(pos), INCREMENT_MID, -1000.0f, 1000.0f))
+			{
+				entity->Modify()->SetPosition(pos);
+			}
+
+			float linearAttenuation = light->GetLinearAttenuation();
+			if (ImGui::DragFloat("Linear Attenuation", &linearAttenuation, INCREMENT_SLOW, 0, 10.0f))
+			{
+				light->SetLinearAttenuation(linearAttenuation);
+			}
+
+			float quadAttenuation = light->GetQuadraticAttenuation();
+			if (ImGui::DragFloat("Quadratic Attenuation", &quadAttenuation, INCREMENT_SLOW, 0, 10.0f))
+			{
+				light->SetQuadraticAttenuation(quadAttenuation);
+			}
+
+			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
+
+			glm::vec3 amb = light->GetAmbientColor();
+			if (ImGui::ColorEdit3("Ambient", glm::value_ptr(amb)))
+			{
+				light->SetAmbientColor(amb);
+			}
+
+			glm::vec3 diff = light->GetDiffuseColor();
+			if (ImGui::ColorEdit3("Diffuse", glm::value_ptr(diff)))
+			{
+				light->SetDiffuseColor(diff);
+			}
+
+			glm::vec3 spec = light->GetSpecularColor();
+			if (ImGui::ColorEdit3("Specular", glm::value_ptr(spec)))
+			{
+				light->SetSpecularColor(spec);
+			}
 		}
 	}
 }

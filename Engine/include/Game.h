@@ -37,7 +37,6 @@ namespace GibEngine
 
 		// TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
 		FreeCamera* playerCamera = nullptr;
-		PointLight* light = nullptr;
 
 		void ParseOptions(int argc, char** argv);
 

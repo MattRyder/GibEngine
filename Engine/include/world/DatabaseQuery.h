@@ -4,14 +4,14 @@ namespace GibEngine
 {
     namespace World
     {
-        static const char* CREATE_DATABASE_QUERY = R"(
+		static const char* CREATE_DATABASE_QUERY = R"(
             BEGIN TRANSACTION;
             CREATE TABLE `ModelsInstances` (
                 `Id`	INTEGER NOT NULL,
                 `ModelId`	INTEGER NOT NULL,
                 `Position`	TEXT NOT NULL,
                 `RotationAxis` TEXT,
-                `RotationAngle` TEXT,
+                `RotationAngle` REAL,
                 `Scale` TEXT,
                 PRIMARY KEY(`Id`),
                 FOREIGN KEY(`ModelId`) REFERENCES `Models`(`Id`)
@@ -36,7 +36,21 @@ namespace GibEngine
                 PRIMARY KEY(`Id`),
                 FOREIGN KEY(`LevelId`) REFERENCES `Levels`(`Id`)
             );
+			CREATE TABLE `Lights` (
+				`Id`	INTEGER NOT NULL,
+				`LevelId`	INTEGER NOT NULL,
+				`LightType` TEXT NOT NULL,
+				`Position`	TEXT NOT NULL,
+				`AmbientColor` TEXT NOT NULL,
+				`DiffuseColor` TEXT NOT NULL,
+				`SpecularColor` TEXT NOT NULL,
+				`LinearAttenuation` REAL NOT NULL,
+				`QuadraticAttenuation` REAL NOT NULL,
+				PRIMARY KEY(`Id`),
+				FOREIGN KEY(`LevelId`) REFERENCES `Levels`(`Id`)
+			);
 
+			CREATE UNIQUE INDEX `LightsId_Idx` ON `Lights` (`Id`);
             CREATE UNIQUE INDEX `ModelsInstancesId_Idx` ON `ModelsInstances` (`Id` );
             CREATE UNIQUE INDEX `ModelsId_Idx` ON `Models` (`Id` );
             CREATE UNIQUE INDEX `LevelsId_Idx` ON `Levels` (`Id` );
@@ -59,6 +73,11 @@ namespace GibEngine
             INSERT INTO Skyboxes (AssetName, Extension) VALUES (:assetName, :extension);
         )";
 
+		static const char* CREATE_LIGHT_QUERY = R"(
+			INSERT INTO Lights (LevelId, LightType, Position, AmbientColor, DiffuseColor, SpecularColor, LinearAttenuation, QuadraticAttenuation)
+			VALUES (:levelId, :lightType, :position, :ambientColor, :diffuseColor, :specularColor, :linearAttenuation, :quadraticAttenuation); 
+		)";
+
         static const char* SET_LEVEL_SKYBOX_QUERY = R"(
             UPDATE Levels SET SkyboxId = :skyboxId WHERE Id = :levelId;
         )";
@@ -69,7 +88,7 @@ namespace GibEngine
         )";
 
         static const char* SELECT_LEVEL_QUERY = R"(
-            SELECT Levels.Id, Levels.Name, Skyboxes.AssetName, Skyboxes.Extension
+            SELECT Levels.Id, Levels.Name, Skyboxes.Id, Skyboxes.AssetName, Skyboxes.Extension
             FROM Levels
             INNER JOIN Skyboxes
             ON Skyboxes.Id = Levels.SkyboxId
@@ -79,6 +98,11 @@ namespace GibEngine
         static const char* SELECT_LEVEL_MODELS_QUERY = R"(
             SELECT Id, AssetName FROM Models WHERE LevelId = ?;
         )";
+
+		static const char* SELECT_LEVEL_LIGHTS_QUERY = R"(
+			SELECT Id, LightType, Position, AmbientColor, DiffuseColor, SpecularColor, LinearAttenuation, QuadraticAttenuation
+			FROM Lights WHERE LevelId = :levelId;
+		)";
 
         static const char* SELECT_MODEL_INSTANCES_QUERY = R"(
             SELECT Id, Position, RotationAxis, RotationAngle, Scale FROM ModelsInstances WHERE ModelId = ?;
@@ -98,6 +122,14 @@ namespace GibEngine
 			UPDATE ModelsInstances
 			SET Position = :position, RotationAxis = :rotationAxis, RotationAngle = :rotationAngle, Scale = :scale
 			WHERE Id = :id;
+		)";
+
+		static const char* UPDATE_LIGHT_QUERY = R"(
+			UPDATE Lights
+			SET LightType = :lightType, Position = :position, AmbientColor = :ambientColor,
+				DiffuseColor = :diffuseColor, SpecularColor = :specularColor, LinearAttenuation = :linearAttenuation,
+				QuadraticAttenuation = :quadraticAttenuation
+			WHERE Id = 1;
 		)";
 
 		static const char* MODEL_INSTANCE_DELETE_QUERY = "DELETE FROM ModelsInstances WHERE Id = :id;";

@@ -18,7 +18,7 @@ GibEngine::Renderer::Framebuffer::Framebuffer(int bufferWidth, int bufferHeight)
 		glGenTextures(1, &geometryBuffer.textures[i]);
 		glBindTexture(GL_TEXTURE_2D, geometryBuffer.textures[i]);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bufferWidth, bufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);		
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, bufferWidth, bufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);		
 
 		switch (i)
 		{
@@ -47,7 +47,6 @@ GibEngine::Renderer::Framebuffer::Framebuffer(int bufferWidth, int bufferHeight)
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, bufferWidth, bufferHeight);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, geometryBuffer.depthTargetId);
   
-
 	GLuint framebufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	const char *status = nullptr;
 

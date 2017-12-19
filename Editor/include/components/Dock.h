@@ -22,6 +22,13 @@ namespace GibEditor
 				ENTITY_INSPECTOR
 			};
 
+			enum class ActiveEntityInspector
+			{
+				NONE,
+				MODEL,
+				POINT_LIGHT,
+			};
+
 			Dock(GibEngine::World::Level* level, GibEngine::Renderer::Pipeline* pipeline);
 			virtual void Render() override;
 
@@ -32,8 +39,12 @@ namespace GibEditor
 			GibEngine::Renderer::Pipeline* pipeline;
 			
 			Components::ContentBrowser* cbrowser = nullptr;
-			EntityInspector<GibEngine::Model>* inspector = nullptr;
+
+			EntityInspector<GibEngine::Model>* modelInspector = nullptr;
+			EntityInspector<GibEngine::PointLight>* pointLightInspector = nullptr;
+
 			Dock::Type selectedDock = Dock::Type::GAME;
+			ActiveEntityInspector activeInspector = ActiveEntityInspector::NONE;
 		};
 	}
 }

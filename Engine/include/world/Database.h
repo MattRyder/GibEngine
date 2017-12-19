@@ -22,6 +22,7 @@ namespace GibEngine
         {
             sqlite3pp::database* db;
             
+			std::string ConvertVec3ToString(glm::vec3 vec);
             glm::vec3 ReadVec3(const char* vec3String);
             int GetLastAutoincrementId();
             int SetLevelSkybox(int levelId, int skyboxId);
@@ -44,6 +45,7 @@ namespace GibEngine
             bool SaveLevel(Level* level);
             bool SaveSkybox(DatabaseEntity<Skybox>* skybox);
             bool SaveModel(int levelId, DatabaseEntity<Model>* model);
+			bool SavePointLight(int levelId, DatabaseEntity<PointLight>* pointLight);
 
 			bool SaveInstance(int modelId, World::DatabaseEntity<Mesh::Instance>* meshInstance);
 

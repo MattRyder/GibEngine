@@ -41,6 +41,7 @@ namespace GibEngine
 				virtual int GetUniformLocation(const char* uniformName) override;
 
 				virtual unsigned char* ReadFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer) override;
+				virtual unsigned char* ReadFramebufferTexture(GibEngine::Renderer::Framebuffer *framebuffer, GibEngine::Renderer::FramebufferType framebufferTextureType) override;
 
 				virtual bool UpdateMeshInstances(MeshUploadTicket *meshUploadTicket, std::vector<glm::mat4> instanceMatrixList) override;
 				virtual bool UpdateCamera(CameraBase *camera) override;

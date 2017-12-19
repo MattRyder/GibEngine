@@ -16,7 +16,6 @@ layout (std140) uniform cameraUBO {
 
 void main() {
   VS.TexCoords = v_TexCoords;
-  VS.CameraPosition = CameraPosition;
   
   gl_Position = vec4(v_Position, 1.0);
 }

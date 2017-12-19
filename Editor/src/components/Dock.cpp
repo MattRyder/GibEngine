@@ -9,7 +9,7 @@ void GibEditor::Components::Dock::Render()
 {
 	ImGui::BeginDockspace();
 
-	if (ImGui::BeginDock("Game"))
+	if (ImGui::BeginDock(level->GetName()))
 	{
 		ImVec2 windowSize = ImGui::GetWindowSize();
 
@@ -73,8 +73,35 @@ void GibEditor::Components::Dock::Render()
 
 				if (modelClicked)
 				{
-					delete inspector;
-					inspector = new EntityInspector<GibEngine::Model>(model);
+					delete modelInspector;
+					modelInspector = new EntityInspector<GibEngine::Model>(model);
+					activeInspector = ActiveEntityInspector::MODEL;
+				}
+			}
+
+			for (auto light : level->GetPointLightEntities())
+			{
+				auto lightEntity = light->GetEntity();
+
+				bool lightSelected = false;
+
+				if (ImGui::Selectable(lightEntity->GetName()))
+				{
+					lightSelected = true;
+				}
+
+				ImGui::NextColumn();
+
+				if (ImGui::Selectable(lightEntity->GetTypeName()))
+				{
+					lightSelected = true;
+				}
+
+				if (lightSelected)
+				{
+					delete pointLightInspector;
+					pointLightInspector = new EntityInspector<GibEngine::PointLight>(light);
+					activeInspector = ActiveEntityInspector::POINT_LIGHT;
 				}
 			}
 
@@ -85,14 +112,14 @@ void GibEditor::Components::Dock::Render()
 
 		ImGui::SetNextDock(ImGuiDockSlot_Bottom);
 
-		if (ImGui::BeginDock("ContentExplorer", (bool*)0, ImGuiWindowFlags_MenuBar))
+		if (ImGui::BeginDock("Content Explorer", (bool*)0, ImGuiWindowFlags_MenuBar))
 		{
 			cbrowser->Render();
 
 			ImGui::EndDock();
 		}
 
-		if (inspector != nullptr)
+		if (activeInspector != ActiveEntityInspector::NONE)
 		{
 			ImGui::SetNextDock(ImGuiDockSlot_Right);
 
@@ -103,7 +130,16 @@ void GibEditor::Components::Dock::Render()
 					selectedDock = Dock::Type::ENTITY_INSPECTOR;
 				}
 
-				inspector->Render();
+				switch (activeInspector)
+				{
+				case ActiveEntityInspector::MODEL:
+					modelInspector->Render();
+					break;
+				case ActiveEntityInspector::POINT_LIGHT:
+					pointLightInspector->Render();
+					break;
+				}
+
 				ImGui::EndDock();
 			}
 		}

@@ -30,9 +30,9 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 
 	auto toggleWireframeCallback = [&](GibEngine::World::Level* currentLevel) -> void
 	{
-		for (auto model : currentLevel->GetModels())
+		for (auto model : currentLevel->GetModelEntities())
 		{
-			model->SetWireframeMode(true);
+			model->GetEntity()->SetWireframeMode(true);
 		}
 	};
 

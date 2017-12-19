@@ -50,18 +50,19 @@ bool GibEngine::World::Database::SaveLevel(Level* level)
 {
     int levelId = level->GetId();
 
+	// Save Skybox if entity is present and requires a write:
 	if (level->GetSkyboxEntity() != nullptr && level->GetSkyboxEntity()->GetState() != DatabaseEntityState::CLEAN)
 	{
 		int skyboxId = SaveSkybox(level->GetSkyboxEntity());
 		if (skyboxId == -1)
 		{
-			Logger::Instance->error("Failed to set Level Skybox! {}", level->GetSkybox()->GetName());
+			Logger::Instance->error("Failed to set Level Skybox! {}", level->GetSkyboxEntity()->GetEntity()->GetName());
 			return false;
 		}
 		SetLevelSkybox(levelId, skyboxId);
 	}
 
-
+	// Save each of the model entities in the level:
     for(auto model : level->GetModelEntities())
     {
         if(!SaveModel(levelId, model))
@@ -78,6 +79,15 @@ bool GibEngine::World::Database::SaveLevel(Level* level)
 			}
         }
     }
+
+	for (auto pointLight : level->GetPointLightEntities())
+	{
+		if (!SavePointLight(levelId, pointLight))
+		{
+			Logger::Instance->error("Failed to save PointLight! {}", pointLight->GetEntity()->GetName());
+			return false;
+		}
+	}
 
     return true;
 }
@@ -106,6 +116,92 @@ bool GibEngine::World::Database::SaveModel(int levelId, GibEngine::World::Databa
 
 		model->SetId(GetLastAutoincrementId());
 		return true;
+	}
+
+	return false;
+}
+
+bool GibEngine::World::Database::SavePointLight(int levelId, DatabaseEntity<PointLight>* pointLight)
+{
+	switch (pointLight->GetState())
+	{
+	case DatabaseEntityState::CLEAN:
+		return true;
+	case DatabaseEntityState::DIRTY:
+	{
+		sqlite3pp::command updateCmd(*db, UPDATE_LIGHT_QUERY);
+		auto pl = pointLight->GetEntity();
+		const std::string lightId = std::to_string(pointLight->GetId());
+		updateCmd.bind(":id", lightId.c_str(), sqlite3pp::nocopy);
+		updateCmd.bind(":lightType", "PointLight", sqlite3pp::nocopy);
+
+		const std::string pos = ConvertVec3ToString(pl->GetPosition());
+		updateCmd.bind(":position", pos, sqlite3pp::nocopy);
+
+		const std::string ambient = ConvertVec3ToString(pl->GetAmbientColor());
+		updateCmd.bind(":ambientColor", ambient, sqlite3pp::nocopy);
+
+		const std::string diffuse = ConvertVec3ToString(pl->GetDiffuseColor());
+		updateCmd.bind(":diffuseColor", diffuse, sqlite3pp::nocopy);
+
+		const std::string specular = ConvertVec3ToString(pl->GetSpecularColor());
+		updateCmd.bind(":specularColor", specular, sqlite3pp::nocopy);
+
+		const std::string linearAtten = std::to_string(pl->GetLinearAttenuation());
+		updateCmd.bind(":linearAttenuation", linearAtten, sqlite3pp::nocopy);
+
+		const std::string quadraticAtten = std::to_string(pl->GetQuadraticAttenuation());
+		updateCmd.bind(":quadraticAttenuation", quadraticAtten, sqlite3pp::nocopy);
+
+		int res = updateCmd.execute();
+		if (res != SQLITE_OK)
+		{
+			const char* errorMessage = db->error_msg();
+			Logger::Instance->error("Failed to update Point Light! SQLite Error: {}", errorMessage);
+			return false;
+		}
+
+		pointLight->SetState(DatabaseEntityState::CLEAN);
+		return true;
+	}
+	case DatabaseEntityState::NEW:
+	{
+		sqlite3pp::command insertCmd(*db, CREATE_LIGHT_QUERY);
+		std::string levelIdStr = std::to_string(levelId);
+
+		auto pl = pointLight->GetEntity();
+		insertCmd.bind(":levelId", levelIdStr.c_str(), sqlite3pp::nocopy);
+		insertCmd.bind(":lightType", "PointLight", sqlite3pp::nocopy);
+
+		const std::string pos = ConvertVec3ToString(pl->GetPosition());
+		insertCmd.bind(":position", pos, sqlite3pp::nocopy);
+
+		const std::string ambient = ConvertVec3ToString(pl->GetAmbientColor());
+		insertCmd.bind(":ambientColor", ambient, sqlite3pp::nocopy);
+
+		const std::string diffuse = ConvertVec3ToString(pl->GetDiffuseColor());
+		insertCmd.bind(":diffuseColor", diffuse, sqlite3pp::nocopy);
+
+		const std::string specular = ConvertVec3ToString(pl->GetPosition());
+		insertCmd.bind(":specularColor", specular, sqlite3pp::nocopy);
+
+		const std::string linearAtten = std::to_string(pl->GetLinearAttenuation());
+		insertCmd.bind(":linearAttenuation", linearAtten, sqlite3pp::nocopy);
+
+		const std::string quadraticAtten = std::to_string(pl->GetQuadraticAttenuation());
+		insertCmd.bind(":quadraticAttenuation", quadraticAtten, sqlite3pp::nocopy);
+
+		int res = insertCmd.execute();
+		if (res != SQLITE_OK)
+		{
+			const char* errorMessage = db->error_msg();
+			Logger::Instance->error("Failed to save Point Light! SQLite Error: {}", errorMessage);
+			return false;
+		}
+
+		pointLight->SetId(GetLastAutoincrementId());
+		return true;
+	}
 	}
 
 	return false;
@@ -271,15 +367,15 @@ bool GibEngine::World::Database::SaveInstance(int modelId, World::DatabaseEntity
 
 GibEngine::World::Level* GibEngine::World::Database::FindLevel(int id)
 {
-    int levelId;
+    int levelId, skyboxId;
     const char* levelName, *skyboxName, *skyboxExt;
 
     sqlite3pp::query qry(*db, SELECT_LEVEL_QUERY);
     qry.bind(1, id);
     sqlite3pp::query::iterator iter = qry.begin();
     
-    std::tie(levelId, levelName, skyboxName, skyboxExt) =
-        (*iter).get_columns<int, const char*, const char*, const char*>(0, 1, 2, 3);
+    std::tie(levelId, levelName, skyboxId, skyboxName, skyboxExt) =
+        (*iter).get_columns<int, const char*, int, const char*, const char*>(0, 1, 2, 3, 4);
 
     if(levelId > 0)
     {
@@ -288,11 +384,12 @@ GibEngine::World::Level* GibEngine::World::Database::FindLevel(int id)
         if(skyboxName != nullptr && skyboxExt != nullptr)
         {
             Skybox* skybox = new Skybox(skyboxName, skyboxExt);
-			DatabaseEntity<Skybox>* skyboxDbEntity = new DatabaseEntity<Skybox>(0, skybox);
+			DatabaseEntity<Skybox>* skyboxDbEntity = new DatabaseEntity<Skybox>(skyboxId, skybox);
 
             level->SetSkybox(skyboxDbEntity);
         }        
         
+		// Load the models:
         sqlite3pp::query mQry(*db, SELECT_LEVEL_MODELS_QUERY);
         mQry.bind(1, levelId);
 
@@ -349,9 +446,29 @@ GibEngine::World::Level* GibEngine::World::Database::FindLevel(int id)
             level->AddModel(modelDbEntity);
         }
 
+		sqlite3pp::query lightQuery(*db, SELECT_LEVEL_LIGHTS_QUERY);
+		lightQuery.bind(":levelId", levelId);
+
+		for (auto lightIter = lightQuery.begin(); lightIter != lightQuery.end(); ++lightIter)
+		{
+			int lightId;
+			const char *lightType, *position, *ambient, *diffuse, *specular;
+			double linearAtten, quadAtten;
+
+			std::tie(lightId, lightType, position, ambient, diffuse, specular, linearAtten, quadAtten) =
+				(*lightIter).get_columns<int, const char*, const char*, const char*, const char*, const char*, double, double>(0, 1, 2, 3, 4, 5, 6, 7);
+
+			if (strcmp(lightType, "PointLight") == 0)
+			{
+				PointLight* pointLight = new PointLight(ReadVec3(position), ReadVec3(ambient), ReadVec3(diffuse), ReadVec3(specular), linearAtten, quadAtten);
+				DatabaseEntity<PointLight>* lightEntity = new DatabaseEntity<PointLight>(lightId, pointLight);
+				level->AddLight(lightEntity);
+			}
+
+		}
+
 		return level;
     }
-
 
 
     return nullptr;
@@ -384,6 +501,17 @@ int GibEngine::World::Database::SetLevelSkybox(int levelId, int skyboxId)
     }
 
     return GetLastAutoincrementId();
+}
+
+std::string GibEngine::World::Database::ConvertVec3ToString(glm::vec3 vec)
+{
+	std::string str;
+	for (int i = 0; i < 3; i++)
+	{
+		str += std::to_string(vec[i]) + ", ";
+	}
+
+	return str;
 }
 
 glm::vec3 GibEngine::World::Database::ReadVec3(const char* vec3String)

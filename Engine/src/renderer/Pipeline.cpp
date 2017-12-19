@@ -145,7 +145,6 @@ void GibEngine::Renderer::Pipeline::Render()
 		pass->Render();
 	}
 
-
 	pass = GetRenderPass(RenderPassType::RENDER_TO_TEXTURE);
 	if (pass->IsEnabled())
 	{

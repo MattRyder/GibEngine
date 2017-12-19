@@ -1,5 +1,8 @@
 #include "renderer/RenderPass.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb/stb_image_write.h"
+
 GLfloat GibEngine::Renderer::RenderPass::QuadTextureData[] = {
 	// Positions			// Texture Coords
 	-1.0f, 1.0f, 0.0f,		0.0f, 1.0f,
@@ -144,7 +147,6 @@ void GibEngine::Renderer::RenderPass::BindLights()
 		if (light->GetType() == EntityType::POINT_LIGHT)
 		{
 			PointLight *pointLight = reinterpret_cast<PointLight *>(light);
-			//Logger::Instance->info("LA: {}", pointLight->GetLinearAttenuation());
 
 			glUniform1f(
 				glGetUniformLocation(shader->GetShaderId(), linearAttenuation.c_str()),
@@ -189,18 +191,18 @@ void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot()
 	filename.append("GibEngine_").append(date).append(".png");
 	File *screenshotFile = File::GetScreenshotFile(filename.c_str());
 
-	unsigned char *frameBuffer = graphicsApi->ReadFramebuffer(framebuffer);
+	unsigned char *frameBuffer = graphicsApi->ReadFramebufferTexture(this->framebuffer, FramebufferType::RENDER_TO_TEXTURE);
 	unsigned char *lastRow = frameBuffer + (framebuffer->GetBufferWidth() * 3 * (framebuffer->GetBufferHeight() - 1));
 	const char *filePath = screenshotFile->GetPath();
 
-	// if (!stbi_write_png(filePath, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 3, lastRow, -3 * framebuffer->GetBufferWidth()))
-	// {
-	// 	Logger::Instance->error("Failed to write screenshot '{}'", filePath);
-	// }
-	// else
-	// {
-	// 	Logger::Instance->info("Screenshot saved to '{}'", filePath);
-	// }
+	 if (!stbi_write_png(filePath, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 3, lastRow, -3 * framebuffer->GetBufferWidth()))
+	 {
+	 	Logger::Instance->error("Failed to write screenshot '{}'", filePath);
+	 }
+	 else
+	 {
+	 	Logger::Instance->info("Screenshot saved to '{}'", filePath);
+	 }
 
 	delete[] date;
 	delete[] frameBuffer;

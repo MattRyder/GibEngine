@@ -20,7 +20,5 @@ namespace GibEngine
 
 		void SetLinearAttenuation(float attenuation);
 		void SetQuadraticAttenuation(float attenuation);
-
-		virtual void Update(double deltaTime) override;
 	};
 }

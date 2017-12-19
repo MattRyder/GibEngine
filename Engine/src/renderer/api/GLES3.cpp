@@ -166,6 +166,16 @@ unsigned char* GibEngine::Renderer::API::GLES3::ReadFramebuffer(GibEngine::Rende
 	return buffer;
 }
 
+unsigned char * GibEngine::Renderer::API::GLES3::ReadFramebufferTexture(GibEngine::Renderer::Framebuffer * framebuffer, GibEngine::Renderer::FramebufferType framebufferTextureType)
+{
+	const int framebufferSize = framebuffer->GetBufferWidth() * framebuffer->GetBufferHeight() * 3;
+	unsigned char* textureData = new unsigned char[framebufferSize];
+	glBindTexture(GL_TEXTURE_2D, framebuffer->GetBuffer().textures[framebufferTextureType]);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_FLOAT, textureData);
+
+	return textureData;
+}
+
 void GibEngine::Renderer::API::GLES3::UnbindFramebuffer()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -17,7 +17,7 @@ void GibEngine::Renderer::DeferredLightingPass::Render()
 	RenderPass::BindLights();
 
 	buffer_t buffer = framebuffer->GetBuffer();
-	const char* framebufferStrings[FRAMEBUFFERTYPE_LAST] = { "framebuffer_Position",  "framebuffer_Normal", "framebuffer_Albedo", "framebuffer_Texture" };
+	const char* framebufferStrings[FRAMEBUFFERTYPE_LAST] = { "framebuffer_Position", "framebuffer_Albedo", "framebuffer_Normal", "framebuffer_Texture" };
 
 	for (unsigned int i = 0; i < FRAMEBUFFER_TEXTURE_COUNT; i++)
 	{

@@ -44,12 +44,6 @@ GibEngine::Game::Game(int argc, char** argv)
 
 	this->inputManager = new Input::InputManager(window);
 
-	light = new PointLight(
-		glm::vec3(0, 1.65f, 0),
-		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.0f, 0.0f), glm::vec3(0.9f, 0.9f, 0.9f),
-		0.75f, // -1.0 -- 1.0
-		1.0f); // 0.0 -- 1.0
-
 	if (currentLevel != nullptr)
 	{
 		Logger::Instance->info("Loading Level: \"{}\"", currentLevel->GetName());
@@ -59,6 +53,12 @@ GibEngine::Game::Game(int argc, char** argv)
 	if(!true)
 	{
 		GibEngine::World::Database* worldDb = new World::Database("demo.gwo");
+
+		PointLight* light = new PointLight(
+			glm::vec3(0, 1.65f, 0),
+			glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.0f, 0.0f), glm::vec3(0.9f, 0.9f, 0.9f),
+			0.75f, // -1.0 -- 1.0
+			1.0f); // 0.0 -- 1.0
 
 		// Keep to rebuild a demo world when schema changes:
 		GibEngine::Model* model = new GibEngine::Model("woodhouse/woodhouse.obj");
@@ -73,22 +73,18 @@ GibEngine::Game::Game(int argc, char** argv)
 		World::Level* lvl = worldDb->CreateLevel("E1M1: At Doom's Gate");
 
 		World::DatabaseEntity<Model>* modelDb = new World::DatabaseEntity<Model>(0, model);
-		modelDb->SetState(World::DatabaseEntityState::NEW);
 		lvl->AddModel(modelDb);
 
 		Skybox* skybox = new Skybox("stormy", "png");
 		World::DatabaseEntity<Skybox>* skyboxDb = new World::DatabaseEntity<Skybox>(0, skybox);
-		skyboxDb->SetState(World::DatabaseEntityState::NEW);
 		lvl->SetSkybox(skyboxDb);
+
+		World::DatabaseEntity<PointLight>* lightInstance = new World::DatabaseEntity<PointLight>(0, light);
+		lvl->AddLight(lightInstance);
 
 		worldDb->SaveLevel(lvl);
 
-		delete skybox;
-		delete model;
 		delete lvl;
-		delete modelDb;
-		delete skyboxDb;
-		delete worldDb;
 	}
 }
 
@@ -97,7 +93,6 @@ GibEngine::Game::~Game()
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
-	delete light;
 	delete currentLevel;
 	delete inputManager;
 	delete renderPipeline;
@@ -126,7 +121,7 @@ void GibEngine::Game::Update()
 
 	this->playerCamera->Update(deltaTime, inputManager->GetMousePosition(), inputManager->GetScrollState(), inputManager->GetKeyboardState());
 
-	if (inputManager->GetKeyboardState()[GLFW_KEY_T])
+	if (inputManager->GetKeyboardState()[GLFW_KEY_F11])
 	{
 		this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING)->TakeScreenshot();
 	}
@@ -155,38 +150,25 @@ void GibEngine::Game::LoadLevel(World::Level* level)
 	this->renderPipeline = new Renderer::Pipeline(WINDOW_WIDTH, WINDOW_HEIGHT, shaderLanguage, playerCamera);
 
 	Renderer::RenderPass* deferredGeoPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_GEOMETRY);
-	for (auto m : level->GetModels())
+	for (auto m : level->GetModelEntities())
 	{
 		deferredGeoPass->SetPassEnabled(true);
-		deferredGeoPass->AddDrawable(m);
+		deferredGeoPass->AddDrawable(m->GetEntity());
 	}
 
 	Renderer::RenderPass* deferredLightingPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING);
 	deferredLightingPass->SetPassEnabled(true);
 
-	deferredLightingPass->AddLight(light);
-	int b = 2;
-	//for (int x = 0; x < b; x++)
-	//	for (int y = 0; y < b; y++)
-	//	{
-			PointLight* lightDup = new PointLight(
-				glm::vec3(-9.0, 6.0, -15.0), glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.0f, 0.0f, 0.75f), glm::vec3(0.9f, 0.9f, 0.9f),
-				0.75f, // -1.0 -- 1.0
-				1.0f);
-
-			//float r = rand() % 100 / 100.0;
-			//float g = rand() % 100 / 100.0;
-			//float bb = rand() % 100 / 100.0;
-
-			lightDup->SetDiffuseColor(glm::vec3(0.0, 0.0, 0.75));
-			deferredLightingPass->AddLight(lightDup);
-		//}
+	for (auto pointLight : level->GetPointLightEntities())
+	{
+		deferredLightingPass->AddLight(pointLight->GetEntity());
+	}
 
 	Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);
 	Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);
 	skyboxPass->SetPassEnabled(true);
 
-	skyboxPass->SetSkybox(level->GetSkybox());
+	skyboxPass->SetSkybox(level->GetSkyboxEntity()->GetEntity());
 
 	Renderer::RenderPass* forwardPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_LIGHTING);
 	forwardPass->SetPassEnabled(true);

@@ -62,7 +62,7 @@ void GibEngine::Renderer::API::GL420::BindMaterial(GibEngine::Material* material
 		if (textureLocation == -1)
 		{
 			Logger::Instance->error("Cannot find texture2D sampler: {}", textureUniformName.c_str());
-			//continue;
+			continue;
 		}
 
 		glUniform1i(textureLocation, static_cast<float>(i));
@@ -181,6 +181,16 @@ unsigned char* GibEngine::Renderer::API::GL420::ReadFramebuffer(GibEngine::Rende
 	glReadPixels(0, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_RGB, GL_UNSIGNED_BYTE, buffer);
 
 	return buffer;
+}
+
+unsigned char* GibEngine::Renderer::API::GL420::ReadFramebufferTexture(GibEngine::Renderer::Framebuffer * framebuffer, GibEngine::Renderer::FramebufferType framebufferTextureType)
+{
+	const int framebufferSize = framebuffer->GetBufferWidth() * framebuffer->GetBufferHeight() * 3;
+	unsigned char* textureData = new unsigned char[sizeof(unsigned char) * framebufferSize];
+	glBindTexture(GL_TEXTURE_2D, framebuffer->GetBuffer().textures[framebufferTextureType]);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+
+	return textureData;
 }
 
 void GibEngine::Renderer::API::GL420::UnbindFramebuffer()
