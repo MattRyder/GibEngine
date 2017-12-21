@@ -17,7 +17,7 @@ void GibEditor::Components::ContentBrowser::SetupAvailableContentMap()
 
 	availableContent =
 	{
-		{ GibEngine::EntityType::MODEL, std::vector<GibEngine::File*>() }
+		{ GibEngine::EntityType::MODEL, std::vector<GibEngine::File*>() },
 	};
 }
 
@@ -100,6 +100,26 @@ void GibEditor::Components::ContentBrowser::Render()
 			ImGui::Columns(1);
 		}
 	}
+
+	if (ImGui::TreeNode("Lighting"))
+	{
+		ImGui::Columns(columns, (const char*)0, false);
+
+		if (ImGui::Button("Point Light", buttonSize))
+		{
+			GibEngine::PointLight* light = new GibEngine::PointLight();
+
+			GibEngine::World::DatabaseEntity<GibEngine::PointLight>* lightDbEntity =
+				new GibEngine::World::DatabaseEntity<GibEngine::PointLight>(0, light);
+
+			level->AddLight(lightDbEntity);
+		}
+
+		ImGui::TreePop();
+	}
+
+	ImGui::Columns(1);
+
 }
 
 void GibEditor::Components::ContentBrowser::SetObserver(Observer* observer)

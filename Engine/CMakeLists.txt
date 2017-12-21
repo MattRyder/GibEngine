@@ -127,6 +127,7 @@ set(RENDERER_SRC
 set(ROOT_INCLUDES
   include/glfw/glfw_callback.h
   include/CameraBase.h
+  include/ChaseCamera.h
   include/Entity.h
   include/File.h
   include/FreeCamera.h
@@ -143,6 +144,7 @@ set(ROOT_INCLUDES
 
 set(ROOT_SRC
   src/CameraBase.cpp
+  src/ChaseCamera.cpp
   src/Entity.cpp
   src/File.cpp
   src/FreeCamera.cpp

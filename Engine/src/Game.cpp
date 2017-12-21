@@ -27,8 +27,10 @@ GibEngine::Game::Game(int argc, char** argv)
 	glDepthFunc(GL_LEQUAL);
 
 	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 2500.0f, 45.0f);
-	this->playerCamera->SetPosition(glm::vec3(0, 15, 0));
+	this->playerCamera->SetPosition(glm::vec3(15, 15, 0));
 	this->playerCamera->LookAt(0, 0, 0);
+
+	//this->chaseCamera = new ChaseCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 2500.0f, 45.0f, nullptr);
 
 	int size = 1500;
 	gridPlane = new Plane(size, size, 10);
@@ -97,6 +99,7 @@ GibEngine::Game::~Game()
 	delete inputManager;
 	delete renderPipeline;
 	delete playerCamera;
+	//delete chaseCamera;
 	delete gridPlane;
 }
 
@@ -120,6 +123,7 @@ void GibEngine::Game::Update()
 	}
 
 	this->playerCamera->Update(deltaTime, inputManager->GetMousePosition(), inputManager->GetScrollState(), inputManager->GetKeyboardState());
+	//this->chaseCamera->Update(deltaTime, inputManager->GetMousePosition(), inputManager->GetScrollState(), inputManager->GetKeyboardState());
 
 	if (inputManager->GetKeyboardState()[GLFW_KEY_F11])
 	{

@@ -2,28 +2,21 @@
 
 unsigned int GibEngine::FreeCamera::BUFFER_OBJECT_SIZE = sizeof(float) * 36;
 
-GibEngine::FreeCamera::FreeCamera() : CameraBase(EntityType::CAMERA)
+GibEngine::FreeCamera::FreeCamera(int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees)
+    : CameraBase(EntityType::CAMERA, cameraWidth, cameraHeight, nearPlane, farPlane, fieldOfViewDegrees)
 {
-    this->cameraYaw = -90.0f;
+	this->cameraYaw = -90.0f;
 
-    // Set default vectors:
-    this->cameraUp = glm::vec3(0, 1.0f, 0);
-    this->cameraFront = glm::vec3(0, 0, -1.0f);
+	// Set default vectors:
+	this->cameraUp = glm::vec3(0, 1.0f, 0);
+	this->cameraFront = glm::vec3(0, 0, -1.0f);
 
 	this->viewMatrix = glm::mat4(glm::lookAt(GetPosition(), glm::vec3(GetPosition() + cameraFront), cameraUp));
-}
-
-GibEngine::FreeCamera::FreeCamera(int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees)
-    : FreeCamera()
-{
-    this->projectionMatrix = ConstructProjectionMatrix((float)cameraWidth, (float)cameraHeight, nearPlane, farPlane, fieldOfViewDegrees);
 }
 
 GibEngine::FreeCamera::~FreeCamera() { }
 
 void GibEngine::FreeCamera::Render() { }
-
-void GibEngine::FreeCamera::Update(double deltaTime) { }
 
 void GibEngine::FreeCamera::Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState)
 {

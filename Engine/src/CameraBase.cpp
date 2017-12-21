@@ -1,10 +1,11 @@
 #include "CameraBase.h"
 
-#define PI  3.14159265358979323846
-#define ONE_DEG_IN_RAD (2.0 * PI) / 360.0 // 0.017444444
-#define ONE_RAD_IN_DEG 360.0 / (2.0 * PI) //57.2957795
-
-GibEngine::CameraBase::CameraBase(EntityType entityType) : Entity(entityType) { }
+GibEngine::CameraBase::CameraBase(EntityType entityType, int cameraWidth, int cameraHeight,
+	float nearPlane, float farPlane, float fieldOfViewDegrees) : Entity(entityType)
+{
+	this->projectionMatrix = ConstructProjectionMatrix(
+		(float)cameraWidth, (float)cameraHeight, nearPlane, farPlane, fieldOfViewDegrees);
+}
 
 glm::mat4 GibEngine::CameraBase::ConstructProjectionMatrix(float width, float height, float zNear, float zFar, float fov)
 {

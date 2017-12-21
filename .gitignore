@@ -12,3 +12,4 @@ CTestTestfile.cmake
 .vscode
 
 build/
+Assets/Models

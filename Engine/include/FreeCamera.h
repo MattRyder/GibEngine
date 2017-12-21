@@ -14,6 +14,10 @@ namespace GibEngine
 
         FreeCamera();
 
+	protected:
+		virtual void UpdatePosition(double deltaTime, int *keyState) override;
+		void UpdateDirection(double deltaTime, double mouseDeltaX, double mouseDeltaY) override;
+
     public:
 		static unsigned int BUFFER_OBJECT_SIZE;
 
@@ -22,10 +26,7 @@ namespace GibEngine
 
         // Inherited via CameraBase
         virtual void Render();
-        virtual void Update(double deltaTime) override;
-        virtual void Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState) override;
 
-        virtual void UpdatePosition(double deltaTime, int *keyState) override;
-        void UpdateDirection(double deltaTime, double mouseDeltaX, double mouseDeltaY) override;
+		virtual void Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState) override;
     };
 }

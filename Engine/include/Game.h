@@ -14,6 +14,7 @@
 #include "Skybox.h"
 #include "Plane.h"
 #include "FreeCamera.h"
+#include "ChaseCamera.h"
 #include "PointLight.h"
 #include "renderer/Pipeline.h"
 #include "input/InputManager.h"
@@ -37,12 +38,15 @@ namespace GibEngine
 
 		// TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
 		FreeCamera* playerCamera = nullptr;
+		//ChaseCamera* chaseCamera = nullptr;
 
 		void ParseOptions(int argc, char** argv);
 
 	protected:
 		Renderer::ShaderLanguage shaderLanguage = Renderer::ShaderLanguage::GLSL_420;
+		
 		World::Level* currentLevel = nullptr;
+		
 		Renderer::Pipeline* renderPipeline = nullptr;
 		Input::InputManager* inputManager = nullptr;
 		Plane* gridPlane = nullptr;

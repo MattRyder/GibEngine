@@ -102,7 +102,7 @@ namespace GibEditor
 					matrix[2][2] = scale[2];
 
 					selectedInstance.instance->Modify()->SetMatrix(matrix);
-					entity->Modify()->UpdateInstance(selectedInstance.index, selectedInstance.instance);
+					entity->GetEntity()->UpdateInstance(selectedInstance.index, selectedInstance.instance);
 				}
 			}
 

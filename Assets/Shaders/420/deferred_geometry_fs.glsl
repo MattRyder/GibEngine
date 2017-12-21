@@ -7,6 +7,12 @@ layout (std140) uniform materialUBO {
   float shininess;
 };
 
+struct Material {
+    vec3 ambientColor;
+    vec3 diffuseColor;
+    vec3 specularColor;
+};
+
 in VertexShader {
   mat4 InstanceMatrix;
   mat3 InverseTangentMatrix;
@@ -27,6 +33,8 @@ uniform sampler2D texture_specular0;
 uniform sampler2D texture_normal0;
 uniform sampler2D texture_depth0;
 
+uniform Material material;
+
 const float Z_NEAR = 1.0;
 const float Z_FAR = 2500.0;
 
@@ -40,6 +48,6 @@ void main() {
   g_Position = vec4(VS.FragmentPosition, 1.0);
   g_Position.a = linearDepth(gl_FragCoord.z),
   g_Normal = normalize(texture(texture_normal0, VS.TexCoords).rgb);
-  g_Albedo.rgb = texture(texture_diffuse0, VS.TexCoords).rgb;
+  g_Albedo.rgb = material.diffuseColor + texture(texture_diffuse0, VS.TexCoords).rgb;
   g_Albedo.a = texture(texture_specular0, VS.TexCoords).r;
 }

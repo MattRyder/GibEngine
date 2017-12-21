@@ -33,6 +33,7 @@ namespace GibEditor
 		Components::Dock* dock;
 		Components::StatusBar* statusBar;
 
+
 		float keydownInterval = 0;
 
 		const ImGuiWindowFlags ROOT_PANEL_FLAGS = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar

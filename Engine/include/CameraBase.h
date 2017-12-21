@@ -18,12 +18,15 @@ namespace GibEngine
 
 		glm::mat4 viewMatrix, projectionMatrix;
 
-	public:
-		CameraBase(EntityType entityType);
-
-		virtual void Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState) = 0;
 		virtual void UpdatePosition(double deltaTime, int *keyState) = 0;
 		virtual void UpdateDirection(double deltaTime, double mouseDeltaX, double mouseDeltaY) = 0;
+
+	public:
+		CameraBase(EntityType entityType, int cameraWidth, int cameraHeight,
+			float nearPlane, float farPlane, float fieldOfViewDegrees);
+
+		virtual void Update(double deltaTime) override { }
+		virtual void Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState) = 0;
 
 		static glm::mat4 ConstructProjectionMatrix(float width, float height, float zNear, float zFar, float fov);
 

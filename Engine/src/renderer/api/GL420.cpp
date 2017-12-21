@@ -45,9 +45,28 @@ void GibEngine::Renderer::API::GL420::BindFramebuffer(GibEngine::Renderer::Frame
 
 void GibEngine::Renderer::API::GL420::BindMaterial(GibEngine::Material* material)
 {
-	std::map<TextureType, int> textureLocIndex = {
+	std::map<TextureType, int> textureLocIndex =
+	{
 		{ TextureType::DIFFUSE, 0 },{ TextureType::NORMAL, 0 },{ TextureType::SPECULAR, 0 }
 	};
+
+	glUniform3fv(
+		glGetUniformLocation(currentShaderID, "material.ambientColor"),
+		1,
+		glm::value_ptr(material->AmbientColor)
+	);
+
+	glUniform3fv(
+		glGetUniformLocation(currentShaderID, "material.diffuseColor"),
+		1,
+		glm::value_ptr(material->DiffuseColor)
+	);
+
+	glUniform3fv(
+		glGetUniformLocation(currentShaderID, "material.specularColor"),
+		1,
+		glm::value_ptr(material->SpecularColor)
+	);
 
 	for (unsigned int i = 0; i < material->Textures.size(); i++)
 	{

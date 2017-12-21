@@ -103,6 +103,10 @@ void GibEditor::Components::Dock::Render()
 					pointLightInspector = new EntityInspector<GibEngine::PointLight>(light);
 					activeInspector = ActiveEntityInspector::POINT_LIGHT;
 				}
+
+				ImGui::NextColumn();
+				ImGui::NextColumn();
+
 			}
 
 			ImGui::Columns(1);

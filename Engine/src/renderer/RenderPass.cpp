@@ -104,6 +104,11 @@ void GibEngine::Renderer::RenderPass::BindLights()
 		return;
 	}
 
+	int pl = glGetUniformLocation(shader->GetShaderId(), "pointLightCount");
+	glUniform1i(pl,
+		this->lights.size()
+	);
+
 	for (unsigned int i = 0; i < this->lights.size(); i++)
 	{
 		LightBase* light = this->lights[i];

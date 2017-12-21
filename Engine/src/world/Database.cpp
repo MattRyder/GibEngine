@@ -115,6 +115,7 @@ bool GibEngine::World::Database::SaveModel(int levelId, GibEngine::World::Databa
 		}
 
 		model->SetId(GetLastAutoincrementId());
+		model->SetState(DatabaseEntityState::CLEAN);
 		return true;
 	}
 
@@ -200,6 +201,7 @@ bool GibEngine::World::Database::SavePointLight(int levelId, DatabaseEntity<Poin
 		}
 
 		pointLight->SetId(GetLastAutoincrementId());
+		pointLight->SetState(DatabaseEntityState::CLEAN);
 		return true;
 	}
 	}
@@ -229,6 +231,7 @@ bool GibEngine::World::Database::SaveSkybox(World::DatabaseEntity<Skybox>* skybo
 		}
 
 		skybox->SetId(GetLastAutoincrementId());
+		skybox->SetState(DatabaseEntityState::CLEAN);
 		return true;
 	}
   
@@ -360,6 +363,7 @@ bool GibEngine::World::Database::SaveInstance(int modelId, World::DatabaseEntity
 		}
 
 		meshInstance->SetId(instanceId);
+		meshInstance->SetState(DatabaseEntityState::CLEAN);
 		return true;
 	}
 	return false;

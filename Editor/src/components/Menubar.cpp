@@ -1,6 +1,6 @@
 #include "components/Menubar.h"
 
-GibEditor::Components::Menubar::Menubar(GibEngine::World::Level * level)
+GibEditor::Components::Menubar::Menubar(GibEngine::World::Level* level)
 {
 	this->level = level;
 }
