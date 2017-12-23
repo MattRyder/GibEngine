@@ -86,7 +86,9 @@ void GibEditor::Editor::Render()
     Game::Render();
 
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Always);
-	ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT), ImGuiSetCond_Always);
+
+	auto framebuffer = GetRenderPipeline()->GetFramebuffer();
+	ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight()), ImGuiSetCond_Always);
 
 	if (ImGui::Begin("", (bool*)0, ROOT_PANEL_FLAGS))
 	{

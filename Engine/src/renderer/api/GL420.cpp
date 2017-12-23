@@ -4,6 +4,11 @@
 GibEngine::Renderer::API::GL420::GL420()
 {
 	uniformBufferManager = new UniformBufferManager();
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glDepthFunc(GL_LEQUAL);
 }
 
 GibEngine::Renderer::API::GL420::~GL420()
@@ -114,9 +119,89 @@ void GibEngine::Renderer::API::GL420::BindUniform3fv(unsigned int uniformLocatio
 	glUniform3fv(uniformLocation, count, uniformValue);
 }
 
-GibEngine::Renderer::Framebuffer* GibEngine::Renderer::API::GL420::CreateFramebuffer(int framebufferWidth, int framebufferHeight)
+bool GibEngine::Renderer::API::GL420::CreateFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer, int framebufferWidth, int framebufferHeight)
 {
-	return new Framebuffer(framebufferWidth, framebufferHeight);
+	GLuint bufferAttachments[FRAMEBUFFERTYPE_LAST];
+	buffer_t buffer = { 0 };
+
+	glGenFramebuffers(1, &buffer.framebufferId);
+	glBindFramebuffer(GL_FRAMEBUFFER, buffer.framebufferId);
+
+	// Attach render target textures:
+	for (unsigned int i = 0; i < FRAMEBUFFERTYPE_LAST; i++)
+	{
+		glGenTextures(1, &buffer.textures[i]);
+		glBindTexture(GL_TEXTURE_2D, buffer.textures[i]);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+
+		switch (i)
+		{
+		case FramebufferType::POSITION:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			break;
+		default:
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			break;
+		}
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, buffer.textures[i], 0);
+		bufferAttachments[i] = GL_COLOR_ATTACHMENT0 + i;
+	}
+
+	glDrawBuffers(FRAMEBUFFERTYPE_LAST, bufferAttachments);
+
+	glGenRenderbuffers(1, &buffer.depthTargetId);
+	glBindRenderbuffer(GL_RENDERBUFFER, buffer.depthTargetId);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, framebufferWidth, framebufferHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, buffer.depthTargetId);
+
+	GLuint framebufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	const char *status = nullptr;
+
+	switch (framebufferStatus)
+	{
+	case GL_FRAMEBUFFER_COMPLETE: break;
+	case GL_FRAMEBUFFER_UNDEFINED:
+		status = "UNDEFINED";
+		break;
+	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+		status = "INCOMPLETE ATTACHMENT";
+		break;
+	case GL_FRAMEBUFFER_UNSUPPORTED:
+		status = "UNSUPPORTED";
+		break;
+	}
+
+	if (status != nullptr)
+	{
+		Logger::Instance->error("OpenGL Framebuffer #{} ({}x{}): Status {}",
+			buffer.framebufferId, framebufferWidth, framebufferHeight, status);
+	}
+
+	framebuffer->SetBuffer(framebufferWidth, framebufferHeight, buffer);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	return true;
+}
+
+void GibEngine::Renderer::API::GL420::DeleteFramebuffer(GibEngine::Renderer::Framebuffer * framebuffer)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glDeleteTextures(FRAMEBUFFERTYPE_LAST, &framebuffer->GetBuffer().textures[0]);
+
+	auto depth = framebuffer->GetBuffer().depthTargetId;
+	auto fb = framebuffer->GetBuffer().framebufferId;
+	glDeleteFramebuffers(1, &depth);
+	glDeleteFramebuffers(1, &fb);
 }
 
 void GibEngine::Renderer::API::GL420::ClearFramebuffer()
@@ -235,11 +320,6 @@ void GibEngine::Renderer::API::GL420::UnbindShader()
 {
 	glUseProgram(0);
 	this->currentShaderID = 0;
-}
-
-GibEngine::MeshUploadTicket* GibEngine::Renderer::API::GL420::CreateFullscreenQuad()
-{
-	return nullptr;
 }
 
 bool GibEngine::Renderer::API::GL420::UpdateMeshInstances(MeshUploadTicket *meshUploadTicket, std::vector<glm::mat4> instanceMatrixList)

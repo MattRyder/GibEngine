@@ -29,9 +29,8 @@ namespace GibEngine
 				virtual void BindUniform1f(unsigned int uniformLocation, unsigned int uniformValue) override;
 				virtual void BindUniform3fv(unsigned int uniformLocation, unsigned int count, const float *uniformValue) override;
 
-                virtual GibEngine::Renderer::Framebuffer* CreateFramebuffer(int framebufferWidth, int framebufferHeight) override;             
-				virtual MeshUploadTicket* CreateFullscreenQuad() override;                
-
+                virtual bool CreateFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer, int framebufferWidth, int framebufferHeight) override;
+				virtual void DeleteFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer) override;
 				virtual void ClearFramebuffer() override;
 
                 virtual void DrawPrimitive(MeshUploadTicket* meshUploadTicket) override;

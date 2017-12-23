@@ -8,7 +8,7 @@ namespace GibEngine
 	{
       DEFERRED_GEOMETRY,
       DEFERRED_LIGHTING,
-      FORWARD_LIGHTING,
+      FORWARD_RENDERING,
 	  SKYBOX,
 	  RENDER_TO_TEXTURE
     };

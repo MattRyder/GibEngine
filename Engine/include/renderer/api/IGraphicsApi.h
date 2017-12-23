@@ -33,10 +33,8 @@ namespace GibEngine
 				virtual void BindUniform1f(unsigned int uniformLocation, unsigned int uniformValue) = 0;
 				virtual void BindUniform3fv(unsigned int uniformLocation, unsigned int count, const float *uniformValue) = 0;
 
-                virtual GibEngine::Renderer::Framebuffer* CreateFramebuffer(int framebufferWidth, int framebufferHeight) = 0;
-
-				// TODO: Remove, unused API function
-                virtual MeshUploadTicket* CreateFullscreenQuad() = 0;
+                virtual bool CreateFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer, int framebufferWidth, int framebufferHeight) = 0;
+				virtual void DeleteFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer) = 0;
 
 				virtual void ClearFramebuffer() = 0;
 

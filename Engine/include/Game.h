@@ -22,9 +22,6 @@
 
 #include "cxxopts.hpp"
 
-#define WINDOW_WIDTH 1920
-#define WINDOW_HEIGHT 1080
- 
 namespace GibEngine
 {
 	static const char* ENGINE_NAME = "GibEngine";
@@ -35,6 +32,7 @@ namespace GibEngine
 		const char* windowTitle = ENGINE_NAME;
 
 		float lastFrameTime = 0;
+		glm::vec2 requestedWindowSize;
 
 		// TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
 		FreeCamera* playerCamera = nullptr;
@@ -60,7 +58,7 @@ namespace GibEngine
 
 		virtual void LoadLevel(World::Level* level);
 
-		bool initializeGL(GibEngine::Renderer::ShaderLanguage shaderVersion);
+		bool InitializeGL(GibEngine::Renderer::ShaderLanguage shaderVersion);
 		void ToggleVsync();
 
 		void SetWindowTitle(const char* windowTitle);

@@ -1,11 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <GL/gl3w.h>
-#include <glm/detail/type_vec3.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include "Logger.h"
-
 namespace GibEngine
 {
 	namespace Renderer
@@ -21,9 +15,9 @@ namespace GibEngine
 
 		struct buffer_t
 		{
-			GLuint framebufferId;
-			GLuint textures[FRAMEBUFFERTYPE_LAST];
-			GLuint depthTargetId;
+			unsigned int framebufferId;
+			unsigned int textures[FRAMEBUFFERTYPE_LAST];
+			unsigned int depthTargetId;
 		};
 
 		class Framebuffer
@@ -37,12 +31,11 @@ namespace GibEngine
 			Framebuffer(int bufferWidth, int bufferHeight);
 			~Framebuffer();
 
-			void Bind();
-			void Unbind();
-
 			buffer_t GetBuffer() const;
 			int GetBufferWidth() const;
 			int GetBufferHeight() const;
+
+			void SetBuffer(int bufferWidth, int bufferHeight, buffer_t buffer);
 		};
 	}
 }

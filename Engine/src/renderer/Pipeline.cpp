@@ -13,7 +13,8 @@ GibEngine::Renderer::Pipeline::Pipeline(int framebufferWidth, int framebufferHei
 
 	this->SelectGraphicsApi(this->shaderLanguage);
 
-	this->framebuffer = graphicsApi->CreateFramebuffer(framebufferWidth, framebufferHeight);
+	this->framebuffer = new Framebuffer(framebufferWidth, framebufferHeight);
+	graphicsApi->CreateFramebuffer(framebuffer, framebufferWidth, framebufferHeight);
 
 	this->passes = std::map<RenderPassType, RenderPass*>();
 }
@@ -36,7 +37,7 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 	std::string shaderFileName;
 	switch (type)
 	{
-	case RenderPassType::FORWARD_LIGHTING:
+	case RenderPassType::FORWARD_RENDERING:
 		shaderFileName = "color";
 		break;
 	case RenderPassType::SKYBOX:
@@ -75,7 +76,7 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 
 	switch (type)
 	{
-	case RenderPassType::FORWARD_LIGHTING:
+	case RenderPassType::FORWARD_RENDERING:
 		renderPass = new ForwardRenderPass(graphicsApi, shader);
 		break;
 	case RenderPassType::SKYBOX:
@@ -139,7 +140,7 @@ void GibEngine::Renderer::Pipeline::Render()
 		pass->Render();
 	}
 
-	pass = GetRenderPass(RenderPassType::FORWARD_LIGHTING);
+	pass = GetRenderPass(RenderPassType::FORWARD_RENDERING);
 	if (pass->IsEnabled())
 	{
 		pass->Render();
@@ -196,8 +197,8 @@ void GibEngine::Renderer::Pipeline::SetRenderPaused(bool renderingPaused)
 
 void GibEngine::Renderer::Pipeline::ResizeFramebuffer(int width, int height)
 {
-	delete framebuffer;
-	this->framebuffer = graphicsApi->CreateFramebuffer(width, height);
+	graphicsApi->DeleteFramebuffer(framebuffer);
+	graphicsApi->CreateFramebuffer(framebuffer, width, height);
 }
 
 const char* GibEngine::Renderer::Pipeline::GetShaderLanguageString(ShaderLanguage language)

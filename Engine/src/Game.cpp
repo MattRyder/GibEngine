@@ -4,29 +4,15 @@ GibEngine::Game::Game(int argc, char** argv)
 {
 	this->ParseOptions(argc, argv);
 
-	if (!initializeGL(shaderLanguage))
+	if (!InitializeGL(shaderLanguage))
 	{
 		Logger::Instance->error("Failed to initialize OpenGL!");
 		return;
 	}
 
-	if (GL_KHR_debug)
-	{
-		GibEngine::Logger::Instance->info("GL_KHR_debug extension available");
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-		//glDebugMessageCallback(GLDebugCallback, GLDebugCallback);
-
-		GibEngine::Logger::Instance->info("GL_KHR_debug extension enabled");
-	}
-
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glDepthFunc(GL_LEQUAL);
-
-	this->playerCamera = new FreeCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 2500.0f, 45.0f);
+	this->playerCamera = new FreeCamera(requestedWindowSize.x, requestedWindowSize.y, 0.1f, 2500.0f, 45.0f);
 	this->playerCamera->SetPosition(glm::vec3(15, 15, 0));
 	this->playerCamera->LookAt(0, 0, 0);
 
@@ -151,7 +137,7 @@ void GibEngine::Game::LoadLevel(World::Level* level)
 		delete this->renderPipeline;
 	}
 
-	this->renderPipeline = new Renderer::Pipeline(WINDOW_WIDTH, WINDOW_HEIGHT, shaderLanguage, playerCamera);
+	this->renderPipeline = new Renderer::Pipeline(requestedWindowSize.x, requestedWindowSize.y, shaderLanguage, playerCamera);
 
 	Renderer::RenderPass* deferredGeoPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_GEOMETRY);
 	for (auto m : level->GetModelEntities())
@@ -174,7 +160,7 @@ void GibEngine::Game::LoadLevel(World::Level* level)
 
 	skyboxPass->SetSkybox(level->GetSkyboxEntity()->GetEntity());
 
-	Renderer::RenderPass* forwardPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_LIGHTING);
+	Renderer::RenderPass* forwardPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_RENDERING);
 	forwardPass->SetPassEnabled(true);
 
 	Model* sphere = new Model("default/sphere/sphere.obj");
@@ -197,7 +183,7 @@ void GibEngine::Game::LoadLevel(World::Level* level)
 	renderToTexturePass->SetPassEnabled(true);
 }
 
-bool GibEngine::Game::initializeGL(GibEngine::Renderer::ShaderLanguage shaderLanguage)
+bool GibEngine::Game::InitializeGL(GibEngine::Renderer::ShaderLanguage shaderLanguage)
 {
 	int glfwInitResult = glfwInit();
 	if (glfwInitResult != GL_TRUE)
@@ -221,7 +207,7 @@ bool GibEngine::Game::initializeGL(GibEngine::Renderer::ShaderLanguage shaderLan
 			break;
 	}
 
-	this->window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, this->windowTitle, nullptr, nullptr);
+	this->window = glfwCreateWindow(requestedWindowSize.x, requestedWindowSize.y, this->windowTitle, nullptr, nullptr);
 
 	// Setup GLFW callbacks:
 	glfwSetErrorCallback(GLFW::ErrorCallback);
@@ -253,6 +239,7 @@ bool GibEngine::Game::initializeGL(GibEngine::Renderer::ShaderLanguage shaderLan
 
 void GibEngine::Game::ParseOptions(int argc, char** argv)
 {
+	int reqW = 0, reqH = 0;
 	cxxopts::Options opts(argv[0]);
 
 	opts.add_options()
@@ -262,7 +249,9 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 	opts.add_options("Game")
 		("title", "Set the window title", cxxopts::value<std::string>())
 		("world", "Loads a GibEngine World Object (*.gwo)", cxxopts::value<std::string>())
-		("levelID", "Loads the selected level from the GWO", cxxopts::value<unsigned int>());
+		("levelID", "Loads the selected level from the GWO", cxxopts::value<unsigned int>())
+		("windowWidth", "Width of the viewable window", cxxopts::value<int>(reqW))
+		("windowHeight", "Height of the viewable window", cxxopts::value<int>(reqH));
 
 	opts.add_options("Rendering")
 		("gles", "Use OpenGL ES 3 Client API")
@@ -290,6 +279,15 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 	if(title.size() > 0)
 	{
 		this->SetWindowTitle(windowTitle->c_str());
+	}
+
+	if (reqW > 0 && reqH > 0)
+	{
+		requestedWindowSize = glm::vec2(reqW, reqH);
+	}
+	else
+	{
+		requestedWindowSize = glm::vec2(800, 600);
 	}
 
 	// Load a level if world provided:
