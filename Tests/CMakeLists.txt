@@ -56,6 +56,9 @@ add_executable(GibTest
 	include/LightBaseTest.h
 	src/LightBaseTest.cpp
 
+	include/AABBTest.h
+	src/AABBTest.cpp
+
 	include/Main.h
 	src/Main.cpp)
 

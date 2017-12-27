@@ -124,8 +124,17 @@ set(RENDERER_SRC
   src/renderer/RenderToTexturePass.cpp
   src/renderer/Framebuffer.cpp)
 
+set(SCENE_INCLUDES
+	include/scene/Graph.h
+	include/scene/Node.h)
+
+set(SCENE_SRC
+	src/scene/Graph.cpp
+	src/scene/Node.cpp)
+
 set(ROOT_INCLUDES
   include/glfw/glfw_callback.h
+  include/AABB.h
   include/CameraBase.h
   include/ChaseCamera.h
   include/Entity.h
@@ -143,6 +152,7 @@ set(ROOT_INCLUDES
   include/PointLight.h)
 
 set(ROOT_SRC
+  src/AABB.cpp
   src/CameraBase.cpp
   src/ChaseCamera.cpp
   src/Entity.cpp
@@ -168,6 +178,8 @@ add_library(GibEngine
   ${WORLD_SRC}
   ${INPUT_INCLUDES}
   ${INPUT_SRC}
+  ${SCENE_INCLUDES}
+  ${SCENE_SRC}
   ${RENDERER_INCLUDES}
   ${RENDERER_SRC}
   ${ROOT_INCLUDES}
@@ -179,11 +191,13 @@ source_group("Header Files\\ThirdParty" FILES ${THIRDPARTY_INCLUDES})
 source_group("Header Files\\World" FILES ${WORLD_INCLUDES})
 source_group("Header Files\\Input" FILES ${INPUT_INCLUDES})
 source_group("Header Files\\Renderer" FILES ${RENDERER_INCLUDES})
+source_group("Header Files\\Scene" FILES ${SCENE_INCLUDES})
 source_group("Source Files" FILES ${ROOT_SRC})
 source_group("Source Files\\ThirdParty" FILES ${THIRDPARTY_SRC})
 source_group("Source Files\\ThirdParty\\SQLite3pp" FILES ${SQLITE3PP_SRC})
 source_group("Source Files\\World" FILES ${WORLD_SRC})
 source_group("Source Files\\Input" FILES ${INPUT_SRC})
+source_group("Source Files\\Scene" FILES ${SCENE_SRC})
 source_group("Source Files\\Renderer" FILES ${RENDERER_SRC})
 
 if(WIN32)
