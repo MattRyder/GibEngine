@@ -7,8 +7,9 @@
 #include "Entity.h"
 #include "IComponent.h"
 #include "Observer.h"
-#include "world/Level.h"
+#include "scene/Node.h"
 #include "renderer/Pipeline.h"
+#include "MeshService.h"
 
 namespace GibEditor
 {
@@ -16,7 +17,7 @@ namespace GibEditor
 	{
 		class ContentBrowser : public IComponent
 		{
-			GibEngine::World::Level* level;
+			GibEngine::Scene::Node* rootSceneNode;
 			GibEngine::Renderer::Pipeline* pipeline;
 
 			Observer* contentDirectoryObserver;
@@ -25,7 +26,7 @@ namespace GibEditor
 			void SetupAvailableContentMap();
 
 		public:
-			ContentBrowser(GibEngine::World::Level* level, GibEngine::Renderer::Pipeline* pipeline);
+			ContentBrowser(GibEngine::Scene::Node* rootSceneNode, GibEngine::Renderer::Pipeline* pipeline);
 			~ContentBrowser();
 			
 			void Render() override;

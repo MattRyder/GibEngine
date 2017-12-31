@@ -12,8 +12,7 @@ namespace GibEngine
 	enum class EntityType
 	{
 		ENTITY,
-		MODEL,
-		INSTANCED_MODEL,
+		MESH,
 		LIGHT,
 		POINT_LIGHT,
 		DIRECTIONAL_LIGHT,
@@ -26,8 +25,7 @@ namespace GibEngine
 	static const char* EntityTypeStrings[static_cast<int>(EntityType::ENTITY_TYPE_END) + 1]
 	{
 	  "Entity",
-	  "Model",
-	  "Instanced Model",
+	  "Mesh",
 	  "Light",
 	  "Point Light",
 	  "Directional Light",

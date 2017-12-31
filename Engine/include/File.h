@@ -55,8 +55,9 @@ namespace GibEngine
 		static File* GetScreenshotFile(const char* screenshotName);
 
         const char* GetDirectory();
-        const char* GetPath();
 		const char* GetExtension();
+        const char* GetPath();
+		const char* GetAssetName();
 		const char* GetFilename();
         
         const char* ReadFile();

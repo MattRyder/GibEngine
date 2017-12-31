@@ -30,8 +30,6 @@ GibEngine::Renderer::RenderPass::~RenderPass()
 	{
 		delete quadMesh;
 	}
-
-	lights.clear();
 }
 
 void GibEngine::Renderer::RenderPass::LoadQuadData()
@@ -47,49 +45,16 @@ void GibEngine::Renderer::RenderPass::LoadQuadData()
 		quadVerts.push_back(v);
 	}
 
-	quadMesh = new Mesh(quadVerts);
+	quadMesh = new Mesh("RenderPassQuad", quadVerts);
 	quadMesh->SetMeshUploadTicket(graphicsApi->UploadMesh(quadMesh));
 }
 
-void GibEngine::Renderer::RenderPass::Render() { }
+void GibEngine::Renderer::RenderPass::Render(const GibEngine::Scene::VisibleSet& visibleSet) { }
 
-void GibEngine::Renderer::RenderPass::RenderPass::AddDrawable(Model *drawable)
-{
-	this->drawablesList.push_back(drawable);
-
-	for (auto mesh : drawable->GetMeshes())
-	{
-		MeshUploadTicket* ticket = graphicsApi->UploadMesh(mesh);
-		mesh->SetMeshUploadTicket(ticket);
-
-		// Bind the Mesh material's Texture objects:
-		for(auto material : mesh->GetMaterials())
-			for(auto texture : material->Textures)
-			{
-				graphicsApi->UploadTexture2D(texture);
-			}
-	}
-}
-
-void GibEngine::Renderer::RenderPass::AddLight(LightBase *light)
-{
-	this->lights.push_back(light);
-	FlagLightingBindRequired();
-}
-
-void GibEngine::Renderer::RenderPass::SetCameraBase(CameraBase * camera)
-{
-	this->camera = camera;
-}
 
 GibEngine::Shader* GibEngine::Renderer::RenderPass::GetShader() const
 {
 	return shader;
-}
-
-std::vector<GibEngine::LightBase*> GibEngine::Renderer::RenderPass::GetLights() const
-{
-	return lights;
 }
 
 bool GibEngine::Renderer::RenderPass::IsEnabled() const
@@ -97,21 +62,14 @@ bool GibEngine::Renderer::RenderPass::IsEnabled() const
 	return passEnabled;
 }
 
-void GibEngine::Renderer::RenderPass::BindLights()
+void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::VisibleSet& visibleSet)
 {
-	if (!lightingBindRequired)
-	{
-		return;
-	}
-
 	int pl = glGetUniformLocation(shader->GetShaderId(), "pointLightCount");
-	glUniform1i(pl,
-		this->lights.size()
-	);
+	glUniform1i(pl, visibleSet.GetLights().size());
 
-	for (unsigned int i = 0; i < this->lights.size(); i++)
+	for (unsigned int i = 0; i < visibleSet.GetLights().size(); i++)
 	{
-		LightBase* light = this->lights[i];
+		LightBase* light = visibleSet.GetLights()[i];
 
 		std::string lightId, position, ambient, diffuse, specular,
 			linearAttenuation, quadraticAttenuation, volumeRadius, direction;
@@ -169,8 +127,6 @@ void GibEngine::Renderer::RenderPass::BindLights()
 			);
 		}
 	}
-
-	lightingBindRequired = false;
 }
 
 void GibEngine::Renderer::RenderPass::FlagLightingBindRequired()

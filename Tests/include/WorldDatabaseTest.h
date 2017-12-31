@@ -15,7 +15,7 @@ public:
 	{
 		database = new Database(FILENAME);
 
-		level = database->CreateLevel(strdup(LEVEL_NAME));
+		//level = database->CreateLevel(strdup(LEVEL_NAME));
 		skybox = new Skybox(SKYBOX_NAME[0], SKYBOX_NAME[1]);
 
 		model = new Model(MODEL_NAME);

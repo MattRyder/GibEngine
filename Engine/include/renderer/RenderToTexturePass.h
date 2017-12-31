@@ -11,10 +11,7 @@ namespace GibEngine
 		{
 		public:
 			RenderToTexturePass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer* framebuffer);
-
-			virtual void Render() override;
-
-			virtual void Update(float deltaTime) override;
+			virtual void Render(const Scene::VisibleSet& visibleSet) override;
 		};
 	}
 }

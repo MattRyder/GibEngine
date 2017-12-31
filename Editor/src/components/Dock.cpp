@@ -1,15 +1,16 @@
 #include "components/Dock.h"
 
-GibEditor::Components::Dock::Dock(GibEngine::World::Level* level, GibEngine::Renderer::Pipeline* pipeline) : level(level), pipeline(pipeline)
+GibEditor::Components::Dock::Dock(GibEngine::Scene::Node* rootSceneNode, GibEngine::Renderer::Pipeline* pipeline)
+	: rootSceneNode(rootSceneNode), pipeline(pipeline)
 {
-	cbrowser = new Components::ContentBrowser(level, pipeline);
+	cbrowser = new Components::ContentBrowser(rootSceneNode, pipeline);
 }
 
 void GibEditor::Components::Dock::Render()
 {
 	ImGui::BeginDockspace();
 
-	if (ImGui::BeginDock(level->GetName()))
+	if (ImGui::BeginDock("Game Name Here"))
 	{
 		ImVec2 windowSize = ImGui::GetWindowSize();
 
@@ -45,72 +46,72 @@ void GibEditor::Components::Dock::Render()
 			ImGui::NextColumn();
 		}
 
-		if (level != nullptr)
-		{
-			for (auto model : level->GetModelEntities())
-			{
-				auto modelEntity = model->GetEntity();
+		//if (rootSceneNode != nullptr)
+		//{
+		//	for (auto model : level->GetModelEntities())
+		//	{
+		//		auto modelEntity = model->GetEntity();
 
-				bool modelClicked = false;
+		//		bool modelClicked = false;
 
-				if (ImGui::Selectable(modelEntity->GetName()))
-				{
-					modelClicked = true;
-				}
-				ImGui::NextColumn();
+		//		if (ImGui::Selectable(modelEntity->GetName()))
+		//		{
+		//			modelClicked = true;
+		//		}
+		//		ImGui::NextColumn();
 
-				if (ImGui::Selectable(modelEntity->GetTypeName()))
-				{
-					modelClicked = true;
-				}
-				ImGui::NextColumn();
+		//		if (ImGui::Selectable(modelEntity->GetTypeName()))
+		//		{
+		//			modelClicked = true;
+		//		}
+		//		ImGui::NextColumn();
 
-				if(ImGui::Selectable(std::to_string(modelEntity->GetModelInstances().size()).c_str()))
-				{
-					modelClicked = true;
-				}
-				ImGui::NextColumn();
+		//		if(ImGui::Selectable(std::to_string(modelEntity->GetModelInstances().size()).c_str()))
+		//		{
+		//			modelClicked = true;
+		//		}
+		//		ImGui::NextColumn();
 
-				if (modelClicked)
-				{
-					delete modelInspector;
-					modelInspector = new EntityInspector<GibEngine::Model>(model);
-					activeInspector = ActiveEntityInspector::MODEL;
-				}
-			}
+		//		if (modelClicked)
+		//		{
+		//			delete modelInspector;
+		//			modelInspector = new EntityInspector<GibEngine::Model>(model);
+		//			activeInspector = ActiveEntityInspector::MODEL;
+		//		}
+		//	}
 
-			for (auto light : level->GetPointLightEntities())
-			{
-				auto lightEntity = light->GetEntity();
+		//	for (auto light : level->GetPointLightEntities())
+		//	{
+		//		auto lightEntity = light->GetEntity();
 
-				bool lightSelected = false;
+		//		bool lightSelected = false;
 
-				if (ImGui::Selectable(lightEntity->GetName()))
-				{
-					lightSelected = true;
-				}
+		//		if (ImGui::Selectable(lightEntity->GetName()))
+		//		{
+		//			lightSelected = true;
+		//		}
 
-				ImGui::NextColumn();
+		//		ImGui::NextColumn();
 
-				if (ImGui::Selectable(lightEntity->GetTypeName()))
-				{
-					lightSelected = true;
-				}
+		//		if (ImGui::Selectable(lightEntity->GetTypeName()))
+		//		{
+		//			lightSelected = true;
+		//		}
 
-				if (lightSelected)
-				{
-					delete pointLightInspector;
-					pointLightInspector = new EntityInspector<GibEngine::PointLight>(light);
-					activeInspector = ActiveEntityInspector::POINT_LIGHT;
-				}
+		//		if (lightSelected)
+		//		{
+		//			delete pointLightInspector;
+		//			pointLightInspector = new EntityInspector<GibEngine::PointLight>(light);
+		//			activeInspector = ActiveEntityInspector::POINT_LIGHT;
+		//		}
 
-				ImGui::NextColumn();
-				ImGui::NextColumn();
+		//		ImGui::NextColumn();
+		//		ImGui::NextColumn();
 
-			}
+		//	}
 
-			ImGui::Columns(1);
-		}
+		//	ImGui::Columns(1);
+		//}
 
 		ImGui::EndDock();
 

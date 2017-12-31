@@ -183,7 +183,7 @@ void GibEngine::Renderer::API::GLES3::DrawPrimitive(MeshUploadTicket* meshUpload
 	glBindVertexArray(0);
 }
 
-void GibEngine::Renderer::API::GLES3::DrawMesh(GibEngine::Mesh *mesh)
+void GibEngine::Renderer::API::GLES3::DrawMesh(GibEngine::Mesh *mesh, int instanceCount)
 {
 	Mesh::Flags flags = mesh->GetFlags();
 	if (flags && !Mesh::Flags::RENDER_ENABLED)
@@ -204,7 +204,7 @@ void GibEngine::Renderer::API::GLES3::DrawMesh(GibEngine::Mesh *mesh)
 	else
 	{
 		glDrawElementsInstanced(drawMode, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
-			0, mesh->GetInstanceMatrices().size());
+			0, instanceCount);
 	}
 
 	glBindVertexArray(0);

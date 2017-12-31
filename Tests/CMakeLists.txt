@@ -38,28 +38,24 @@ link_directories(${GOOGLETEST_LIB_DIR})
 
 add_executable(GibTest
 	include/EntityTest.h
-	src/EntityTest.cpp
-
 	include/FileTest.h
-	src/FileTest.cpp
 	include/WorldDatabaseTest.h
-	src/WorldDatabaseTest.cpp
 	include/ControllerTest.h
-	src/ControllerTest.cpp
-
 	include/InputManagerTest.h
-	src/InputManagerTest.cpp
-
 	include/FreeCameraTest.h
-	src/FreeCameraTest.cpp
-
 	include/LightBaseTest.h
-	src/LightBaseTest.cpp
-
+	include/SceneNodeTest.h
 	include/AABBTest.h
-	src/AABBTest.cpp
-
 	include/Main.h
+	src/EntityTest.cpp
+	src/FileTest.cpp
+	src/WorldDatabaseTest.cpp
+	src/ControllerTest.cpp
+	src/InputManagerTest.cpp
+	src/FreeCameraTest.cpp
+	src/LightBaseTest.cpp
+	src/SceneNodeTest.cpp
+	src/AABBTest.cpp
 	src/Main.cpp)
 
 target_link_libraries(GibTest GibEngine gtest)

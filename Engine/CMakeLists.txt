@@ -80,6 +80,7 @@ set(WORLD_INCLUDES
   include/world/Database.h
   include/world/DatabaseQuery.h
   include/world/DatabaseEntity.h
+  include/world/DatabaseRecord.h
   include/world/World.h
   include/world/Level.h)
 
@@ -125,11 +126,11 @@ set(RENDERER_SRC
   src/renderer/Framebuffer.cpp)
 
 set(SCENE_INCLUDES
-	include/scene/Graph.h
+	include/scene/VisibleSet.h
 	include/scene/Node.h)
 
 set(SCENE_SRC
-	src/scene/Graph.cpp
+	src/scene/VisibleSet.cpp
 	src/scene/Node.cpp)
 
 set(ROOT_INCLUDES
@@ -143,8 +144,8 @@ set(ROOT_INCLUDES
   include/Game.h
   include/Logger.h
   include/Mesh.h
+  include/MeshService.h
   include/Model.h
-  include/Plane.h
   include/Shader.h
   include/Skybox.h
   include/Texture.h
@@ -161,8 +162,8 @@ set(ROOT_SRC
   src/Game.cpp
   src/Logger.cpp
   src/Mesh.cpp
+  src/MeshService.cpp
   src/Model.cpp
-  src/Plane.cpp
   src/Shader.cpp
   src/Skybox.cpp
   src/Texture.cpp

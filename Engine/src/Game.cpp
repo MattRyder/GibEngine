@@ -18,29 +18,15 @@ GibEngine::Game::Game(int argc, char** argv)
 
 	//this->chaseCamera = new ChaseCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 2500.0f, 45.0f, nullptr);
 
-	int size = 1500;
-	gridPlane = new Plane(size, size, 10);
-
-	glm::mat4 mat = glm::mat4();
-	mat[3] = glm::vec4(-(size / 2), 0, -(size / 2), 1.0);
-
-	Mesh::Instance* instance = new Mesh::Instance(mat);
-	World::DatabaseEntity<Mesh::Instance>* planeInstance = new World::DatabaseEntity<Mesh::Instance>(0, instance);
-
-	gridPlane->AddInstance(planeInstance);
-	gridPlane->SetWireframeMode(true);
-
 	this->inputManager = new Input::InputManager(window);
 
-	if (currentLevel != nullptr)
-	{
-		Logger::Instance->info("Loading Level: \"{}\"", currentLevel->GetName());
-		this->LoadLevel(currentLevel);
-	}
+	SetupPipeline();
 
 	if(!true)
 	{
-		GibEngine::World::Database* worldDb = new World::Database("demo.gwo");
+		GibEngine::World::Database* worldDb = new World::Database("demo_nodes.gwo");
+
+		Skybox* skybox = new Skybox("stormy", "png");
 
 		PointLight* light = new PointLight(
 			glm::vec3(0, 1.65f, 0),
@@ -48,31 +34,32 @@ GibEngine::Game::Game(int argc, char** argv)
 			0.75f, // -1.0 -- 1.0
 			1.0f); // 0.0 -- 1.0
 
-		// Keep to rebuild a demo world when schema changes:
-		GibEngine::Model* model = new GibEngine::Model("woodhouse/woodhouse.obj");
+		Scene::Node* rootNode = new Scene::Node();
 
-		glm::mat4 m = glm::mat4();
-		m = glm::scale(m, glm::vec3(3.0f, 3.0f, 3.0f));
+		// Create the Scene graph for the demo world:
+		Scene::Node* skyboxNode = new Scene::Node();
+		skyboxNode->SetEntity(skybox);
+		rootNode->AddChildNode(skyboxNode);
 
-		Mesh::Instance* instance = new Mesh::Instance(m);
-		World::DatabaseEntity<Mesh::Instance>* dbInstance = new World::DatabaseEntity<Mesh::Instance>(0, instance);
-		model->AddInstance(dbInstance);
+		// Create a Point Light node within the Scene:
+		Scene::Node* pointLightNode = new Scene::Node();
+		pointLightNode->SetEntity(light);
+		glm::mat4 lightPos = glm::mat4();
+		lightPos[3] = glm::vec4(0.0f, 1.65f, 2.0f, 1.0f);
+		pointLightNode->SetLocalTransform(lightPos);
+		rootNode->AddChildNode(pointLightNode);
+		
+		// Create a Model node:
+		File* modelFile = File::GetModelFile("brickwall/brickwall.obj");
+		Scene::Node* meshNode = MeshService::Load(modelFile);
+		glm::mat4 meshPos = glm::scale(glm::mat4(), glm::vec3(2.0f));
+		meshNode->SetLocalTransform(meshPos);
+		rootNode->AddChildNode(meshNode);
 
-		World::Level* lvl = worldDb->CreateLevel("E1M1: At Doom's Gate");
-
-		World::DatabaseEntity<Model>* modelDb = new World::DatabaseEntity<Model>(0, model);
-		lvl->AddModel(modelDb);
-
-		Skybox* skybox = new Skybox("stormy", "png");
-		World::DatabaseEntity<Skybox>* skyboxDb = new World::DatabaseEntity<Skybox>(0, skybox);
-		lvl->SetSkybox(skyboxDb);
-
-		World::DatabaseEntity<PointLight>* lightInstance = new World::DatabaseEntity<PointLight>(0, light);
-		lvl->AddLight(lightInstance);
-
-		worldDb->SaveLevel(lvl);
-
-		delete lvl;
+		if (worldDb->SaveLevel(rootNode))
+		{
+			// TODO: attach rootNode to new Level record
+		}
 	}
 }
 
@@ -81,19 +68,18 @@ GibEngine::Game::~Game()
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
-	delete currentLevel;
 	delete inputManager;
 	delete renderPipeline;
 	delete playerCamera;
 	//delete chaseCamera;
-	delete gridPlane;
 }
 
 void GibEngine::Game::Render()
 {
 	if (this->renderPipeline != nullptr)
 	{
-		this->renderPipeline->Render();
+		const Scene::VisibleSet visibleSet = Scene::VisibleSet(playerCamera, rootSceneNode);
+		this->renderPipeline->Render(visibleSet);
 	}
 }
 
@@ -129,7 +115,7 @@ void GibEngine::Game::Update()
 	glfwPollEvents();
 }
 
-void GibEngine::Game::LoadLevel(World::Level* level)
+void GibEngine::Game::SetupPipeline()
 {
 	// TODO: Replace with a clearPipeline() func:
 	if (this->renderPipeline != nullptr)
@@ -137,47 +123,19 @@ void GibEngine::Game::LoadLevel(World::Level* level)
 		delete this->renderPipeline;
 	}
 
-	this->renderPipeline = new Renderer::Pipeline(requestedWindowSize.x, requestedWindowSize.y, shaderLanguage, playerCamera);
+	this->renderPipeline = new Renderer::Pipeline(requestedWindowSize.x, requestedWindowSize.y, shaderLanguage);
 
 	Renderer::RenderPass* deferredGeoPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_GEOMETRY);
-	for (auto m : level->GetModelEntities())
-	{
-		deferredGeoPass->SetPassEnabled(true);
-		deferredGeoPass->AddDrawable(m->GetEntity());
-	}
-
+	deferredGeoPass->SetPassEnabled(true);
+	
 	Renderer::RenderPass* deferredLightingPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING);
 	deferredLightingPass->SetPassEnabled(true);
 
-	for (auto pointLight : level->GetPointLightEntities())
-	{
-		deferredLightingPass->AddLight(pointLight->GetEntity());
-	}
-
 	Renderer::RenderPass* renderPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);
-	Renderer::SkyboxRenderPass *skyboxPass = reinterpret_cast<Renderer::SkyboxRenderPass*>(renderPass);
-	skyboxPass->SetPassEnabled(true);
-
-	skyboxPass->SetSkybox(level->GetSkyboxEntity()->GetEntity());
+	renderPass->SetPassEnabled(true);
 
 	Renderer::RenderPass* forwardPass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_RENDERING);
 	forwardPass->SetPassEnabled(true);
-
-	Model* sphere = new Model("default/sphere/sphere.obj");
-	sphere->SetWireframeMode(true);
-
-	for (auto light : deferredLightingPass->GetLights())
-	{
-		glm::mat4 imat = glm::mat4();
-		imat[3] = glm::vec4(light->GetPosition(), 1.0f);
-
-		Mesh::Instance* instance = new Mesh::Instance(imat);
-		World::DatabaseEntity<Mesh::Instance>* dbInstance = new World::DatabaseEntity<Mesh::Instance>(0, instance);
-		sphere->AddInstance(dbInstance);
-	}
-
-	forwardPass->AddDrawable(gridPlane);
-	forwardPass->AddDrawable(sphere);
 
 	Renderer::RenderPass* renderToTexturePass = this->renderPipeline->GetRenderPass(Renderer::RenderPassType::RENDER_TO_TEXTURE);
 	renderToTexturePass->SetPassEnabled(true);
@@ -297,7 +255,13 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 		unsigned int levelID = opts["levelID"].as<unsigned int>();
 		
 		GibEngine::World::Database* db = new World::Database(worldPath.c_str());
-		currentLevel = db->FindLevel(levelID);
+		rootSceneNode = db->LoadLevel(levelID);
+
+		// Add the debug meshes to the root loaded:
+		Scene::Node* planeNode = MeshService::GeneratePlane(1000, 1000, 10);
+		rootSceneNode->AddChildNode(planeNode);
+
+		Logger::Instance->info("Loaded Level from Scene Root: {}", levelID);
 
 		delete db;
 	}

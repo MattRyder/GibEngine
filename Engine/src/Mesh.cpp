@@ -1,6 +1,10 @@
 #include "../include/Mesh.h"
 
-GibEngine::Mesh::Mesh() : Entity(EntityType::MODEL), instanceMatrices() { }
+GibEngine::Mesh::Mesh() : Entity(EntityType::MESH), ownerAssetName(nullptr), instanceMatrices()
+{
+	// Will add the mesh to deferred renderer by default:
+	flags = static_cast<Mesh::Flags>(RENDER_ENABLED | RENDER_DEFERRED);
+}
 
 GibEngine::Mesh::~Mesh()
 {
@@ -30,17 +34,25 @@ GibEngine::Mesh::~Mesh()
 	materials.clear();	
 }
 
+GibEngine::Mesh::Mesh(const char* name, std::vector<GibEngine::Vertex> vertices, std::vector<unsigned int> indices, std::vector<GibEngine::Material*> material, const char* ownerFilePath)
+	: Entity(EntityType::MESH), vertices(vertices), indices(indices), materials(material), ownerAssetName(ownerFilePath)
+{
+	entityName = name;
+
+	// Will add the mesh to deferred renderer by default:
+	flags = static_cast<Mesh::Flags>(RENDER_ENABLED | RENDER_DEFERRED);
+}
+
 GibEngine::Mesh::Mesh(const char* directory, aiMesh *mesh, const aiScene* scene) : Mesh()
 {
-	this->directory = directory;
+	this->ownerAssetName = directory;
 	ProcessMesh(mesh, scene);
 }
 
-GibEngine::Mesh::Mesh(std::vector<Vertex> vertices) : Mesh()
+GibEngine::Mesh::Mesh(const char* name, std::vector<Vertex> vertices) : Mesh()
 {
 	this->vertices = vertices;
 	this->instanceMatricesDirty = false;
-	this->directory = nullptr;
 }
 
 void GibEngine::Mesh::ProcessMesh(aiMesh *mesh, const aiScene* scene)
@@ -83,6 +95,7 @@ void GibEngine::Mesh::ProcessMesh(aiMesh *mesh, const aiScene* scene)
 			indices.push_back(face.mIndices[j]);
 		}
 	}
+	
 	//load materials:
 	aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 	Material *mat = new Material();
@@ -168,6 +181,11 @@ std::vector<GibEngine::Vertex> GibEngine::Mesh::GetVertices() const
 	return this->vertices;
 }
 
+const char* GibEngine::Mesh::GetOwnerAssetName() const
+{
+	return ownerAssetName;
+}
+
 std::vector<unsigned int> GibEngine::Mesh::GetIndices() const
 {
 	return this->indices;
@@ -197,10 +215,11 @@ std::vector<GibEngine::Texture*> GibEngine::Mesh::LoadMaterialTextures(aiMateria
 		aiString str;
 		material->GetTexture(type, i, &str);
 
-		std::string* texturePath = new std::string(this->directory);
-		texturePath->append("/").append(str.C_Str());
+		std::string texturePath = this->ownerAssetName;
+		texturePath.substr(texturePath.find_last_of("/") + 1);
+		texturePath.append("/").append(str.C_Str());
 
-		Texture* texture = Texture::Load(textureType, texturePath);
+		Texture* texture = Texture::Load(textureType, &texturePath);
 		textures.push_back(texture);
 	}
 	return textures;

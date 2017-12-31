@@ -6,10 +6,9 @@ const char* GibEngine::Renderer::Pipeline::ShaderLanguageStrings[] =
   "420"
 };
 
-GibEngine::Renderer::Pipeline::Pipeline(int framebufferWidth, int framebufferHeight, ShaderLanguage supportedShaderLanguage, CameraBase *camera)
+GibEngine::Renderer::Pipeline::Pipeline(int framebufferWidth, int framebufferHeight, ShaderLanguage supportedShaderLanguage)
 {
 	this->shaderLanguage = supportedShaderLanguage;
-	this->camera = camera;
 
 	this->SelectGraphicsApi(this->shaderLanguage);
 
@@ -83,7 +82,7 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 		renderPass = new SkyboxRenderPass(graphicsApi, shader);
 		break;
 	case RenderPassType::DEFERRED_GEOMETRY:
-		renderPass = new DeferredGeometryPass(graphicsApi, shader, framebuffer);
+		renderPass = new DeferredGeometryPass(graphicsApi, shader);
 		break;
 	case RenderPassType::DEFERRED_LIGHTING:
 		renderPass = new DeferredLightingPass(graphicsApi, shader, framebuffer);
@@ -96,12 +95,10 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 		break;
 	}
 
-	renderPass->SetCameraBase(camera);
-
 	this->passes.emplace(type, renderPass);
 }
 
-void GibEngine::Renderer::Pipeline::Render()
+void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet& visibleSet)
 {	
 	if (renderingPaused)
 	{
@@ -112,12 +109,12 @@ void GibEngine::Renderer::Pipeline::Render()
 
 	graphicsApi->ClearFramebuffer();
 
-	graphicsApi->UpdateCamera(camera);
+	graphicsApi->UpdateCamera(visibleSet.GetCamera());
 
 	RenderPass* pass = GetRenderPass(RenderPassType::DEFERRED_GEOMETRY);
 	if (pass->IsEnabled())
 	{
-		pass->Render();
+		pass->Render(visibleSet);
 	}
 	
 	graphicsApi->UnbindFramebuffer();
@@ -127,7 +124,7 @@ void GibEngine::Renderer::Pipeline::Render()
 	pass = GetRenderPass(RenderPassType::DEFERRED_LIGHTING);
 	if (pass->IsEnabled())
 	{
-		pass->Render();
+		pass->Render(visibleSet);
 	}
 
 	graphicsApi->BlitFramebuffer(framebuffer->GetBuffer().framebufferId, 0, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), GL_DEPTH_BUFFER_BIT);
@@ -137,13 +134,13 @@ void GibEngine::Renderer::Pipeline::Render()
 	pass = GetRenderPass(RenderPassType::SKYBOX);
 	if (pass->IsEnabled())
 	{
-		pass->Render();
+		pass->Render(visibleSet);
 	}
 
 	pass = GetRenderPass(RenderPassType::FORWARD_RENDERING);
 	if (pass->IsEnabled())
 	{
-		pass->Render();
+		pass->Render(visibleSet);
 	}
 
 	pass = GetRenderPass(RenderPassType::RENDER_TO_TEXTURE);
@@ -156,11 +153,6 @@ void GibEngine::Renderer::Pipeline::Render()
 
 void GibEngine::Renderer::Pipeline::Update(float deltaTime)
 {
-	for (auto const& pass : this->passes)
-	{
-		RenderPass* rpass = pass.second;
-		rpass->Update(deltaTime);
-	}
 }
 
 bool GibEngine::Renderer::Pipeline::IsRenderPaused()

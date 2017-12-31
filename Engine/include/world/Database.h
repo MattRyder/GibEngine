@@ -14,6 +14,9 @@
 #include "Level.h"
 #include "Logger.h"
 
+#include "scene/Node.h"
+#include "MeshService.h"
+
 namespace GibEngine
 {
     namespace World
@@ -25,14 +28,11 @@ namespace GibEngine
 			std::string ConvertVec3ToString(glm::vec3 vec);
             glm::vec3 ReadVec3(const char* vec3String);
             int GetLastAutoincrementId();
-            int SetLevelSkybox(int levelId, int skyboxId);
 
-			int SaveInstance(int modelId,
-				glm::vec3 position, glm::vec3 rotationAxis, float rotationAngle, glm::vec3 scale);
-			bool UpdateInstance(int modelId, World::DatabaseEntity<Mesh::Instance>* meshInstance);
+			Scene::Node* FindNode(int nodeId);
 
-			bool DeleteInstance(World::DatabaseEntity<Mesh::Instance>* meshInstance);
-
+			bool SaveSceneNode(int parentNodeId, Scene::Node* node);
+			bool SaveSceneNodeRecord(int parentId, Scene::Node* node);
 
         public:
             Database(const char* databaseFilepath);
@@ -40,16 +40,18 @@ namespace GibEngine
 
 			void Disconnect();
             
-            Level* CreateLevel(const char* levelName);
+			bool CreateLevel(int nodeId, const char* name);
 
-            bool SaveLevel(Level* level);
-            bool SaveSkybox(DatabaseEntity<Skybox>* skybox);
-            bool SaveModel(int levelId, DatabaseEntity<Model>* model);
-			bool SavePointLight(int levelId, DatabaseEntity<PointLight>* pointLight);
+			Scene::Node* LoadSkybox(int skyboxId);
+			Scene::Node* LoadLight(int lightId);
+			Scene::Node* LoadMesh(int meshId);
+			Scene::Node* LoadLevel(int rootNodeId);
 
-			bool SaveInstance(int modelId, World::DatabaseEntity<Mesh::Instance>* meshInstance);
-
-            Level* FindLevel(int id);
+            bool SaveSkybox(Scene::Node* skyboxSceneNode);
+			bool SaveMesh(Scene::Node* meshNode);
+			bool SavePointLight(Scene::Node* lightSceneNode);
+			bool SaveLevel(Scene::Node* sceneRootNode);
+			
         };
     }
 }

@@ -16,6 +16,9 @@
 #include "api/GL420.h"
 #include "api/GLES3.h"
 
+#include "scene/Node.h"
+#include "scene/VisibleSet.h"
+
 namespace GibEngine
 {
 	namespace Renderer
@@ -45,11 +48,12 @@ namespace GibEngine
 			void SelectGraphicsApi(ShaderLanguage shaderLanguage);
 
 		public:
-			Pipeline(int framebufferWidth, int framebufferHeight, ShaderLanguage supportedShaderLanguage, CameraBase *camera);
+			Pipeline(int framebufferWidth, int framebufferHeight, ShaderLanguage supportedShaderLanguage);
 			~Pipeline();
 
 			void AddPass(RenderPassType type);
-			void Render();
+
+			void Render(const Scene::VisibleSet& visibleSet);
 			void Update(float deltaTime);
 
 			bool IsRenderPaused();

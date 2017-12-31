@@ -77,6 +77,11 @@ void GibEngine::Renderer::API::GL420::BindMaterial(GibEngine::Material* material
 	{
 		Texture* texture = material->Textures[i];
 
+		if (texture->GetTextureId() == 0)
+		{
+			UploadTexture2D(texture);
+		}
+
 		int locationIndex = textureLocIndex.at(texture->GetTextureType());
 		const char *textureTypeStr = texture->GetTextureTypeString();
 		std::string textureUniformName = std::string("texture_" +
@@ -218,7 +223,7 @@ void GibEngine::Renderer::API::GL420::DrawPrimitive(MeshUploadTicket* meshUpload
 	glBindVertexArray(0);
 }
 
-void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh)
+void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh, int instanceCount)
 {
 	Mesh::Flags flags = mesh->GetFlags();
 	if (flags && !Mesh::Flags::RENDER_ENABLED)
@@ -239,7 +244,7 @@ void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh)
 	else 
 	{
 		glDrawElementsInstanced(drawMode, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
-			0, mesh->GetInstanceMatrices().size());
+			0, instanceCount);
 	}
 
 	glBindVertexArray(0);

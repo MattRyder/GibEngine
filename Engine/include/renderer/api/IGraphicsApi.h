@@ -39,7 +39,7 @@ namespace GibEngine
 				virtual void ClearFramebuffer() = 0;
 
                 virtual void DrawPrimitive(MeshUploadTicket* meshUploadTicket) = 0;
-                virtual void DrawMesh(GibEngine::Mesh *mesh) = 0;
+                virtual void DrawMesh(GibEngine::Mesh *mesh, int instanceCount) = 0;
                 virtual void DrawSkybox(GibEngine::Skybox *skybox) = 0;
 
 				virtual int GetUniformLocation(const char* uniformName) = 0;

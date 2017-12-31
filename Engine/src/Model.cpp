@@ -1,6 +1,6 @@
 ﻿#include "Model.h"
 
-GibEngine::Model::Model() : Entity(EntityType::MODEL)
+GibEngine::Model::Model() : Entity(EntityType::MESH)
 {
 	this->modelFile = nullptr;
 }

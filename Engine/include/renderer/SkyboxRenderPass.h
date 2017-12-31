@@ -9,15 +9,11 @@ namespace GibEngine
 	{
 		class SkyboxRenderPass : public RenderPass
 		{
-			Skybox *skybox = nullptr;
-
 		public:
 			SkyboxRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader);
 
-			virtual void Render();
-			void Update(float deltaTime);
-
-			void SetSkybox(Skybox *skybox);
+			virtual void Render(const Scene::VisibleSet& visibleSet) override;
+			void UploadSkybox(Skybox* skybox);
 		};
 
 	}

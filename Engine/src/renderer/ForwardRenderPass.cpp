@@ -2,43 +2,38 @@
 
 GibEngine::Renderer::ForwardRenderPass::ForwardRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader) : RenderPass(graphicsApi, shader) { }
 
-void GibEngine::Renderer::ForwardRenderPass::Render()
+void GibEngine::Renderer::ForwardRenderPass::Render(const GibEngine::Scene::VisibleSet& visibleSet)
 {
 	glEnable(GL_BLEND);
 
 	graphicsApi->BindShader(shader->GetShaderId());
 
-	graphicsApi->BindCamera(RenderPass::camera);
+	graphicsApi->BindCamera(visibleSet.GetCamera());
 
-	for (Model* model : drawablesList)
+	for (auto meshInstancePair : visibleSet.GetMeshInstanceMap())
 	{
-		for (Mesh* mesh : model->GetMeshes())
+		auto mesh = meshInstancePair.first;
+		if (!(mesh->GetFlags() & Mesh::Flags::RENDER_FORWARD))
 		{
-			if (mesh->IsInstanceMatricesDirty())
-			{
-				UpdateMeshInstances(mesh->GetMeshUploadTicket(), mesh->GetInstanceMatrices());
-				mesh->SetInstanceMatricesDirty(false);
-			}
-
-			if (mesh->GetMaterials().size() > 0)
-			{
-				graphicsApi->BindMaterial(mesh->GetMaterials()[0]);
-			}
-
-			graphicsApi->DrawMesh(mesh);
+			continue;
 		}
+
+		if (mesh->GetMeshUploadTicket() == nullptr)
+		{
+			mesh->SetMeshUploadTicket(graphicsApi->UploadMesh(mesh));
+		}
+
+		graphicsApi->UpdateMeshInstances(mesh->GetMeshUploadTicket(), meshInstancePair.second);
+
+		if (mesh->GetMaterials().size() > 0)
+		{
+			graphicsApi->BindMaterial(mesh->GetMaterials()[0]);
+		}
+
+		graphicsApi->DrawMesh(mesh, meshInstancePair.second.size());
 	}
 
 	graphicsApi->UnbindShader();
 
 	glDisable(GL_BLEND);
 }
-
-void GibEngine::Renderer::ForwardRenderPass::Update(float deltaTime)
-{
-	for (Model* model : drawablesList)
-	{
-		model->Update(deltaTime);
-	}
-}
-

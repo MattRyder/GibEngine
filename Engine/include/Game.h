@@ -1,4 +1,3 @@
-#pragma once
 
 #include <iostream>
 //#include <vld.h>
@@ -12,7 +11,6 @@
 #include "Model.h"
 #include "Shader.h"
 #include "Skybox.h"
-#include "Plane.h"
 #include "FreeCamera.h"
 #include "ChaseCamera.h"
 #include "PointLight.h"
@@ -43,11 +41,10 @@ namespace GibEngine
 	protected:
 		Renderer::ShaderLanguage shaderLanguage = Renderer::ShaderLanguage::GLSL_420;
 		
-		World::Level* currentLevel = nullptr;
+		Scene::Node* rootSceneNode = nullptr;
 		
 		Renderer::Pipeline* renderPipeline = nullptr;
 		Input::InputManager* inputManager = nullptr;
-		Plane* gridPlane = nullptr;
 
 	public:
 		Game(int argc, char** argv);
@@ -56,7 +53,7 @@ namespace GibEngine
 		virtual void Render();
 		virtual void Update();
 
-		virtual void LoadLevel(World::Level* level);
+		virtual void SetupPipeline();
 
 		bool InitializeGL(GibEngine::Renderer::ShaderLanguage shaderVersion);
 		void ToggleVsync();

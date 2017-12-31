@@ -14,10 +14,9 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 			GibEngine::Logger::Instance->info("Loading World: {}", outPath);
 			GibEngine::World::Database* db = new GibEngine::World::Database(outPath);
 
-			GibEngine::World::Level* level = db->FindLevel(1);
-			this->LoadLevel(level);
+			this->rootSceneNode = db->LoadLevel(1);
 
-			dock = new Components::Dock(level, this->GetRenderPipeline());
+			dock = new Components::Dock(this->rootSceneNode, this->GetRenderPipeline());
 
 			db->Disconnect();
 			delete db;
@@ -41,7 +40,7 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 		flags = static_cast<Flags>(flags ^ Flags::DISABLE_UI_RENDER);
 	};
 
-	auto saveWorldCallback = [&](GibEngine::World::Level* currentLevel) -> void
+	auto saveWorldCallback = [&](GibEngine::Scene::Node* node) -> void
 	{
 		nfdchar_t* outPath = nullptr;
 		nfdresult_t res = NFD_SaveDialog("gwo", GibEngine::File::GetWorkingDirectory().c_str(), &outPath);
@@ -51,7 +50,7 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 			GibEngine::Logger::Instance->info("Saving World: {}", outPath);
 			GibEngine::World::Database* db = new GibEngine::World::Database(outPath);
 
-			if (db->SaveLevel(currentLevel))
+			if (db->SaveLevel(node))
 			{
 				GibEngine::Logger::Instance->info("Saved!");
 			}
@@ -62,14 +61,13 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 		}
 	};
 
-	menubar = new Components::Menubar(currentLevel);
+	menubar = new Components::Menubar(rootSceneNode);
 	menubar->SetOnExitCallback(exitCallback);
 	menubar->SetOnOpenFileDialogCallback(openWorldFileCallback);
 	menubar->SetOnSaveFileDialogCallback(saveWorldCallback);
-	menubar->SetToggleWireframeCallback(toggleWireframeCallback);
 	menubar->SetToggleUiRenderCallback(toggleUiRenderCallback);
 
-	dock = new Components::Dock(currentLevel, GetRenderPipeline());
+	dock = new Components::Dock(rootSceneNode, GetRenderPipeline());
 
 	statusBar = new Components::StatusBar();
 }

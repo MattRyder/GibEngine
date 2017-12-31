@@ -2,136 +2,127 @@
 
 namespace GibEngine
 {
-    namespace World
-    {
-		static const char* CREATE_DATABASE_QUERY = R"(
-            BEGIN TRANSACTION;
-            CREATE TABLE `ModelsInstances` (
-                `Id`	INTEGER NOT NULL,
-                `ModelId`	INTEGER NOT NULL,
-                `Position`	TEXT NOT NULL,
-                `RotationAxis` TEXT,
-                `RotationAngle` REAL,
-                `Scale` TEXT,
-                PRIMARY KEY(`Id`),
-                FOREIGN KEY(`ModelId`) REFERENCES `Models`(`Id`)
-            );
-			CREATE TABLE `Skyboxes` (
+	namespace World
+	{
+		static const char* CREATE_DATABASE_COMMAND = R"(
+			BEGIN TRANSACTION;
+			DROP TABLE IF EXISTS `Skyboxes`;
+			CREATE TABLE IF NOT EXISTS `Skyboxes` (
 				`Id`	INTEGER NOT NULL,
-                `AssetName`	TEXT NOT NULL,
-                `Extension` TEXT NOT NULL,
+				`AssetName`	TEXT NOT NULL,
+				`Extension`	TEXT NOT NULL,
 				PRIMARY KEY(`Id`)
 			);
-			CREATE TABLE `Levels` (
-                `Id`	INTEGER NOT NULL,
-                `SkyboxId`  INTEGER,
-                `Name`	INTEGER NOT NULL,
-                PRIMARY KEY(`Id`),
-				FOREIGN KEY(`SkyboxId`) REFERENCES `Skyboxes`(`Id`)
-            );
-            CREATE TABLE `Models` (
-                `Id`	INTEGER NOT NULL,
-                `LevelId`	INTEGER NOT NULL,
-                `AssetName`	INTEGER NOT NULL,
-                PRIMARY KEY(`Id`),
-                FOREIGN KEY(`LevelId`) REFERENCES `Levels`(`Id`)
-            );
-			CREATE TABLE `Lights` (
+			DROP TABLE IF EXISTS `Nodes`;
+			CREATE TABLE IF NOT EXISTS `Nodes` (
 				`Id`	INTEGER NOT NULL,
-				`LevelId`	INTEGER NOT NULL,
-				`LightType` TEXT NOT NULL,
-				`Position`	TEXT NOT NULL,
-				`AmbientColor` TEXT NOT NULL,
-				`DiffuseColor` TEXT NOT NULL,
-				`SpecularColor` TEXT NOT NULL,
-				`LinearAttenuation` REAL NOT NULL,
-				`QuadraticAttenuation` REAL NOT NULL,
-				PRIMARY KEY(`Id`),
-				FOREIGN KEY(`LevelId`) REFERENCES `Levels`(`Id`)
+				`ParentId`	INTEGER,
+				`EntityType`	INTEGER,
+				`EntityId`	INTEGER,
+				`Position`	TEXT,
+				`RotationAxis`	TEXT,
+				`RotationAngle`	REAL,
+				`Scale`	TEXT,
+				PRIMARY KEY(`Id`)
 			);
+			DROP TABLE IF EXISTS `Meshes`;
+			CREATE TABLE IF NOT EXISTS `Meshes` (
+				`Id`	INTEGER NOT NULL,
+				`AssetName`	TEXT NOT NULL,
+				PRIMARY KEY(`Id`)
+			);
+			DROP TABLE IF EXISTS `Lights`;
+			CREATE TABLE IF NOT EXISTS `Lights` (
+				`Id`	INTEGER NOT NULL,
+				`LightType`	TEXT NOT NULL,
+				`AmbientColor`	TEXT NOT NULL,
+				`DiffuseColor`	TEXT NOT NULL,
+				`SpecularColor`	TEXT NOT NULL,
+				`LinearAttenuation`	REAL NOT NULL,
+				`QuadraticAttenuation`	REAL NOT NULL,
+				PRIMARY KEY(`Id`)
+			);
+			DROP TABLE IF EXISTS `Levels`;
+			CREATE TABLE IF NOT EXISTS `Levels` (
+				`Id`	INTEGER NOT NULL,
+				`NodeId`	INTEGER NOT NULL,
+				`Name`	TEXT NOT NULL,
+				PRIMARY KEY(`Id`)
+				FOREIGN KEY(`NodeId`) REFERENCES `Nodes`(`Id`)
+			);
+			DROP INDEX IF EXISTS `NodesId`;
+			CREATE UNIQUE INDEX IF NOT EXISTS `NodesId` ON `Nodes` (
+				`Id`
+			);
+			DROP INDEX IF EXISTS `MeshesId`;
+			CREATE UNIQUE INDEX IF NOT EXISTS `MeshesId` ON `Meshes` (
+				`Id`
+			);
+			DROP INDEX IF EXISTS `LightsId`;
+			CREATE UNIQUE INDEX IF NOT EXISTS `LightsId` ON `Lights` (
+				`Id`
+			);
+			DROP INDEX IF EXISTS `LevelsId`;
+			CREATE UNIQUE INDEX IF NOT EXISTS `LevelsId` ON `Levels` (
+				`Id`
+			);
+			COMMIT;
+		)";
 
-			CREATE UNIQUE INDEX `LightsId_Idx` ON `Lights` (`Id`);
-            CREATE UNIQUE INDEX `ModelsInstancesId_Idx` ON `ModelsInstances` (`Id` );
-            CREATE UNIQUE INDEX `ModelsId_Idx` ON `Models` (`Id` );
-            CREATE UNIQUE INDEX `LevelsId_Idx` ON `Levels` (`Id` );
-            COMMIT;
-            )";
-
-        static const char* SELECT_LAST_AUTOINCREMENT_ID = R"(
+		static const char* SELECT_LAST_AUTOINCREMENT_ID = R"(
             SELECT last_insert_rowid();
         )";
 
-        static const char* CREATE_LEVEL_QUERY = R"(
-            INSERT INTO Levels (Name) VALUES (:levelName);
+		static const char* CREATE_LEVEL_COMMAND = R"(
+            INSERT INTO Levels (NodeId, Name) VALUES (:nodeId, :name);
         )";
 
-        static const char* CREATE_MODEL_QUERY = R"(
-            INSERT INTO Models (LevelId, AssetName) VALUES (:levelId, :assetName);
-        )";
+		static const char* CREATE_NODE_COMMAND = R"(
+			INSERT INTO Nodes (ParentId, EntityType, EntityId, Position, Scale)
+			VALUES (:parentId, :entityType, :entityId, :position, :scale);
+		)";
 
-        static const char* CREATE_SKYBOX_QUERY = R"(
+		static const char* CREATE_MESH_COMMAND = R"(
+			INSERT INTO Meshes (AssetName) VALUES (:assetName);
+		)";
+
+		static const char* CREATE_SKYBOX_COMMAND = R"(
             INSERT INTO Skyboxes (AssetName, Extension) VALUES (:assetName, :extension);
         )";
 
-		static const char* CREATE_LIGHT_QUERY = R"(
-			INSERT INTO Lights (LevelId, LightType, Position, AmbientColor, DiffuseColor, SpecularColor, LinearAttenuation, QuadraticAttenuation)
-			VALUES (:levelId, :lightType, :position, :ambientColor, :diffuseColor, :specularColor, :linearAttenuation, :quadraticAttenuation); 
+		static const char* CREATE_LIGHT_COMMAND = R"(
+			INSERT INTO Lights (LightType, AmbientColor, DiffuseColor, SpecularColor, LinearAttenuation, QuadraticAttenuation)
+			VALUES (:lightType, :ambientColor, :diffuseColor, :specularColor, :linearAttenuation, :quadraticAttenuation); 
 		)";
 
-        static const char* SET_LEVEL_SKYBOX_QUERY = R"(
-            UPDATE Levels SET SkyboxId = :skyboxId WHERE Id = :levelId;
-        )";
-
-        static const char* CREATE_INSTANCE_QUERY = R"(
-            INSERT INTO ModelsInstances (ModelId, Position, RotationAxis, RotationAngle, Scale)
-            VALUES (:modelId, :position, :rotationAxis, :rotationAngle, :scale);
-        )";
-
-        static const char* SELECT_LEVEL_QUERY = R"(
-            SELECT Levels.Id, Levels.Name, Skyboxes.Id, Skyboxes.AssetName, Skyboxes.Extension
-            FROM Levels
-            INNER JOIN Skyboxes
-            ON Skyboxes.Id = Levels.SkyboxId
-            WHERE Levels.Id = ?;
-        )";
-
-        static const char* SELECT_LEVEL_MODELS_QUERY = R"(
-            SELECT Id, AssetName FROM Models WHERE LevelId = ?;
-        )";
-
-		static const char* SELECT_LEVEL_LIGHTS_QUERY = R"(
-			SELECT Id, LightType, Position, AmbientColor, DiffuseColor, SpecularColor, LinearAttenuation, QuadraticAttenuation
-			FROM Lights WHERE LevelId = :levelId;
+		static const char* SELECT_NODE_QUERY = R"(
+			SELECT ParentId, EntityType, EntityId, Position, Scale
+			FROM Nodes
+			WHERE Id = :id;
 		)";
 
-        static const char* SELECT_MODEL_INSTANCES_QUERY = R"(
-            SELECT Id, Position, RotationAxis, RotationAngle, Scale FROM ModelsInstances WHERE ModelId = ?;
+		static const char* SELECT_CHILD_NODES_QUERY = R"(
+			SELECT Id FROM Nodes WHERE ParentId = :parentId; 
+		)";
+
+		static const char* SELECT_SKYBOX_QUERY = R"(
+            SELECT AssetName FROM Skyboxes WHERE Id = :id;
         )";
 
-        static const char* SELECT_LEVEL_SKYBOX_QUERY = R"(
-            SELECT AssetName FROM Skyboxes WHERE Id = ?;
-        )";
+		static const char* SELECT_LIGHT_QUERY = R"(
+			SELECT LightType, AmbientColor, DiffuseColor, SpecularColor, LinearAttenuation, QuadraticAttenuation
+			FROM Lights
+			WHERE Id = :id;
+		)";
+
+		static const char* SELECT_MESH_QUERY = R"(
+			SELECT AssetName FROM Meshes WHERE Id = :id;
+		)";
 
 		static const char* UPDATE_SKYBOX_QUERY = R"(
 			UPDATE Skyboxes
 			SET AssetName = :assetName, Extension = :extension
 			WHERE Id = ?;
 		)";
-
-		static const char* UPDATE_MODEL_INSTANCES_QUERY = R"(
-			UPDATE ModelsInstances
-			SET Position = :position, RotationAxis = :rotationAxis, RotationAngle = :rotationAngle, Scale = :scale
-			WHERE Id = :id;
-		)";
-
-		static const char* UPDATE_LIGHT_QUERY = R"(
-			UPDATE Lights
-			SET LightType = :lightType, Position = :position, AmbientColor = :ambientColor,
-				DiffuseColor = :diffuseColor, SpecularColor = :specularColor, LinearAttenuation = :linearAttenuation,
-				QuadraticAttenuation = :quadraticAttenuation
-			WHERE Id = 1;
-		)";
-
-		static const char* MODEL_INSTANCE_DELETE_QUERY = "DELETE FROM ModelsInstances WHERE Id = :id;";
-    }
+	}
 }

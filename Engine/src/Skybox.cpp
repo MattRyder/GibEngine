@@ -2,6 +2,8 @@
 
 GibEngine::Skybox::Skybox(const char* skyboxTextureName, const char* skyboxTextureExtension) : Mesh()
 {
+	this->entityType = EntityType::SKYBOX;
+
 	this->SetName(skyboxTextureName);
 	this->textureExtension = skyboxTextureExtension;
 

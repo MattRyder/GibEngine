@@ -12,8 +12,7 @@ namespace GibEngine
 		{
 		public:
 			DeferredLightingPass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer* framebuffer);
-			void Render() override;
-			void Update(float deltaTime) override;
+			void Render(const Scene::VisibleSet& visibleSet) override;
 		};
 	}
 }

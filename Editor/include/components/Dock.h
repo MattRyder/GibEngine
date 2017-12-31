@@ -5,7 +5,7 @@
 #include "EntityInspector.h"
 #include "ContentBrowser.h"
 
-#include "world/World.h"
+#include "scene/Node.h"
 #include "renderer/Pipeline.h"
 
 namespace GibEditor
@@ -29,13 +29,13 @@ namespace GibEditor
 				POINT_LIGHT,
 			};
 
-			Dock(GibEngine::World::Level* level, GibEngine::Renderer::Pipeline* pipeline);
+			Dock(GibEngine::Scene::Node* rootSceneNode, GibEngine::Renderer::Pipeline* pipeline);
 			virtual void Render() override;
 
 			Dock::Type GetSelectedDock() const;
 
 		private:
-			GibEngine::World::Level* level;
+			GibEngine::Scene::Node* rootSceneNode;
 			GibEngine::Renderer::Pipeline* pipeline;
 			
 			Components::ContentBrowser* cbrowser = nullptr;

@@ -6,15 +6,15 @@ GibEngine::Renderer::DeferredLightingPass::DeferredLightingPass(API::IGraphicsAp
 	LoadQuadData();
 }
 
-void GibEngine::Renderer::DeferredLightingPass::Render()
+void GibEngine::Renderer::DeferredLightingPass::Render(const Scene::VisibleSet& visibleSet)
 {
 	const int FRAMEBUFFER_TEXTURE_COUNT = 3;
 
 	graphicsApi->BindShader(shader->GetShaderId());
 
-	graphicsApi->BindCamera(RenderPass::camera);
+	graphicsApi->BindCamera(visibleSet.GetCamera());
 
-	RenderPass::BindLights();
+	BindLights(visibleSet);
 
 	buffer_t buffer = framebuffer->GetBuffer();
 	const char* framebufferStrings[FRAMEBUFFERTYPE_LAST] = { "framebuffer_Position", "framebuffer_Albedo", "framebuffer_Normal", "framebuffer_Texture" };
@@ -33,14 +33,4 @@ void GibEngine::Renderer::DeferredLightingPass::Render()
 	glDepthMask(GL_TRUE);
 
 	graphicsApi->UnbindShader();
-}
-
-void GibEngine::Renderer::DeferredLightingPass::Update(float deltaTime)
-{
-	for (auto light : lights)
-	{
-		light->Update(deltaTime);
-	}
-
-	FlagLightingBindRequired();
 }

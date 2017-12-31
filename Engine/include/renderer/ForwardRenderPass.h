@@ -10,8 +10,7 @@ namespace GibEngine
     {
     public:
       ForwardRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader);
-      void Render() override;
-	  void Update(float deltaTime) override;
+      void Render(const Scene::VisibleSet& visibleSet) override;
     };
 
   }

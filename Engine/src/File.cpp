@@ -133,7 +133,7 @@ GibEngine::File::~File()
 const char* GibEngine::File::GetDirectory()
 {
     std::string pathStr = path;
-    std::string::size_type position = pathStr.find_last_of("\\/");
+	std::string::size_type position = pathStr.find_last_of("\\/", pathStr.find_last_of("\\/"));
 	std::string* directory = new std::string(pathStr.substr(0, position));
     return directory->c_str();
 }
@@ -141,6 +141,14 @@ const char* GibEngine::File::GetDirectory()
 const char* GibEngine::File::GetPath()
 {
     return this->path;
+}
+
+const char * GibEngine::File::GetAssetName()
+{
+	std::string pathStr = path;
+	std::string::size_type position = pathStr.find_last_of("\\/", pathStr.find_last_of("\\/") - 1) + 1;
+	std::string* directory = new std::string(pathStr.substr(position));
+	return directory->c_str();
 }
 
 const char * GibEngine::File::GetExtension()

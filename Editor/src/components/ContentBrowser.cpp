@@ -1,7 +1,7 @@
 #include "components/ContentBrowser.h"
 
-GibEditor::Components::ContentBrowser::ContentBrowser(GibEngine::World::Level* level, GibEngine::Renderer::Pipeline* pipeline)
-	: level(level), pipeline(pipeline)
+GibEditor::Components::ContentBrowser::ContentBrowser(GibEngine::Scene::Node* rootSceneNode, GibEngine::Renderer::Pipeline* pipeline)
+	: rootSceneNode(rootSceneNode), pipeline(pipeline)
 {
 	SetupAvailableContentMap();
 }
@@ -17,7 +17,7 @@ void GibEditor::Components::ContentBrowser::SetupAvailableContentMap()
 
 	availableContent =
 	{
-		{ GibEngine::EntityType::MODEL, std::vector<GibEngine::File*>() },
+		{ GibEngine::EntityType::MESH, std::vector<GibEngine::File*>() },
 	};
 }
 
@@ -43,7 +43,7 @@ void GibEditor::Components::ContentBrowser::Render()
 
 						if (strcmp(extension, "obj") == 0)
 						{
-							availableContent.at(GibEngine::EntityType::MODEL).push_back(file);
+							availableContent.at(GibEngine::EntityType::MESH).push_back(file);
 						}
 
 						delete extension;
@@ -85,11 +85,8 @@ void GibEditor::Components::ContentBrowser::Render()
 
 				if (ImGui::Button(contentFile->GetFilename(), buttonSize))
 				{
-					auto modelEntity = level->AddModel(contentFile->GetFilename());
-					GibEngine::Renderer::RenderPass* pass =
-						pipeline->GetRenderPass(GibEngine::Renderer::RenderPassType::DEFERRED_GEOMETRY);
-					pass->AddDrawable(modelEntity->GetEntity());
-
+					GibEngine::Scene::Node* meshNode = GibEngine::MeshService::Load(contentFile);
+					rootSceneNode->AddChildNode(meshNode);
 				}
 
 				ImGui::NextColumn();
@@ -108,11 +105,9 @@ void GibEditor::Components::ContentBrowser::Render()
 		if (ImGui::Button("Point Light", buttonSize))
 		{
 			GibEngine::PointLight* light = new GibEngine::PointLight();
-
-			GibEngine::World::DatabaseEntity<GibEngine::PointLight>* lightDbEntity =
-				new GibEngine::World::DatabaseEntity<GibEngine::PointLight>(0, light);
-
-			level->AddLight(lightDbEntity);
+			GibEngine::Scene::Node* lightNode = new GibEngine::Scene::Node();
+			lightNode->SetEntity(light);
+			rootSceneNode->AddChildNode(lightNode);
 		}
 
 		ImGui::TreePop();

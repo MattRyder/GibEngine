@@ -84,12 +84,17 @@ namespace GibEngine
 			RENDER_ENABLED = 1 << 0,
 			RENDER_WIREFRAME = 1 << 1,
 			RENDER_ARRAYS = 1 << 2,
+			RENDER_DEFERRED = 1 << 3,
+			RENDER_FORWARD = 1 << 4
 		};
 
 		Mesh();
 		~Mesh();
+		Mesh(const char* name, std::vector<Vertex> vertices, std::vector<unsigned int> indices,
+			std::vector<Material*> material, const char* ownerAssetName);
+
 		Mesh(const char *directory, aiMesh *mesh, const aiScene *scene);
-		Mesh(std::vector<Vertex> vertices);
+		Mesh(const char* name, std::vector<Vertex> vertices);
 
 		void AddInstance(World::DatabaseEntity<Instance>* meshInstance);
 		void UpdateInstance(unsigned int index, World::DatabaseEntity<Instance>* meshInstance);
@@ -101,6 +106,7 @@ namespace GibEngine
 		MeshUploadTicket* GetMeshUploadTicket() const;
 		Flags GetFlags() const;
 		std::vector<Vertex> GetVertices() const;
+		const char* GetOwnerAssetName() const;
 
 		bool IsInstanceMatricesDirty() const;
 		bool IsUploaded();
@@ -129,8 +135,6 @@ namespace GibEngine
 		std::vector<GLuint> indices;
 		std::vector<Material*> materials;
 
-		glm::vec3 movementDir;
-
-		const char* directory;
+		const char* ownerAssetName;
 	};
 }

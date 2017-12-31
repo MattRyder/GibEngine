@@ -9,9 +9,8 @@ namespace GibEngine
 		class DeferredGeometryPass : public RenderPass
 		{
 		public:
-			DeferredGeometryPass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer *framebuffer);
-			void Render() override;
-			void Update(float deltaTime) override;
+			DeferredGeometryPass(API::IGraphicsApi* graphicsApi, Shader* shader);
+			void Render(const Scene::VisibleSet& visibleSet) override;
 		};
 	}
 }

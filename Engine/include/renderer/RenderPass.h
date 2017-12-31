@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 
+#include "scene/VisibleSet.h"
 #include "world/DatabaseEntity.h"
 #include "Shader.h"
 #include "FreeCamera.h"
@@ -28,10 +29,6 @@ namespace GibEngine
 			
 			Renderer::API::IGraphicsApi* graphicsApi;
 
-			CameraBase* camera;
-			std::vector<Model*> drawablesList;
-			std::vector<LightBase*> lights;
-
 			static GLfloat QuadTextureData[];
 			Mesh *quadMesh;
 
@@ -43,19 +40,13 @@ namespace GibEngine
 
 			virtual ~RenderPass();
 
-			virtual void Render();
-			virtual void Update(float deltaTime) = 0;
-
-			virtual void AddDrawable(Model* drawable);
-			virtual void AddLight(LightBase* light);
-			virtual void SetCameraBase(CameraBase* camera);
+			virtual void Render(const Scene::VisibleSet& visibleSet);
 
 			Shader* GetShader() const;
-			std::vector<LightBase*> GetLights() const;
 
 			bool IsEnabled() const;
 
-			void BindLights();
+			void BindLights(const Scene::VisibleSet& visibleSet);
 			void FlagLightingBindRequired();
 
 			void TakeScreenshot();
