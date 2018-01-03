@@ -11,6 +11,8 @@ int main(int argc, char** argv)
     ImGui_ImplGlfwGL3_Init(editor->GetWindow(), !true);
 	SetupImGuiStyle();
 
+	GibEditor::Components::Dock::Type lastSelectedDockType = GibEditor::Components::Dock::Type::GAME;
+
     while (!glfwWindowShouldClose(editor->GetWindow()))
     {
 		ImGui_ImplGlfwGL3_NewFrame();
@@ -18,6 +20,27 @@ int main(int argc, char** argv)
 		editor->Render();
 
 		glfwSwapBuffers(editor->GetWindow());
+
+		if (editor->GetDock() != nullptr)
+		{
+			// If input focus changes, reload the right input callbacks for the target:
+			GibEditor::Components::Dock::Type dockType = editor->GetDock()->GetSelectedDock();
+			if (dockType != lastSelectedDockType)
+			{
+				switch (dockType)
+				{
+				case GibEditor::Components::Dock::Type::ENTITY_INSPECTOR:
+				case GibEditor::Components::Dock::Type::SCENE_TREE:
+					ImGui_ImplGlfwGL3_InstallCallbacks(editor->GetWindow());
+					break;
+				case GibEditor::Components::Dock::Type::GAME:
+					editor->GetInputManager()->Install(editor->GetWindow());
+					break;
+				}
+
+				lastSelectedDockType = dockType;
+			}
+		}
 
 		editor->Update();
     }

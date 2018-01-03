@@ -3,7 +3,7 @@
 void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parentNode, const aiScene* scene, aiNode* node)
 {
 	// Load each mesh for this node:
-	for (int i = 0; i < node->mNumMeshes; i++)
+	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
@@ -63,14 +63,14 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 
 		materials.push_back(LoadMaterial(rootMeshFile->GetDirectory(), material));
 
-		Mesh* processedMesh = new Mesh(name, vertices, indices, materials, rootMeshFile->GetAssetName());
-		Scene::Node* childMeshNode = new Scene::Node();
+		Mesh* processedMesh = new Mesh(name, rootMeshFile->GetAssetName(), vertices, indices, materials);
+		Scene::Node* childMeshNode = new Scene::Node(name);
 		childMeshNode->SetEntity(processedMesh);
 		childMeshNode->SetLocalTransform(meshTransform);
 		parentNode->AddChildNode(childMeshNode);
 	}
 
-	for (int i = 0; i < node->mNumChildren; i++)
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
 		ProcessNode(rootMeshFile, parentNode, scene, node->mChildren[i]);
 	}
@@ -142,7 +142,7 @@ GibEngine::Scene::Node* GibEngine::MeshService::Load(File* file)
 		return nullptr;
 	}
 
-	Scene::Node* rootNode = new Scene::Node();
+	Scene::Node* rootNode = new Scene::Node("Mesh Root");
 	ProcessNode(file, rootNode, scene, scene->mRootNode);
 	importer.FreeScene();
 
@@ -187,7 +187,7 @@ GibEngine::Scene::Node* GibEngine::MeshService::GeneratePlane(unsigned int lengt
 		vertices.push_back(v);
 	}
 
-	Mesh* planeMesh = new Mesh("Plane", vertices);
+	Mesh* planeMesh = new Mesh("Plane", nullptr, vertices);
 
 	Mesh::Flags flags = static_cast<Mesh::Flags>(
 		Mesh::Flags::RENDER_ENABLED |
@@ -197,7 +197,7 @@ GibEngine::Scene::Node* GibEngine::MeshService::GeneratePlane(unsigned int lengt
 	);
 	planeMesh->SetFlags(flags);
 
-	Scene::Node* planeNode = new Scene::Node();
+	Scene::Node* planeNode = new Scene::Node("Plane");
 	planeNode->SetEntity(planeMesh);
 
 	return planeNode;

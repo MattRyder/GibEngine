@@ -47,7 +47,7 @@ namespace GibEngine
 
 	public:
 		Entity(EntityType entityType);
-		Entity(EntityType entityType, glm::vec3& entityPosition);
+		Entity(EntityType entityType, const char* name);
 		virtual ~Entity();
 
 		virtual void Update(double deltaTime) = 0;

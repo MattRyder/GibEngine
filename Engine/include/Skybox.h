@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Entity.h"
+#include "Mesh.h"
 #include "Shader.h"
 
 const static size_t SKYBOX_VERTICES_COUNT = 108;
@@ -61,16 +62,15 @@ namespace GibEngine
 		Texture *skyboxCubemap;
 		const char* textureExtension;
 
-		World::DatabaseEntity<Mesh::Instance>* skyboxModelInstance;
-
 	public:
 		const int SKYBOX_MOVE_SPEED = 1;
 
 		Skybox(const char* skyboxTextureName, const char* skyboxTextureExtension);
 		~Skybox();
 
+		void LoadCubemap();
+
 		Texture* GetCubemap();
-		World::DatabaseEntity<Mesh::Instance>* GetMeshInstance();
 		const char* GetExtension();
 
 		virtual void Update(double deltaTime) override;

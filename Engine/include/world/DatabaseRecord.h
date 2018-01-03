@@ -7,7 +7,7 @@ namespace GibEngine
 		class DatabaseRecord
 		{
 		public:
-			enum class State
+			enum class State : char
 			{
 				/* No State changes have been recorded */
 				CLEAN,
@@ -22,12 +22,13 @@ namespace GibEngine
 				DELETED,
 			};
 
-			DatabaseRecord() : id(0), attachedEntityId(0), state(State::NEW) { }
-			DatabaseRecord(int id) : id(id), attachedEntityId(0), state(State::CLEAN) { }
+			DatabaseRecord() : id(0), attachedEntityId(0), state(State::NEW), entityState(State::CLEAN) { }
+			DatabaseRecord(int id) : id(id), attachedEntityId(0), state(State::CLEAN), entityState(State::CLEAN) { }
 
 			int GetId() const { return id; }
 			int GetEntityId() const { return attachedEntityId; }
 			State GetState() const { return state; }
+			State GetEntityState() const { return entityState; }
 
 			void SetState(State state)
 			{
@@ -38,6 +39,8 @@ namespace GibEngine
 				}
 				this->state = state;
 			}
+
+			void SetEntityState(State entityState) { this->entityState = entityState; }
 
 			void SetId(unsigned int id) { this->id = id; }
 
@@ -52,6 +55,9 @@ namespace GibEngine
 
 			// Tracks the state of the record
 			State state;
+
+			// Tracks the state of the underlying Entity
+			State entityState;
 		};
 	}
 }

@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "scene/VisibleSet.h"
-#include "world/DatabaseEntity.h"
 #include "Shader.h"
 #include "FreeCamera.h"
 #include "UniformBufferManager.h"
@@ -50,8 +49,6 @@ namespace GibEngine
 			void FlagLightingBindRequired();
 
 			void TakeScreenshot();
-
-			void UpdateMeshInstances(MeshUploadTicket* ticket, std::vector<World::DatabaseEntity<Mesh::Instance>*> instances);
 
 			void SetPassEnabled(bool value);
 		};

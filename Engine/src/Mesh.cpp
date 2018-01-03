@@ -1,10 +1,21 @@
 #include "../include/Mesh.h"
 
-GibEngine::Mesh::Mesh() : Entity(EntityType::MESH), ownerAssetName(nullptr), instanceMatrices()
+GibEngine::Mesh::Mesh(const char* name) : Entity(EntityType::MESH, name), ownerAssetName(nullptr)
 {
 	// Will add the mesh to deferred renderer by default:
 	flags = static_cast<Mesh::Flags>(RENDER_ENABLED | RENDER_DEFERRED);
 }
+
+GibEngine::Mesh::Mesh(const char* name, const char* ownerFilePath, std::vector<GibEngine::Vertex> vertices, std::vector<unsigned int> indices, std::vector<GibEngine::Material*> material)
+	: Entity(EntityType::MESH, name), ownerAssetName(strdup(ownerFilePath)), vertices(vertices), indices(indices), materials(material)
+{
+
+	// Will add the mesh to deferred renderer by default:
+	flags = static_cast<Mesh::Flags>(RENDER_ENABLED | RENDER_DEFERRED);
+}
+
+GibEngine::Mesh::Mesh(const char* name, const char* ownerFilePath, std::vector<Vertex> vertices)
+	: Mesh(name, ownerFilePath, vertices, std::vector<unsigned int>(), std::vector<Material*>()) { }
 
 GibEngine::Mesh::~Mesh()
 {
@@ -14,7 +25,6 @@ GibEngine::Mesh::~Mesh()
 	}
 	delete uploadTicket;
 
-	instanceMatrices.clear();
 	vertices.clear();
 	std::vector<Vertex>().swap(vertices);
 	
@@ -32,27 +42,6 @@ GibEngine::Mesh::~Mesh()
 		delete material;
 	}
 	materials.clear();	
-}
-
-GibEngine::Mesh::Mesh(const char* name, std::vector<GibEngine::Vertex> vertices, std::vector<unsigned int> indices, std::vector<GibEngine::Material*> material, const char* ownerFilePath)
-	: Entity(EntityType::MESH), vertices(vertices), indices(indices), materials(material), ownerAssetName(ownerFilePath)
-{
-	entityName = name;
-
-	// Will add the mesh to deferred renderer by default:
-	flags = static_cast<Mesh::Flags>(RENDER_ENABLED | RENDER_DEFERRED);
-}
-
-GibEngine::Mesh::Mesh(const char* directory, aiMesh *mesh, const aiScene* scene) : Mesh()
-{
-	this->ownerAssetName = directory;
-	ProcessMesh(mesh, scene);
-}
-
-GibEngine::Mesh::Mesh(const char* name, std::vector<Vertex> vertices) : Mesh()
-{
-	this->vertices = vertices;
-	this->instanceMatricesDirty = false;
 }
 
 void GibEngine::Mesh::ProcessMesh(aiMesh *mesh, const aiScene* scene)
@@ -136,44 +125,6 @@ void GibEngine::Mesh::SetIndices(std::vector<unsigned int> indices)
 void GibEngine::Mesh::SetVertices(std::vector<Vertex> vertices)
 {
 	this->vertices = vertices;
-}
-
-void GibEngine::Mesh::SetInstanceMatricesDirty(bool isDirty)
-{
-	this->instanceMatricesDirty = isDirty;
-}
-
-bool GibEngine::Mesh::IsInstanceMatricesDirty() const
-{
-	return this->instanceMatricesDirty;
-}
-
-std::vector<GibEngine::World::DatabaseEntity<GibEngine::Mesh::Instance>*> GibEngine::Mesh::GetInstanceMatrices() const
-{
-	return this->instanceMatrices;
-}
-
-void GibEngine::Mesh::AddInstance(GibEngine::World::DatabaseEntity<GibEngine::Mesh::Instance>* meshInstance)
-{
-	this->instanceMatrices.push_back(meshInstance);
-	this->instanceMatricesDirty = true;
-}
-
-void GibEngine::Mesh::UpdateInstance(unsigned int index, GibEngine::World::DatabaseEntity<GibEngine::Mesh::Instance>* meshInstance)
-{
-	if (index >= instanceMatrices.size())
-	{
-		return;
-	}
-
-	this->instanceMatrices[index] = meshInstance;
-	this->instanceMatricesDirty = true;
-}
-
-void GibEngine::Mesh::DeleteInstance(World::DatabaseEntity<Mesh::Instance>* meshInstance)
-{
-	meshInstance->SetState(World::DatabaseEntityState::DELETED);
-	instanceMatricesDirty = true;
 }
 
 std::vector<GibEngine::Vertex> GibEngine::Mesh::GetVertices() const

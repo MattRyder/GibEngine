@@ -13,10 +13,8 @@ GibEngine::Entity::Entity(EntityType type) : entityId(Id++)
     this->entityPosition = glm::vec3();
 }
 
-GibEngine::Entity::Entity(EntityType entityType, glm::vec3& entityPosition) : Entity(entityType)
-{
-    this->SetPosition(entityPosition);
-}
+GibEngine::Entity::Entity(EntityType entityType, const char* name) :
+	entityId(Id++), entityType(entityType), entityName(strdup(name)) { }
 
 GibEngine::Entity::~Entity() { }
 

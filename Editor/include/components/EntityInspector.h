@@ -6,123 +6,147 @@
 
 #include "IComponent.h"
 #include "Entity.h"
-#include "Model.h"
 #include "PointLight.h"
-#include "world/DatabaseEntity.h"
+#include "Skybox.h"
+#include "scene/Node.h"
 
 namespace GibEditor
 {
 	namespace Components
 	{
-		template<class T>
 		class EntityInspector : public IComponent
 		{
 		public:
-			EntityInspector(GibEngine::World::DatabaseEntity<T>* entity)
+			EntityInspector(GibEngine::Scene::Node* sceneNode)
 			{
-				this->entity = entity;
+				this->sceneNode = sceneNode;
 			}
 
-			void Render() { }
+			GibEngine::Scene::Node* GetNode() const { return sceneNode; }
 
-		protected:
-			struct SelectedInstance
+			void Render()
 			{
-				bool active;
-				GibEngine::World::DatabaseEntity<GibEngine::Mesh::Instance>* instance;
-				unsigned int index;
-			};
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(25, 25));
+
+				if (sceneNode != nullptr)
+				{
+					if (sceneNode->GetEntity() != nullptr)
+					{
+						switch (sceneNode->GetEntity()->GetType())
+						{
+						case GibEngine::EntityType::MESH:
+							RenderMesh();
+							break;
+						case GibEngine::EntityType::POINT_LIGHT:
+							RenderLight();
+							break;
+						case GibEngine::EntityType::SKYBOX:
+							RenderSkybox();
+							break;
+						}
+					}
+					else
+					{
+						RenderTransformNode();
+					}
+				}
+
+				ImGui::PopStyleVar();
+			}
 
 		private:
 			const float INCREMENT_SLOW = 0.100f;
 			const float INCREMENT_MID  = 0.500f;
 			const float INCREMENT_FAST = 1.000f;
 
-			GibEngine::World::DatabaseEntity<T>* entity = nullptr;
-			SelectedInstance selectedInstance = { 0 };
+			GibEngine::Scene::Node* sceneNode = nullptr;
+
+			void RenderTransformNode();
+			void RenderMesh();
+			void RenderLight();
+			void RenderSkybox();
 		};
 
-		template<>
-		inline void EntityInspector<GibEngine::Model>::Render()
+		inline void EntityInspector::RenderTransformNode()
 		{
-			GibEngine::Model* model = entity->GetEntity();
-
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(25, 25));
-
-			ImGui::Text((std::string("Entity ID: ") + std::to_string(model->GetID())).c_str());
-			ImGui::Text((std::string("Type: ") + model->GetTypeName()).c_str());
+			ImGui::Text("Type: Transform Node");
 
 			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
 
-			ImGui::Text((std::string("Instances: ") + std::to_string(model->GetModelInstances().size())).c_str());
+			glm::mat4 matrix = sceneNode->GetLocalTransform();
+			glm::vec3 pos = glm::vec3(matrix[3][0], matrix[3][1], matrix[3][2]);
+			glm::vec3 rot = glm::vec3();
+			glm::vec3 scale = glm::vec3(matrix[0][0], matrix[1][1], matrix[2][2]);
 
-			if (ImGui::Button("Add Instance"))
+			if (ImGui::DragFloat3("Position", glm::value_ptr(pos), INCREMENT_SLOW, -1000.0f, 1000.0f))
 			{
-				GibEngine::Mesh::Instance* instance = new GibEngine::Mesh::Instance();
-				GibEngine::World::DatabaseEntity<GibEngine::Mesh::Instance>* newInstance = new GibEngine::World::DatabaseEntity<GibEngine::Mesh::Instance>(0, instance);
-				newInstance->SetState(GibEngine::World::DatabaseEntityState::NEW);
-				model->AddInstance(newInstance);
+				matrix[3] = glm::vec4(pos[0], pos[1], pos[2], 1.0f);
+				sceneNode->SetLocalTransform(matrix);
 			}
 
-			for (unsigned int i = 0; i < model->GetModelInstances().size(); i++)
+			if (ImGui::DragFloat3("Rotation", glm::value_ptr(rot), 1.0f, -1000.0f, 1000.0f))
 			{
-				if (ImGui::Selectable((std::string("Instance #") + std::to_string(i)).c_str()))
-				{
-					selectedInstance.active = true;
-					selectedInstance.index = i;
-				}
 			}
 
-			if (selectedInstance.active)
+			if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), INCREMENT_SLOW, -1000.0f, 1000.0f))
 			{
-				selectedInstance.instance = model->GetModelInstances().at(selectedInstance.index);
+				matrix[0][0] = scale[0];
+				matrix[1][1] = scale[1];
+				matrix[2][2] = scale[2];
 
-				ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
-
-				glm::mat4 matrix = selectedInstance.instance->GetEntity()->GetMatrix();
-				glm::vec3 pos = glm::vec3(matrix[3][0], matrix[3][1], matrix[3][2]);
-				glm::vec3 rot = glm::vec3();
-				glm::vec3 scale = glm::vec3(matrix[0][0], matrix[1][1], matrix[2][2]);
-
-				if (ImGui::DragFloat3("Position", glm::value_ptr(pos), INCREMENT_SLOW, -1000.0f, 1000.0f))
-				{
-					matrix[3] = glm::vec4(pos[0], pos[1], pos[2], 1.0f);
-					selectedInstance.instance->Modify()->SetMatrix(matrix);
-					entity->GetEntity()->UpdateInstance(selectedInstance.index, selectedInstance.instance);
-				}
-
-				if (ImGui::DragFloat3("Rotation", glm::value_ptr(rot), 1.0f, -1000.0f, 1000.0f))
-				{
-				}
-
-				if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), INCREMENT_SLOW, -1000.0f, 1000.0f))
-				{
-					matrix[0][0] = scale[0];
-					matrix[1][1] = scale[1];
-					matrix[2][2] = scale[2];
-
-					selectedInstance.instance->Modify()->SetMatrix(matrix);
-					entity->GetEntity()->UpdateInstance(selectedInstance.index, selectedInstance.instance);
-				}
+				sceneNode->SetLocalTransform(matrix);
 			}
-
-			ImGui::PopStyleVar();
 		}
 
-		template<>
-		inline void EntityInspector<GibEngine::PointLight>::Render()
+		inline void EntityInspector::RenderMesh()
 		{
-			GibEngine::PointLight* light = entity->GetEntity();
+			GibEngine::Mesh* mesh = reinterpret_cast<GibEngine::Mesh*>(sceneNode->GetEntity());
+
+			ImGui::Text((std::string("Entity ID: ") + std::to_string(mesh->GetID())).c_str());
+			ImGui::Text("Type: Mesh");
+
+			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
+
+			glm::mat4 matrix = sceneNode->GetLocalTransform();
+			glm::vec3 pos = glm::vec3(matrix[3][0], matrix[3][1], matrix[3][2]);
+			glm::vec3 rot = glm::vec3();
+			glm::vec3 scale = glm::vec3(matrix[0][0], matrix[1][1], matrix[2][2]);
+
+			if (ImGui::DragFloat3("Position", glm::value_ptr(pos), INCREMENT_SLOW, -1000.0f, 1000.0f))
+			{
+				matrix[3] = glm::vec4(pos[0], pos[1], pos[2], 1.0f);
+				sceneNode->SetLocalTransform(matrix);
+			}
+
+			if (ImGui::DragFloat3("Rotation", glm::value_ptr(rot), 1.0f, -1000.0f, 1000.0f))
+			{
+			}
+
+			if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), INCREMENT_SLOW, -1000.0f, 1000.0f))
+			{
+				matrix[0][0] = scale[0];
+				matrix[1][1] = scale[1];
+				matrix[2][2] = scale[2];
+
+				sceneNode->SetLocalTransform(matrix);
+			}
+		}
+
+		inline void EntityInspector::RenderLight()
+		{
+			GibEngine::PointLight* light = reinterpret_cast<GibEngine::PointLight*>(sceneNode->GetEntity());
 
 			ImGui::Text((std::string("Entity ID: ") + std::to_string(light->GetID())).c_str());
 			ImGui::Text((std::string("Type: ") + light->GetTypeName()).c_str());
 
 			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
 
-			glm::vec3 pos = light->GetPosition();
+			glm::mat4 lightTransform = sceneNode->GetLocalTransform();
+			glm::vec3 pos = glm::vec3(lightTransform[3][0], lightTransform[3][1], lightTransform[3][2]);
 			if (ImGui::DragFloat3("Position", glm::value_ptr(pos), INCREMENT_MID, -1000.0f, 1000.0f))
 			{
-				entity->Modify()->SetPosition(pos);
+				lightTransform[3] = glm::vec4(pos, 1.0f);
+				sceneNode->SetLocalTransform(lightTransform);
 			}
 
 			float linearAttenuation = light->GetLinearAttenuation();
@@ -155,6 +179,31 @@ namespace GibEditor
 			if (ImGui::ColorEdit3("Specular", glm::value_ptr(spec)))
 			{
 				light->SetSpecularColor(spec);
+			}
+		}
+		inline void EntityInspector::RenderSkybox()
+		{
+			GibEngine::Skybox* skybox = reinterpret_cast<GibEngine::Skybox*>(sceneNode->GetEntity());
+
+			const size_t SKYBOX_INPUT_LEN = 128;
+			char skyboxNameBuf[SKYBOX_INPUT_LEN] = { 0 };
+			char skyboxTextureExt[SKYBOX_INPUT_LEN] = { 0 };
+
+			memcpy_s(skyboxNameBuf, SKYBOX_INPUT_LEN, skybox->GetName(), strlen(skybox->GetName()));
+			memcpy_s(skyboxTextureExt, SKYBOX_INPUT_LEN, skybox->GetExtension(), strlen(skybox->GetExtension()));
+
+			if (ImGui::InputText("Skybox Name", skyboxNameBuf, SKYBOX_INPUT_LEN))
+			{
+				skybox->SetName(strdup(skyboxNameBuf));
+			}
+
+			if (ImGui::InputText("Extension", skyboxTextureExt, SKYBOX_INPUT_LEN))
+			{
+			}
+
+			if (ImGui::Button("Load Skybox"))
+			{
+				skybox->LoadCubemap();
 			}
 		}
 	}

@@ -183,7 +183,7 @@ void GibEngine::Renderer::API::GLES3::DrawPrimitive(MeshUploadTicket* meshUpload
 	glBindVertexArray(0);
 }
 
-void GibEngine::Renderer::API::GLES3::DrawMesh(GibEngine::Mesh *mesh, int instanceCount)
+void GibEngine::Renderer::API::GLES3::DrawMesh(GibEngine::Mesh *mesh, size_t instanceCount)
 {
 	Mesh::Flags flags = mesh->GetFlags();
 	if (flags && !Mesh::Flags::RENDER_ENABLED)

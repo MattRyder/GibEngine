@@ -9,15 +9,9 @@ bool GibEngine::Input::InputManager::isUpdatingMouseState = true;
 bool GibEngine::Input::InputManager::isUpdatingKeyboardState = true;
 bool GibEngine::Input::InputManager::isUpdatingScrollState = true;
 
-GibEngine::Input::InputManager::InputManager(GLFWwindow *window)
+GibEngine::Input::InputManager::InputManager(GLFWwindow* window)
 {
-	if (window != nullptr)
-	{
-		glfwSetMouseButtonCallback(window, this->MouseButtonCallback);
-		glfwSetJoystickCallback(this->ControllerConnectionCallback);
-		glfwSetKeyCallback(window, this->KeyCallback);
-		glfwSetCursorPosCallback(window, this->MouseCallback);
-	}
+	Install(window);
 }
 
 void GibEngine::Input::InputManager::ControllerConnectionCallback(int controllerId, int event)
@@ -69,6 +63,17 @@ void GibEngine::Input::InputManager::ScrollCallback(GLFWwindow * window, int off
 	{
 		scrollState.x = offsetX;
 		scrollState.y = offsetY;
+	}
+}
+
+void GibEngine::Input::InputManager::Install(GLFWwindow* window)
+{
+	if (window != nullptr)
+	{
+		glfwSetMouseButtonCallback(window, this->MouseButtonCallback);
+		glfwSetJoystickCallback(this->ControllerConnectionCallback);
+		glfwSetKeyCallback(window, this->KeyCallback);
+		glfwSetCursorPosCallback(window, this->MouseCallback);
 	}
 }
 

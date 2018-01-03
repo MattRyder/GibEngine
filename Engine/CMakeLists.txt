@@ -79,15 +79,10 @@ set(THIRDPARTY_SRC
 set(WORLD_INCLUDES
   include/world/Database.h
   include/world/DatabaseQuery.h
-  include/world/DatabaseEntity.h
-  include/world/DatabaseRecord.h
-  include/world/World.h
-  include/world/Level.h)
+  include/world/DatabaseRecord.h)
 
 set(WORLD_SRC
-  src/world/Database.cpp
-  src/world/World.cpp
-  src/world/Level.cpp)
+  src/world/Database.cpp)
 
 set(INPUT_INCLUDES
   include/input/Controller.h
@@ -145,7 +140,6 @@ set(ROOT_INCLUDES
   include/Logger.h
   include/Mesh.h
   include/MeshService.h
-  include/Model.h
   include/Shader.h
   include/Skybox.h
   include/Texture.h
@@ -163,7 +157,6 @@ set(ROOT_SRC
   src/Logger.cpp
   src/Mesh.cpp
   src/MeshService.cpp
-  src/Model.cpp
   src/Shader.cpp
   src/Skybox.cpp
   src/Texture.cpp

@@ -45,7 +45,7 @@ void GibEngine::Renderer::RenderPass::LoadQuadData()
 		quadVerts.push_back(v);
 	}
 
-	quadMesh = new Mesh("RenderPassQuad", quadVerts);
+	quadMesh = new Mesh("RenderPassQuad", nullptr, quadVerts);
 	quadMesh->SetMeshUploadTicket(graphicsApi->UploadMesh(quadMesh));
 }
 
@@ -167,19 +167,6 @@ void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot()
 
 	delete[] date;
 	delete[] frameBuffer;
-}
-
-void GibEngine::Renderer::RenderPass::UpdateMeshInstances(GibEngine::MeshUploadTicket* ticket, std::vector<World::DatabaseEntity<Mesh::Instance>*> instances)
-{
-	std::vector<glm::mat4> instanceMatrices;
-	for (auto dbInstance : instances)
-	{
-		if (dbInstance->GetState() != World::DatabaseEntityState::DELETED)
-		{
-			instanceMatrices.push_back(dbInstance->GetEntity()->GetMatrix());
-		}
-	}
-	graphicsApi->UpdateMeshInstances(ticket, instanceMatrices);
 }
 
 void GibEngine::Renderer::RenderPass::BindLightUniform3f(const char* lightUniformName, const glm::vec3 lightUniformValue)

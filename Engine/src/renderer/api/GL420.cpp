@@ -223,7 +223,7 @@ void GibEngine::Renderer::API::GL420::DrawPrimitive(MeshUploadTicket* meshUpload
 	glBindVertexArray(0);
 }
 
-void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh, int instanceCount)
+void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh, size_t instanceCount)
 {
 	Mesh::Flags flags = mesh->GetFlags();
 	if (flags && !Mesh::Flags::RENDER_ENABLED)

@@ -27,14 +27,6 @@ GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
 		}
 	};
 
-	auto toggleWireframeCallback = [&](GibEngine::World::Level* currentLevel) -> void
-	{
-		for (auto model : currentLevel->GetModelEntities())
-		{
-			model->GetEntity()->SetWireframeMode(true);
-		}
-	};
-
 	auto toggleUiRenderCallback = [&]() -> void 
 	{
 		flags = static_cast<Flags>(flags ^ Flags::DISABLE_UI_RENDER);
@@ -128,4 +120,9 @@ void GibEditor::Editor::Update()
 void GibEditor::Editor::SetWindowShouldClose(bool value)
 {
 	glfwSetWindowShouldClose(GetWindow(), value);
+}
+
+GibEditor::Components::Dock* GibEditor::Editor::GetDock() const
+{
+	return dock;
 }

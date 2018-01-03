@@ -34,7 +34,7 @@ namespace GibEngine
 				virtual void ClearFramebuffer() override;
 
                 virtual void DrawPrimitive(MeshUploadTicket* meshUploadTicket) override;
-                virtual void DrawMesh(GibEngine::Mesh *mesh, int instanceCount) override;
+                virtual void DrawMesh(GibEngine::Mesh *mesh, size_t instanceCount) override;
                 virtual void DrawSkybox(GibEngine::Skybox *skybox) override;
 
 				virtual int GetUniformLocation(const char* uniformName) override;

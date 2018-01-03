@@ -7,9 +7,8 @@
 class MockEntity : public GibEngine::Entity
 {
 public:
-	MockEntity() : Entity(GibEngine::EntityType::ENTITY) { }
+	MockEntity(const char* name) : Entity(GibEngine::EntityType::ENTITY, name) { }
 
-	// Inherited via Entity
 	virtual void Update(double deltaTime)
 	{
 		return;
@@ -21,7 +20,7 @@ class EntityTest : public ::testing::Test
 public:
 	virtual void SetUp()
 	{
-		entity = new MockEntity();
+		entity = new MockEntity(ENTITY_NAME);
 	}
 
 	MockEntity* entity;

@@ -10,8 +10,8 @@
 #include "sqlite3pp/sqlite3pp.h"
 
 #include "DatabaseQuery.h"
-#include "DatabaseEntity.h"
-#include "Level.h"
+#include "Skybox.h"
+#include "PointLight.h"
 #include "Logger.h"
 
 #include "scene/Node.h"
@@ -42,8 +42,8 @@ namespace GibEngine
             
 			bool CreateLevel(int nodeId, const char* name);
 
-			Scene::Node* LoadSkybox(int skyboxId);
-			Scene::Node* LoadLight(int lightId);
+			Skybox* LoadSkybox(int skyboxId);
+			PointLight* LoadLight(int lightId);
 			Scene::Node* LoadMesh(int meshId);
 			Scene::Node* LoadLevel(int rootNodeId);
 

@@ -34,15 +34,15 @@ GibEngine::Game::Game(int argc, char** argv)
 			0.75f, // -1.0 -- 1.0
 			1.0f); // 0.0 -- 1.0
 
-		Scene::Node* rootNode = new Scene::Node();
+		Scene::Node* rootNode = new Scene::Node("Root Node");
 
 		// Create the Scene graph for the demo world:
-		Scene::Node* skyboxNode = new Scene::Node();
+		Scene::Node* skyboxNode = new Scene::Node("Skybox");
 		skyboxNode->SetEntity(skybox);
 		rootNode->AddChildNode(skyboxNode);
 
 		// Create a Point Light node within the Scene:
-		Scene::Node* pointLightNode = new Scene::Node();
+		Scene::Node* pointLightNode = new Scene::Node("Test Point Light");
 		pointLightNode->SetEntity(light);
 		glm::mat4 lightPos = glm::mat4();
 		lightPos[3] = glm::vec4(0.0f, 1.65f, 2.0f, 1.0f);
@@ -277,6 +277,11 @@ GLFWwindow* GibEngine::Game::GetWindow()
 GibEngine::Renderer::Pipeline * GibEngine::Game::GetRenderPipeline() const
 {
 	return renderPipeline;
+}
+
+GibEngine::Input::InputManager* GibEngine::Game::GetInputManager() const
+{
+	return inputManager;
 }
 
 float GibEngine::Game::GetDeltaTime()

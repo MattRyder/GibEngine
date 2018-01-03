@@ -18,8 +18,13 @@ public:
 		//level = database->CreateLevel(strdup(LEVEL_NAME));
 		skybox = new Skybox(SKYBOX_NAME[0], SKYBOX_NAME[1]);
 
-		model = new Model(MODEL_NAME);
-		modelMatrix = glm::mat4();
+		File* meshFile = File::GetModelFile(MESH_NAME);
+		mesh = MeshService::Load(meshFile);
+		light = new PointLight(
+			glm::vec3(), glm::vec3(0.5f), glm::vec3(0.75f), glm::vec3(0.25f), 0.800f, 1.0f
+		);
+
+		delete meshFile;
 	}
 
 	virtual void TearDown()
@@ -27,20 +32,18 @@ public:
 		database->Disconnect();
 		int res = std::remove(FILENAME);
 
-		// delete database;
-		// delete level;
-		// delete model;
+		 delete database;
+		 delete skybox;
+		 delete mesh;
+		 delete light;
 	}
 
 	const char* FILENAME = "test.db";
-	const char* LEVEL_NAME = "E1M1: At Doom's Gate";
-	const char* MODEL_NAME = "brickwall/brickwall.obj";
+	const char* MESH_NAME = "brickwall/brickwall.obj";
 	const char* SKYBOX_NAME[2] = { "default", "png" };
 	
-	Database* database;
-	Level* level;
-	Skybox* skybox;
-
-	Model* model;
-	glm::mat4 modelMatrix;
+	Database* database = nullptr;
+	Skybox* skybox = nullptr;
+	Scene::Node* mesh = nullptr;
+	PointLight* light = nullptr;
 };

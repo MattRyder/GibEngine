@@ -27,6 +27,8 @@ namespace GibEditor
 		virtual void Render() override;
 		virtual void Update() override;
 
+		Components::Dock* GetDock() const;
+
 	private:
 		Flags flags = Flags::DEFAULT;
 		Components::Menubar* menubar;
@@ -40,5 +42,6 @@ namespace GibEditor
 			| ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
 		void SetWindowShouldClose(bool value);
+
     };
 }

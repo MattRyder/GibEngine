@@ -1,14 +1,10 @@
 #include "Skybox.h"
 
-GibEngine::Skybox::Skybox(const char* skyboxTextureName, const char* skyboxTextureExtension) : Mesh()
+GibEngine::Skybox::Skybox(const char* skyboxTextureName, const char* skyboxTextureExtension) : Mesh(skyboxTextureName)
 {
 	this->entityType = EntityType::SKYBOX;
 
-	this->SetName(skyboxTextureName);
 	this->textureExtension = skyboxTextureExtension;
-
-	skyboxModelInstance = new World::DatabaseEntity<Mesh::Instance>(0, new Mesh::Instance(glm::mat4()));
-	AddInstance(skyboxModelInstance);
 
 	std::vector<Vertex> vertices;
 	for (unsigned int i = 0; i < SKYBOX_VERTICES_COUNT; i += 3)
@@ -19,8 +15,8 @@ GibEngine::Skybox::Skybox(const char* skyboxTextureName, const char* skyboxTextu
 	}
 	this->SetVertices(vertices);
 
-	std::string* skyboxTextureDir = File::GetSkyboxPath(skyboxTextureName);
-	skyboxCubemap = Texture::LoadCubemap(skyboxTextureDir, "png");
+	LoadCubemap();
+
 }
 
 GibEngine::Skybox::~Skybox()
@@ -28,14 +24,15 @@ GibEngine::Skybox::~Skybox()
 	delete skyboxCubemap;
 }
 
+void GibEngine::Skybox::LoadCubemap()
+{
+	std::string* skyboxTextureDir = File::GetSkyboxPath(entityName);
+	skyboxCubemap = Texture::LoadCubemap(skyboxTextureDir, "png");
+}
+
 GibEngine::Texture* GibEngine::Skybox::GetCubemap()
 {
 	return skyboxCubemap;
-}
-
-GibEngine::World::DatabaseEntity<GibEngine::Mesh::Instance>* GibEngine::Skybox::GetMeshInstance()
-{
-	return this->skyboxModelInstance;
 }
 
 const char* GibEngine::Skybox::GetExtension()
@@ -45,6 +42,6 @@ const char* GibEngine::Skybox::GetExtension()
 
 void GibEngine::Skybox::Update(double deltaTime)
 {
-	auto skyboxInstance = skyboxModelInstance->GetEntity();
-	skyboxInstance->SetMatrix(glm::rotate(skyboxInstance->GetMatrix(), float(glm::radians(SKYBOX_MOVE_SPEED * deltaTime)), glm::vec3(0, 1, 0)));
+	//auto skyboxInstance = skyboxModelInstance->GetEntity();
+	//skyboxInstance->SetMatrix(glm::rotate(skyboxInstance->GetMatrix(), float(glm::radians(SKYBOX_MOVE_SPEED * deltaTime)), glm::vec3(0, 1, 0)));
 }

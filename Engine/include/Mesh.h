@@ -11,7 +11,6 @@
 
 #include "Entity.h"
 #include "Texture.h"
-#include "world/DatabaseEntity.h"
 
 namespace GibEngine
 {
@@ -53,32 +52,6 @@ namespace GibEngine
 	public:
 		static const int MOVE_SPEED = 10;
 
-		class Instance
-		{
-			glm::mat4 matrix;
-
-		public:
-			Instance(glm::mat4 matrix) : matrix(matrix) { }
-			Instance() : Instance(glm::mat4()) { }
-
-			glm::mat4 GetMatrix() { return matrix; }
-
-			glm::vec3 GetPosition()
-			{ 
-				return glm::vec3(matrix[3][0], matrix[3][1], matrix[3][2]);
-			}
-
-			glm::vec3 GetScale()
-			{
-				return glm::vec3(matrix[0][0], matrix[1][1], matrix[2][2]);
-			}
-
-			void SetMatrix(glm::mat4 matrix)
-			{
-				this->matrix = matrix;
-			}
-		};
-
 		enum Flags
 		{
 			RENDER_ENABLED = 1 << 0,
@@ -88,27 +61,18 @@ namespace GibEngine
 			RENDER_FORWARD = 1 << 4
 		};
 
-		Mesh();
+		Mesh(const char* name);
+		Mesh(const char* name, const char* ownerFileName, std::vector<Vertex> vertices);
+		Mesh(const char* name, const char* ownerAssetName, std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Material*> material);
 		~Mesh();
-		Mesh(const char* name, std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-			std::vector<Material*> material, const char* ownerAssetName);
 
-		Mesh(const char *directory, aiMesh *mesh, const aiScene *scene);
-		Mesh(const char* name, std::vector<Vertex> vertices);
-
-		void AddInstance(World::DatabaseEntity<Instance>* meshInstance);
-		void UpdateInstance(unsigned int index, World::DatabaseEntity<Instance>* meshInstance);
-		void DeleteInstance(World::DatabaseEntity<Mesh::Instance>* meshInstance);
-
-		std::vector<World::DatabaseEntity<Instance>*> GetInstanceMatrices() const;
+		Flags GetFlags() const;
 		std::vector<unsigned int> GetIndices() const;
 		std::vector<Material*> GetMaterials() const;
 		MeshUploadTicket* GetMeshUploadTicket() const;
-		Flags GetFlags() const;
 		std::vector<Vertex> GetVertices() const;
 		const char* GetOwnerAssetName() const;
 
-		bool IsInstanceMatricesDirty() const;
 		bool IsUploaded();
 		std::vector<GibEngine::Texture*> LoadMaterialTextures(aiMaterial *material, aiTextureType type, GibEngine::TextureType textureType);
 
@@ -116,7 +80,6 @@ namespace GibEngine
 
 		void SetIndices(std::vector<unsigned int> indices);
 		void SetVertices(std::vector<Vertex> vertices);
-		void SetInstanceMatricesDirty(bool isDirty);
 		void SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept);
 		void SetFlags(Flags flags);
 
@@ -125,11 +88,6 @@ namespace GibEngine
 	private:
 		MeshUploadTicket* uploadTicket = nullptr;
 		Flags flags = Flags::RENDER_ENABLED;
-
-		std::vector<World::DatabaseEntity<Instance>*> instanceMatrices;
-
-		// Flags that the instance matrices must be updated on the GFX server
-		bool instanceMatricesDirty;
 
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;

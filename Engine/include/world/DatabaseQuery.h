@@ -106,7 +106,7 @@ namespace GibEngine
 		)";
 
 		static const char* SELECT_SKYBOX_QUERY = R"(
-            SELECT AssetName FROM Skyboxes WHERE Id = :id;
+            SELECT AssetName, Extension FROM Skyboxes WHERE Id = :id;
         )";
 
 		static const char* SELECT_LIGHT_QUERY = R"(
@@ -119,10 +119,20 @@ namespace GibEngine
 			SELECT AssetName FROM Meshes WHERE Id = :id;
 		)";
 
-		static const char* UPDATE_SKYBOX_QUERY = R"(
+		static const char* UPDATE_SKYBOX_COMMAND = R"(
 			UPDATE Skyboxes
 			SET AssetName = :assetName, Extension = :extension
 			WHERE Id = ?;
+		)";
+
+		static const char* UPDATE_NODE_COMMAND = R"(
+			UPDATE Nodes
+			SET ParentId = :parentId, EntityType = :entityType, EntityId = :entityId, Position = :position, Scale = :scale
+			WHERE Id = ?;
+		)";
+
+		static const char* DELETE_NODE_COMMAND = R"(
+			DELETE FROM Nodes WHERE Id = :id;
 		)";
 	}
 }

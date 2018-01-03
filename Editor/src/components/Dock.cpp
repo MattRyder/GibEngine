@@ -10,7 +10,7 @@ void GibEditor::Components::Dock::Render()
 {
 	ImGui::BeginDockspace();
 
-	if (ImGui::BeginDock("Game Name Here"))
+	if (ImGui::BeginDock("Game"))
 	{
 		ImVec2 windowSize = ImGui::GetWindowSize();
 
@@ -35,83 +35,10 @@ void GibEditor::Components::Dock::Render()
 			selectedDock = Dock::Type::SCENE_TREE;
 		}
 
-		const int COLUMN_COUNT = 3;
-		const char* COLUMN_TITLES[COLUMN_COUNT] = { "Name", "Type", "Instance Count" };
-
-		ImGui::Columns(COLUMN_COUNT);
-
-		for (unsigned int i = 0; i < COLUMN_COUNT; i++)
+		if (rootSceneNode != nullptr)
 		{
-			ImGui::Text("%s", COLUMN_TITLES[i]);
-			ImGui::NextColumn();
+			RenderSceneTreeNode(rootSceneNode);
 		}
-
-		//if (rootSceneNode != nullptr)
-		//{
-		//	for (auto model : level->GetModelEntities())
-		//	{
-		//		auto modelEntity = model->GetEntity();
-
-		//		bool modelClicked = false;
-
-		//		if (ImGui::Selectable(modelEntity->GetName()))
-		//		{
-		//			modelClicked = true;
-		//		}
-		//		ImGui::NextColumn();
-
-		//		if (ImGui::Selectable(modelEntity->GetTypeName()))
-		//		{
-		//			modelClicked = true;
-		//		}
-		//		ImGui::NextColumn();
-
-		//		if(ImGui::Selectable(std::to_string(modelEntity->GetModelInstances().size()).c_str()))
-		//		{
-		//			modelClicked = true;
-		//		}
-		//		ImGui::NextColumn();
-
-		//		if (modelClicked)
-		//		{
-		//			delete modelInspector;
-		//			modelInspector = new EntityInspector<GibEngine::Model>(model);
-		//			activeInspector = ActiveEntityInspector::MODEL;
-		//		}
-		//	}
-
-		//	for (auto light : level->GetPointLightEntities())
-		//	{
-		//		auto lightEntity = light->GetEntity();
-
-		//		bool lightSelected = false;
-
-		//		if (ImGui::Selectable(lightEntity->GetName()))
-		//		{
-		//			lightSelected = true;
-		//		}
-
-		//		ImGui::NextColumn();
-
-		//		if (ImGui::Selectable(lightEntity->GetTypeName()))
-		//		{
-		//			lightSelected = true;
-		//		}
-
-		//		if (lightSelected)
-		//		{
-		//			delete pointLightInspector;
-		//			pointLightInspector = new EntityInspector<GibEngine::PointLight>(light);
-		//			activeInspector = ActiveEntityInspector::POINT_LIGHT;
-		//		}
-
-		//		ImGui::NextColumn();
-		//		ImGui::NextColumn();
-
-		//	}
-
-		//	ImGui::Columns(1);
-		//}
 
 		ImGui::EndDock();
 
@@ -124,7 +51,7 @@ void GibEditor::Components::Dock::Render()
 			ImGui::EndDock();
 		}
 
-		if (activeInspector != ActiveEntityInspector::NONE)
+		if (entityInspector != nullptr)
 		{
 			ImGui::SetNextDock(ImGuiDockSlot_Right);
 
@@ -135,15 +62,7 @@ void GibEditor::Components::Dock::Render()
 					selectedDock = Dock::Type::ENTITY_INSPECTOR;
 				}
 
-				switch (activeInspector)
-				{
-				case ActiveEntityInspector::MODEL:
-					modelInspector->Render();
-					break;
-				case ActiveEntityInspector::POINT_LIGHT:
-					pointLightInspector->Render();
-					break;
-				}
+				entityInspector->Render();
 
 				ImGui::EndDock();
 			}
@@ -156,4 +75,37 @@ void GibEditor::Components::Dock::Render()
 GibEditor::Components::Dock::Type GibEditor::Components::Dock::GetSelectedDock() const
 {
 	return selectedDock;
+}
+
+void GibEditor::Components::Dock::RenderSceneTreeNode(GibEngine::Scene::Node* node)
+{
+	GibEngine::Scene::Node* selectedNode = entityInspector != nullptr ? entityInspector->GetNode() : nullptr;
+	GibEngine::Entity* nodeEntity = node->GetEntity();
+
+	if (node->GetChildNodeCount() == 0)
+	{
+		if (ImGui::Selectable(node->GetName()))
+		{
+			delete entityInspector;
+			entityInspector = new Components::EntityInspector(node);
+		}
+	}
+	else
+	{
+		if (ImGui::TreeNode(node->GetName()))
+		{
+			if (ImGui::IsMouseDoubleClicked(1))
+			{
+				delete entityInspector;
+				entityInspector = new Components::EntityInspector(node);
+			}
+
+			for (auto iter = node->GetChildNodesBegin(); iter != node->GetChildNodesEnd(); ++iter)
+			{
+				RenderSceneTreeNode(*iter);
+			}
+
+			ImGui::TreePop();
+		}
+	}
 }

@@ -8,7 +8,6 @@
 #include "glfw/glfw_callback.h"
 
 #include "File.h"
-#include "Model.h"
 #include "Shader.h"
 #include "Skybox.h"
 #include "FreeCamera.h"
@@ -56,6 +55,7 @@ namespace GibEngine
 		virtual void SetupPipeline();
 
 		bool InitializeGL(GibEngine::Renderer::ShaderLanguage shaderVersion);
+
 		void ToggleVsync();
 
 		void SetWindowTitle(const char* windowTitle);
@@ -63,6 +63,7 @@ namespace GibEngine
 
 		GLFWwindow* GetWindow();
 		Renderer::Pipeline* GetRenderPipeline() const;
+		Input::InputManager* GetInputManager() const;
 		float GetDeltaTime();
 	};
 }

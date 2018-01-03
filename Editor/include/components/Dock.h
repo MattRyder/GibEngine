@@ -33,15 +33,14 @@ namespace GibEditor
 			virtual void Render() override;
 
 			Dock::Type GetSelectedDock() const;
+			void RenderSceneTreeNode(GibEngine::Scene::Node* node);
 
 		private:
 			GibEngine::Scene::Node* rootSceneNode;
 			GibEngine::Renderer::Pipeline* pipeline;
 			
 			Components::ContentBrowser* cbrowser = nullptr;
-
-			EntityInspector<GibEngine::Model>* modelInspector = nullptr;
-			EntityInspector<GibEngine::PointLight>* pointLightInspector = nullptr;
+			Components::EntityInspector* entityInspector = nullptr;
 
 			Dock::Type selectedDock = Dock::Type::GAME;
 			ActiveEntityInspector activeInspector = ActiveEntityInspector::NONE;
