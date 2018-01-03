@@ -189,8 +189,8 @@ namespace GibEditor
 			char skyboxNameBuf[SKYBOX_INPUT_LEN] = { 0 };
 			char skyboxTextureExt[SKYBOX_INPUT_LEN] = { 0 };
 
-			memcpy_s(skyboxNameBuf, SKYBOX_INPUT_LEN, skybox->GetName(), strlen(skybox->GetName()));
-			memcpy_s(skyboxTextureExt, SKYBOX_INPUT_LEN, skybox->GetExtension(), strlen(skybox->GetExtension()));
+			memcpy(skyboxNameBuf, skybox->GetName(), SKYBOX_INPUT_LEN);
+			memcpy(skyboxTextureExt, skybox->GetExtension(), SKYBOX_INPUT_LEN);
 
 			if (ImGui::InputText("Skybox Name", skyboxNameBuf, SKYBOX_INPUT_LEN))
 			{
