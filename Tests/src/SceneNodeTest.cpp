@@ -2,7 +2,7 @@
 
 TEST_F(SceneNodeTest, CanAddChild)
 {
-	Scene::Node* child = new Scene::Node(nullptr);
+	Scene::Node* child = new Scene::Node("");
 	root->AddChildNode(child);
 
 	int count = root->GetChildNodeCount();
@@ -46,7 +46,7 @@ TEST_F(SceneNodeTest, CanSetChildWorldTransform)
 
 	root->SetLocalTransform(mat);
 
-	Scene::Node* childNode = new Scene::Node(nullptr);
+	Scene::Node* childNode = new Scene::Node("Child Node");
 	childNode->SetLocalTransform(mat);
 	root->AddChildNode(childNode);
 
