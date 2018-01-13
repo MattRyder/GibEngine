@@ -11,7 +11,7 @@ class SceneNodeTest : public ::testing::Test
 public:
 	virtual void SetUp()
 	{
-		root = new Scene::Node(nullptr);
+		root = new Scene::Node("");
 	};
 
 	virtual void TearDown()
