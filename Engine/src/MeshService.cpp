@@ -1,6 +1,6 @@
 #include "MeshService.h"
 
-void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parentNode, const aiScene* scene, aiNode* node)
+void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parentNode, const aiScene* scene, Mesh::Flags flags, aiNode* node)
 {
 	// Load each mesh for this node:
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -64,15 +64,21 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 		materials.push_back(LoadMaterial(rootMeshFile->GetDirectory(), material));
 
 		Mesh* processedMesh = new Mesh(name, rootMeshFile->GetAssetName(), vertices, indices, materials);
+		processedMesh->SetFlags(flags);
+
 		Scene::Node* childMeshNode = new Scene::Node(name);
 		childMeshNode->SetEntity(processedMesh);
 		childMeshNode->SetLocalTransform(meshTransform);
+
+		// Set the database record up:
+		childMeshNode->GetDatabaseRecord()->SetState(World::DatabaseRecord::State::CLEAN);
+
 		parentNode->AddChildNode(childMeshNode);
 	}
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
-		ProcessNode(rootMeshFile, parentNode, scene, node->mChildren[i]);
+		ProcessNode(rootMeshFile, parentNode, scene, flags, node->mChildren[i]);
 	}
 }
 
@@ -113,6 +119,30 @@ GibEngine::Material* GibEngine::MeshService::LoadMaterial(const char* meshDirect
 	return material;
 }
 
+GibEngine::Mesh::Flags GibEngine::MeshService::ParseFlagsJson(const std::vector<json11::Json>& renderFlagsJsonArray)
+{
+	Mesh::Flags flags = Mesh::Flags::RENDER_ENABLED;
+
+	for (auto renderFlagStr : renderFlagsJsonArray)
+	{
+		auto flagStrValue = renderFlagStr.string_value();
+		if (flagStrValue.compare("RENDER_WIREFRAME") == 0)
+		{
+			flags ^= Mesh::Flags::RENDER_WIREFRAME;
+		}
+		else if (flagStrValue.compare("RENDER_DEFERRED") == 0)
+		{
+			flags ^= Mesh::Flags::RENDER_DEFERRED;
+		}
+		else if (flagStrValue.compare("RENDER_FORWARD") == 0)
+		{
+			flags ^= Mesh::Flags::RENDER_FORWARD;
+		}
+	}
+
+	return flags;
+}
+
 std::vector<GibEngine::Texture*> GibEngine::MeshService::LoadMaterialTextures(const char* meshDirectory, const aiMaterial* material, aiTextureType type, GibEngine::TextureType textureType)
 {
 	std::vector<Texture*> textures;
@@ -130,10 +160,18 @@ std::vector<GibEngine::Texture*> GibEngine::MeshService::LoadMaterialTextures(co
 	return textures;
 }
 
-GibEngine::Scene::Node* GibEngine::MeshService::Load(File* file)
+GibEngine::Scene::Node* GibEngine::MeshService::Load(File* file, json11::Json* generationData)
 {
+	Mesh::Flags genDataMeshFlags = Mesh::Flags::RENDER_ENABLED;
+
 	Assimp::Importer importer;
 	const int importerFlags = aiProcess_Triangulate | aiProcess_FlipUVs;
+	
+	if (generationData != nullptr)
+	{
+		genDataMeshFlags = ParseFlagsJson(generationData[0]["MeshFlags"].array_items());
+	}
+
 	const aiScene* scene = importer.ReadFile(file->GetPath(), importerFlags);
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -143,13 +181,34 @@ GibEngine::Scene::Node* GibEngine::MeshService::Load(File* file)
 	}
 
 	Scene::Node* rootNode = new Scene::Node("Mesh Root");
-	ProcessNode(file, rootNode, scene, scene->mRootNode);
+	rootNode->SetFlags(rootNode->GetFlags() ^ Scene::Node::Flags::MESH_ROOT);
+	ProcessNode(file, rootNode, scene, genDataMeshFlags, scene->mRootNode);
+	rootNode->GetDatabaseRecord()->SetState(World::DatabaseRecord::State::CLEAN);
 	importer.FreeScene();
 
 	return rootNode;
 }
 
-GibEngine::Scene::Node* GibEngine::MeshService::GeneratePlane(unsigned int length, unsigned int width, int intervalSize)
+GibEngine::Scene::Node* GibEngine::MeshService::Generate(json11::Json* generationData)
+{
+	std::string meshType = generationData[0]["MeshType"].string_value();
+	if (meshType.compare("Plane") == 0)
+	{
+		int length = generationData[0]["Length"].int_value();
+		int width = generationData[0]["Width"].int_value();
+		int intervalSize = generationData[0]["IntervalSize"].int_value();
+
+		Scene::Node* generatedPlaneNode = GeneratePlane(length, width, intervalSize, Mesh::Flags::RENDER_ENABLED);
+		Mesh* planeMesh = reinterpret_cast<Mesh*>(generatedPlaneNode->GetEntity());
+		planeMesh->SetGenerationData(generationData);
+
+		return generatedPlaneNode;
+	}
+
+	return nullptr;
+}
+
+GibEngine::Scene::Node* GibEngine::MeshService::GeneratePlane(unsigned int length, unsigned int width, int intervalSize, Mesh::Flags flags)
 {
 	assert(intervalSize > 0);
 
@@ -189,12 +248,10 @@ GibEngine::Scene::Node* GibEngine::MeshService::GeneratePlane(unsigned int lengt
 
 	Mesh* planeMesh = new Mesh("Plane", nullptr, vertices);
 
-	Mesh::Flags flags = static_cast<Mesh::Flags>(
-		Mesh::Flags::RENDER_ENABLED |
-		Mesh::Flags::RENDER_ARRAYS |
-		Mesh::Flags::RENDER_FORWARD |
-		Mesh::Flags::RENDER_WIREFRAME
-	);
+	// Just gotta make sure you've explicitly set the right flags here:
+	flags ^= (Mesh::Flags::RENDER_ARRAYS ^ Mesh::Flags::RENDER_FORWARD ^ Mesh::Flags::RENDER_WIREFRAME);
+	flags &= ~Mesh::Flags::RENDER_DEFERRED;
+
 	planeMesh->SetFlags(flags);
 
 	Scene::Node* planeNode = new Scene::Node("Plane");

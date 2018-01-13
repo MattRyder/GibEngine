@@ -69,7 +69,8 @@ void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::Visible
 
 	for (unsigned int i = 0; i < visibleSet.GetLights().size(); i++)
 	{
-		LightBase* light = visibleSet.GetLights()[i];
+		const Scene::Node* lightNode = visibleSet.GetLights()[i];
+		PointLight* light = reinterpret_cast<PointLight*>(lightNode->GetEntity());
 
 		std::string lightId, position, ambient, diffuse, specular,
 			linearAttenuation, quadraticAttenuation, volumeRadius, direction;
@@ -97,7 +98,9 @@ void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::Visible
 
 		if (light->GetType() != EntityType::DIRECTIONAL_LIGHT)
 		{
-			BindLightUniform3f(position.c_str(), light->GetPosition());
+			auto lightWorldTrans = lightNode->GetWorldTransform();
+			auto lightPosition = glm::vec3(lightWorldTrans[3][0], lightWorldTrans[3][1], lightWorldTrans[3][2]);
+			BindLightUniform3f(position.c_str(), lightPosition);
 		}
 
 		// Currently unused by the deferred lighting shader:

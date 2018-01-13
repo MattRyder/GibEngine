@@ -44,6 +44,12 @@ if(assimp_FOUND)
   list(APPEND GIBENGINE_LIBRARIES ${assimp_LIBRARIES})
 endif()
 
+find_package(json11 REQUIRED)
+if(JSON11_FOUND)
+  list(APPEND GIBENGINE_INCLUDE_DIRS ${JSON11_INCLUDE_DIRS})
+  list(APPEND GIBENGINE_LIBRARIES ${JSON11_LIBRARIES})
+endif()
+
 set(GibEngine_VERSION_MAJOR 1)
 set(GibEngine_VERSION_MINOR 0)
 set(GibEngine_VERSION_PATCH 0)
@@ -134,6 +140,7 @@ set(ROOT_INCLUDES
   include/CameraBase.h
   include/ChaseCamera.h
   include/Entity.h
+  include/EnumFlags.h
   include/File.h
   include/FreeCamera.h
   include/Game.h
@@ -202,7 +209,7 @@ endif()
 
 target_link_libraries(GibEngine ${GIBENGINE_LIBRARIES})
 
-add_dependencies(GibEngine glm glfw assimp spdlog cxxopts)
+add_dependencies(GibEngine glm glfw assimp spdlog cxxopts json11)
 
 if(MSVC)
   if(GLFW_FOUND)

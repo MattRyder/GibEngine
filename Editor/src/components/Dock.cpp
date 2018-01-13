@@ -8,7 +8,10 @@ GibEditor::Components::Dock::Dock(GibEngine::Scene::Node* rootSceneNode, GibEngi
 
 void GibEditor::Components::Dock::Render()
 {
+
 	ImGui::BeginDockspace();
+
+	ImGui::SetNextDock(ImGuiDockSlot_Left);
 
 	if (ImGui::BeginDock("Game"))
 	{
@@ -25,6 +28,24 @@ void GibEditor::Components::Dock::Render()
 		}
 		ImGui::EndDock();
 	}
+
+	if (entityInspector != nullptr)
+	{
+		ImGui::SetNextDock(ImGuiDockSlot_Right);
+
+		if (ImGui::BeginDock("Inspector"))
+		{
+			if (ImGui::IsWindowHovered())
+			{
+				selectedDock = Dock::Type::ENTITY_INSPECTOR;
+			}
+
+			entityInspector->Render();
+
+			ImGui::EndDock();
+		}
+	}
+
 
 	ImGui::SetNextDock(ImGuiDockSlot_Left);
 
@@ -49,23 +70,6 @@ void GibEditor::Components::Dock::Render()
 			cbrowser->Render();
 
 			ImGui::EndDock();
-		}
-
-		if (entityInspector != nullptr)
-		{
-			ImGui::SetNextDock(ImGuiDockSlot_Right);
-
-			if (ImGui::BeginDock("Inspector"))
-			{
-				if (ImGui::IsWindowHovered())
-				{
-					selectedDock = Dock::Type::ENTITY_INSPECTOR;
-				}
-
-				entityInspector->Render();
-
-				ImGui::EndDock();
-			}
 		}
 	}
 
@@ -92,9 +96,10 @@ void GibEditor::Components::Dock::RenderSceneTreeNode(GibEngine::Scene::Node* no
 	}
 	else
 	{
-		if (ImGui::TreeNode(node->GetName()))
+		ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen ^ ImGuiTreeNodeFlags_Bullet ^ ImGuiTreeNodeFlags_Leaf;
+		if (ImGui::TreeNodeEx(node->GetName(), treeNodeFlags))
 		{
-			if (ImGui::IsMouseDoubleClicked(1))
+			if (ImGui::IsItemClicked())
 			{
 				delete entityInspector;
 				entityInspector = new Components::EntityInspector(node);

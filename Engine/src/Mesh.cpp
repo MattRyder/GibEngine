@@ -1,18 +1,10 @@
 #include "../include/Mesh.h"
 
-GibEngine::Mesh::Mesh(const char* name) : Entity(EntityType::MESH, name), ownerAssetName(nullptr)
-{
-	// Will add the mesh to deferred renderer by default:
-	flags = static_cast<Mesh::Flags>(RENDER_ENABLED | RENDER_DEFERRED);
-}
+GibEngine::Mesh::Mesh(const char* name)
+	: Entity(EntityType::MESH, name), ownerAssetName(nullptr), flags(Flags::RENDER_ENABLED ^ Flags::RENDER_DEFERRED) { }
 
 GibEngine::Mesh::Mesh(const char* name, const char* ownerFilePath, std::vector<GibEngine::Vertex> vertices, std::vector<unsigned int> indices, std::vector<GibEngine::Material*> material)
-	: Entity(EntityType::MESH, name), ownerAssetName(strdup(ownerFilePath)), vertices(vertices), indices(indices), materials(material)
-{
-
-	// Will add the mesh to deferred renderer by default:
-	flags = static_cast<Mesh::Flags>(RENDER_ENABLED | RENDER_DEFERRED);
-}
+	: Entity(EntityType::MESH, name), ownerAssetName(strdup(ownerFilePath)), vertices(vertices), indices(indices), materials(material), flags(Flags::RENDER_ENABLED ^ Flags::RENDER_DEFERRED) { }
 
 GibEngine::Mesh::Mesh(const char* name, const char* ownerFilePath, std::vector<Vertex> vertices)
 	: Mesh(name, ownerFilePath, vertices, std::vector<unsigned int>(), std::vector<Material*>()) { }
@@ -137,6 +129,11 @@ const char* GibEngine::Mesh::GetOwnerAssetName() const
 	return ownerAssetName;
 }
 
+const json11::Json* GibEngine::Mesh::GetGenerationData() const
+{
+	return generationData;
+}
+
 std::vector<unsigned int> GibEngine::Mesh::GetIndices() const
 {
 	return this->indices;
@@ -147,7 +144,7 @@ std::vector<GibEngine::Material*> GibEngine::Mesh::GetMaterials() const
 	return this->materials;
 }
 
-GibEngine::MeshUploadTicket * GibEngine::Mesh::GetMeshUploadTicket() const
+GibEngine::MeshUploadTicket* GibEngine::Mesh::GetMeshUploadTicket() const
 {
 	return this->uploadTicket;
 }
@@ -190,4 +187,9 @@ void GibEngine::Mesh::SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept)
 void GibEngine::Mesh::SetFlags(Flags flags)
 {
 	this->flags = flags;
+}
+
+void GibEngine::Mesh::SetGenerationData(json11::Json* generationData)
+{
+	this->generationData = generationData;
 }

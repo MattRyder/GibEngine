@@ -16,7 +16,7 @@ namespace GibEngine
 			
 			CameraBase* camera;
 			std::map<Mesh*, std::vector<glm::mat4>> meshInstances;
-			std::vector<PointLight*> lights;
+			std::vector<const Scene::Node*> lights;
 
 			void AddLight(const Scene::Node* lightNode);
 			void AddMeshInstance(const Scene::Node* meshNode);
@@ -27,7 +27,7 @@ namespace GibEngine
 
 			CameraBase* GetCamera() const;
 			const Scene::Node* GetSkyboxNode() const;
-			std::vector<PointLight*> GetLights() const;
+			std::vector<const Scene::Node*> GetLights() const;
 
 			std::map<Mesh*, std::vector<glm::mat4>> GetMeshInstanceMap() const;
 		};

@@ -57,24 +57,30 @@ void SetupImGuiStyle()
 	GibEngine::File* uiFontFile = GibEngine::File::GetFontFile("Arimo-Regular.ttf");
 	io.Fonts->AddFontFromFileTTF(uiFontFile->GetPath(), 24.0f);
 	
-	ImGui::GetStyle().WindowPadding = ImVec2(0, 0);
-	ImGui::GetStyle().WindowRounding = 0;
-
 	ImGuiStyle& style = ImGui::GetStyle();
+
+	style.WindowPadding = ImVec2(0, 0);
+	style.WindowRounding = 0;
+	style.ItemSpacing = ImVec2(7, 7);
+	style.ItemInnerSpacing = ImVec2(8, 4);
+	style.ScrollbarSize = 14;
+	style.ScrollbarRounding = 0;
+	style.TouchExtraPadding = ImVec2(10, 10);
+
 	style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
 	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.70f);
-	style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.18f, 0.20f, 0.21f, 1.00f);
+	style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
 	style.Colors[ImGuiCol_PopupBg] = ImVec4(0.05f, 0.05f, 0.10f, 0.90f);
 	style.Colors[ImGuiCol_Border] = ImVec4(0.00f, 0.00f, 0.00f, 0.39f);
-	style.Colors[ImGuiCol_BorderShadow] = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
+	style.Colors[ImGuiCol_BorderShadow] = ImVec4(1.00f, 1.00f, 1.00f, 0.18f);
 	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.18f, 0.19f, 0.18f, 1.00f);
 	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.15f, 0.15f, 0.15f, 0.39f);
 	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.15f, 0.15f, 0.13f, 0.67f);
 	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.27f, 0.27f, 0.54f, 0.83f);
 	style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.40f, 0.40f, 0.80f, 0.20f);
 	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
-	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.07f, 0.08f, 0.09f, 0.85f);
+	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.25f, 0.25f, 0.25f, 0.70f);
 	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.07f, 0.07f, 0.08f, 0.40f);
 	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 0.80f);
 	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.80f);

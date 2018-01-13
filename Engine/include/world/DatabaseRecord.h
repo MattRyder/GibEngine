@@ -40,7 +40,15 @@ namespace GibEngine
 				this->state = state;
 			}
 
-			void SetEntityState(State entityState) { this->entityState = entityState; }
+			void SetEntityState(State entityState)
+			{ 
+				if (this->entityState == State::NEW && entityState == State::DIRTY)
+				{
+					// Prevent a NEW flag being overwritten by DIRTY
+					return;
+				}
+				this->entityState = entityState;
+			}
 
 			void SetId(unsigned int id) { this->id = id; }
 

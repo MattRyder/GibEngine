@@ -3,6 +3,8 @@
 GibEditor::Components::ContentBrowser::ContentBrowser(GibEngine::Scene::Node* rootSceneNode, GibEngine::Renderer::Pipeline* pipeline)
 	: rootSceneNode(rootSceneNode), pipeline(pipeline)
 {
+	defaultGenerationData = json11::Json(json11::Json::object{ { "MeshFlags", json11::Json::array{ "RENDER_DEFERRED" } } });
+
 	SetupAvailableContentMap();
 }
 
@@ -85,7 +87,7 @@ void GibEditor::Components::ContentBrowser::Render()
 
 				if (ImGui::Button(contentFile->GetFilename(), buttonSize))
 				{
-					GibEngine::Scene::Node* meshNode = GibEngine::MeshService::Load(contentFile);
+					GibEngine::Scene::Node* meshNode = GibEngine::MeshService::Load(contentFile, &defaultGenerationData);
 					rootSceneNode->AddChildNode(meshNode);
 				}
 

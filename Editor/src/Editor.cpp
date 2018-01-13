@@ -87,6 +87,12 @@ void GibEditor::Editor::Render()
 
 	dock->Render();
 
+	//if (ImGui::Begin("Style Editor"))
+	//{
+	//	ImGui::ShowStyleEditor(&ImGui::GetStyle());
+	//	ImGui::End();
+	//}
+
 	//statusBar->Render();
 
 	ImGui::End();

@@ -12,7 +12,7 @@ void GibEngine::Renderer::DeferredGeometryPass::Render(const GibEngine::Scene::V
 	for (auto meshInstancePair : visibleSet.GetMeshInstanceMap())
 	{
 		auto mesh = meshInstancePair.first;
-		if (!(mesh->GetFlags() & Mesh::Flags::RENDER_DEFERRED))
+		if (!Mesh::FlagMask(mesh->GetFlags() & Mesh::Flags::RENDER_DEFERRED))
 		{
 			continue;
 		}

@@ -23,6 +23,8 @@ namespace GibEditor
 			Observer* contentDirectoryObserver;
 			std::map<GibEngine::EntityType, std::vector<GibEngine::File*>> availableContent;
 
+			json11::Json defaultGenerationData;
+
 			void SetupAvailableContentMap();
 
 		public:

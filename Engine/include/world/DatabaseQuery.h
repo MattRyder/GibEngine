@@ -29,6 +29,7 @@ namespace GibEngine
 			CREATE TABLE IF NOT EXISTS `Meshes` (
 				`Id`	INTEGER NOT NULL,
 				`AssetName`	TEXT NOT NULL,
+				`GenInfo` TEXT, 
 				PRIMARY KEY(`Id`)
 			);
 			DROP TABLE IF EXISTS `Lights`;
@@ -83,7 +84,7 @@ namespace GibEngine
 		)";
 
 		static const char* CREATE_MESH_COMMAND = R"(
-			INSERT INTO Meshes (AssetName) VALUES (:assetName);
+			INSERT INTO Meshes (AssetName, GenInfo) VALUES (:assetName, :genInfo);
 		)";
 
 		static const char* CREATE_SKYBOX_COMMAND = R"(
@@ -116,19 +117,26 @@ namespace GibEngine
 		)";
 
 		static const char* SELECT_MESH_QUERY = R"(
-			SELECT AssetName FROM Meshes WHERE Id = :id;
+			SELECT AssetName, GenInfo FROM Meshes WHERE Id = :id;
 		)";
 
 		static const char* UPDATE_SKYBOX_COMMAND = R"(
 			UPDATE Skyboxes
 			SET AssetName = :assetName, Extension = :extension
-			WHERE Id = ?;
+			WHERE Id = :id;
 		)";
 
 		static const char* UPDATE_NODE_COMMAND = R"(
 			UPDATE Nodes
 			SET ParentId = :parentId, EntityType = :entityType, EntityId = :entityId, Position = :position, Scale = :scale
-			WHERE Id = ?;
+			WHERE Id = :id;
+		)";
+
+		static const char* UPDATE_LIGHT_COMMAND = R"(
+			UPDATE Lights
+			SET LightType = :lightType, AmbientColor = :ambientColor, DiffuseColor = :diffuseColor, SpecularColor = :specularColor,
+				LinearAttenuation = :linearAttenuation, QuadraticAttenuation = :quadraticAttenuation
+			WHERE Id = :id
 		)";
 
 		static const char* DELETE_NODE_COMMAND = R"(

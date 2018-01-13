@@ -226,7 +226,7 @@ void GibEngine::Renderer::API::GL420::DrawPrimitive(MeshUploadTicket* meshUpload
 void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh, size_t instanceCount)
 {
 	Mesh::Flags flags = mesh->GetFlags();
-	if (flags && !Mesh::Flags::RENDER_ENABLED)
+	if (!Mesh::FlagMask(flags & Mesh::Flags::RENDER_ENABLED))
 	{
 		return;
 	}
@@ -235,9 +235,9 @@ void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh, size_t ins
 
 	glBindVertexArray(meshUploadTicket->vertexArrayObject);
 
-	GLuint drawMode = (flags & Mesh::Flags::RENDER_WIREFRAME) ? GL_LINES : GL_TRIANGLES;
+	GLuint drawMode = Mesh::FlagMask(flags & Mesh::Flags::RENDER_WIREFRAME) ? GL_LINES : GL_TRIANGLES;
 
-	if (flags & Mesh::Flags::RENDER_ARRAYS)
+	if (Mesh::FlagMask(flags & Mesh::Flags::RENDER_ARRAYS))
 	{
 		glDrawArrays(drawMode, 0, meshUploadTicket->totalVertices);
 	}

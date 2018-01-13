@@ -9,6 +9,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <json11.hpp>
+
+#include "EnumFlags.h"
 #include "Entity.h"
 #include "Texture.h"
 
@@ -52,13 +55,13 @@ namespace GibEngine
 	public:
 		static const int MOVE_SPEED = 10;
 
-		enum Flags
+		enum class Flags
 		{
-			RENDER_ENABLED = 1 << 0,
-			RENDER_WIREFRAME = 1 << 1,
-			RENDER_ARRAYS = 1 << 2,
-			RENDER_DEFERRED = 1 << 3,
-			RENDER_FORWARD = 1 << 4
+			RENDER_ENABLED = 1 << 1,
+			RENDER_WIREFRAME = 1 << 2,
+			RENDER_ARRAYS = 1 << 3,
+			RENDER_DEFERRED = 1 << 4,
+			RENDER_FORWARD = 1 << 5
 		};
 
 		Mesh(const char* name);
@@ -72,6 +75,7 @@ namespace GibEngine
 		MeshUploadTicket* GetMeshUploadTicket() const;
 		std::vector<Vertex> GetVertices() const;
 		const char* GetOwnerAssetName() const;
+		const json11::Json* GetGenerationData() const;
 
 		bool IsUploaded();
 		std::vector<GibEngine::Texture*> LoadMaterialTextures(aiMaterial *material, aiTextureType type, GibEngine::TextureType textureType);
@@ -82,10 +86,14 @@ namespace GibEngine
 		void SetVertices(std::vector<Vertex> vertices);
 		void SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept);
 		void SetFlags(Flags flags);
+		void SetGenerationData(json11::Json* generationData);
 
 		virtual void Update(double deltaTime) override;
+ 
+		static bool FlagMask(Flags x) { return static_cast<char>(x) != 0; };
 
 	private:
+		json11::Json* generationData = nullptr;
 		MeshUploadTicket* uploadTicket = nullptr;
 		Flags flags = Flags::RENDER_ENABLED;
 
@@ -95,4 +103,6 @@ namespace GibEngine
 
 		const char* ownerAssetName;
 	};
+
+	ENUM_FLAGS(Mesh::Flags)
 }

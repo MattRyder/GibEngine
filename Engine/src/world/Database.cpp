@@ -103,9 +103,31 @@ GibEngine::Scene::Node* GibEngine::World::Database::LoadMesh(int meshId)
 	for (auto iter = qry.begin(); iter != qry.end(); ++iter)
 	{
 		const char* assetName = (*iter).get<const char*>(0);
+		const char* genData = (*iter).get<const char*>(1);
 
-		File* meshAssetFile = File::GetModelFile(assetName);
-		return MeshService::Load(meshAssetFile);
+		std::string parseError;
+		json11::Json generationDataJson = json11::Json::parse(genData, parseError);
+
+
+		if (assetName != nullptr && strlen(assetName) > 0)
+		{
+			// Attempt to load the asset for `assetName`
+			File* meshAssetFile = File::GetModelFile(assetName);
+
+			json11::Json* generationDataJsonPtr = (generationDataJson != nullptr) ? new json11::Json(generationDataJson) : nullptr;
+			return MeshService::Load(meshAssetFile, generationDataJsonPtr);
+		}
+		else if (generationDataJson != nullptr)
+		{
+			// Attempt to use the generation data to build a Mesh internally:
+			json11::Json* generationDataJsonPtr = new json11::Json(generationDataJson);
+			return MeshService::Generate(generationDataJsonPtr);
+		}
+		else
+		{
+			Logger::Instance->info("Failed to LoadMesh: {}", parseError);
+			return nullptr;
+		}
 	}
 
 	return nullptr;
@@ -123,9 +145,16 @@ bool GibEngine::World::Database::SaveLevel(Scene::Node* sceneRootNode)
 
 bool GibEngine::World::Database::SaveMesh(Scene::Node* meshNode)
 {
+	// Return early if this is not a root mesh
+	if (!Scene::Node::FlagMask(meshNode->GetFlags() & Scene::Node::Flags::MESH_ROOT))
+	{
+		return true;
+	}
+
 	Mesh* mesh = reinterpret_cast<Mesh*>(meshNode->GetEntity());
 
-	switch (meshNode->GetDatabaseRecord()->GetState())
+
+	switch (meshNode->GetDatabaseRecord()->GetEntityState())
 	{
 	case DatabaseRecord::State::CLEAN:
 		return true;
@@ -134,6 +163,10 @@ bool GibEngine::World::Database::SaveMesh(Scene::Node* meshNode)
 	case DatabaseRecord::State::NEW:
 		sqlite3pp::command insertCmd(*db, CREATE_MESH_COMMAND);
 		insertCmd.bind(":assetName", mesh->GetOwnerAssetName(), sqlite3pp::nocopy);
+
+		const json11::Json* generationDataJson = mesh->GetGenerationData();
+		const char* generationDataStr = generationDataJson != nullptr ? generationDataJson->dump().c_str() : "";
+		insertCmd.bind(":genData", generationDataStr, sqlite3pp::nocopy);
 		int res = insertCmd.execute();
 
 		if (res != SQLITE_OK)
@@ -155,36 +188,37 @@ bool GibEngine::World::Database::SavePointLight(Scene::Node* lightSceneNode)
 {
 	PointLight* pl = reinterpret_cast<PointLight*>(lightSceneNode->GetEntity());
 
-	switch (lightSceneNode->GetDatabaseRecord()->GetState())
+	switch (lightSceneNode->GetDatabaseRecord()->GetEntityState())
 	{
 	case DatabaseRecord::State::CLEAN:
 		return true;
 	case DatabaseRecord::State::DIRTY:
 	{
-		//sqlite3pp::command updateCmd(*db, UPDATE_LIGHT_QUERY);
-		//updateCmd.bind(":id", lightSceneNode->GetDatabaseRecord()->GetId());
-		//updateCmd.bind(":lightType", "PointLight", sqlite3pp::nocopy);
+		sqlite3pp::command updateCmd(*db, UPDATE_LIGHT_COMMAND);
+		updateCmd.bind(":id", lightSceneNode->GetDatabaseRecord()->GetId());
+		updateCmd.bind(":lightType", "PointLight", sqlite3pp::nocopy);
 
-		//const std::string ambient = ConvertVec3ToString(pl->GetAmbientColor());
-		//updateCmd.bind(":ambientColor", ambient, sqlite3pp::nocopy);
+		const std::string ambient = ConvertVec3ToString(pl->GetAmbientColor());
+		updateCmd.bind(":ambientColor", ambient, sqlite3pp::nocopy);
 
-		//const std::string diffuse = ConvertVec3ToString(pl->GetDiffuseColor());
-		//updateCmd.bind(":diffuseColor", diffuse, sqlite3pp::nocopy);
+		const std::string diffuse = ConvertVec3ToString(pl->GetDiffuseColor());
+		updateCmd.bind(":diffuseColor", diffuse, sqlite3pp::nocopy);
 
-		//const std::string specular = ConvertVec3ToString(pl->GetSpecularColor());
-		//updateCmd.bind(":specularColor", specular, sqlite3pp::nocopy);
+		const std::string specular = ConvertVec3ToString(pl->GetSpecularColor());
+		updateCmd.bind(":specularColor", specular, sqlite3pp::nocopy);
 
-		//updateCmd.bind(":linearAttenuation", pl->GetLinearAttenuation());
-		//updateCmd.bind(":quadraticAttenuation", pl->GetQuadraticAttenuation());
+		updateCmd.bind(":linearAttenuation", pl->GetLinearAttenuation());
+		updateCmd.bind(":quadraticAttenuation", pl->GetQuadraticAttenuation());
 
-		//int res = updateCmd.execute();
-		//if (res != SQLITE_OK)
-		//{
-		//	const char* errorMessage = db->error_msg();
-		//	Logger::Instance->error("Failed to update PointLight Scene Node: {}", errorMessage);
-		//	return false;
-		//}
+		int res = updateCmd.execute();
+		if (res != SQLITE_OK)
+		{
+			const char* errorMessage = db->error_msg();
+			Logger::Instance->error("Failed to update PointLight Scene Node: {}", errorMessage);
+			return false;
+		}
 
+		lightSceneNode->GetDatabaseRecord()->SetEntityState(DatabaseRecord::State::CLEAN);
 		return true;
 	}
 	case DatabaseRecord::State::NEW:
@@ -237,6 +271,7 @@ bool GibEngine::World::Database::SaveSkybox(Scene::Node* skyboxSceneNode)
 	case DatabaseRecord::State::DIRTY:
 	{
 		sqlite3pp::command updateCmd(*db, UPDATE_SKYBOX_COMMAND);
+		updateCmd.bind(":id", skyboxSceneNode->GetDatabaseRecord()->GetEntityId());
 		updateCmd.bind(":assetName", skybox->GetName(), sqlite3pp::nocopy);
 		updateCmd.bind(":extension", skybox->GetExtension(), sqlite3pp::nocopy);
 		int res = updateCmd.execute();
@@ -278,27 +313,28 @@ bool GibEngine::World::Database::SaveSceneNode(int parentNodeId, Scene::Node* no
 {
 	bool objectSaved = true;
 
-	if (node->GetEntity() != nullptr)
+	// If this is a Flags::MESH_ROOT, handle it completely differently, out of laziness to design:
+	if (Scene::Node::FlagMask(node->GetFlags() & Scene::Node::Flags::MESH_ROOT))
 	{
-		Entity* entityBase = node->GetEntity();
-
-		switch (entityBase->GetType())
+		// Save the Scene Node
+		if (node->GetChildNodeCount() > 0)
 		{
-		case EntityType::SKYBOX:
-			objectSaved = SaveSkybox(node);
-			break;
-		case EntityType::POINT_LIGHT:
-			objectSaved = SavePointLight(node);
-			break;
-		case EntityType::MESH:
-			objectSaved = SaveMesh(node);
-			break;
-		default:
-			objectSaved = false;
-			break;
+			// Get the first child for the node, and extract the Entity
+			Scene::Node* meshEntityNode = *node->GetChildNodesBegin();
+
+			// Save the Entity
+			SaveEntity(meshEntityNode);
 		}
+
+		SaveSceneNodeRecord(parentNodeId, node);
+		return true;
 	}
 	
+	if (node->GetEntity() != nullptr)
+	{
+		SaveEntity(node);
+	}
+
 	if (!objectSaved || !SaveSceneNodeRecord(parentNodeId, node))
 	{
 		// Bail here if we failed to save this object, it's children can't be saved.
@@ -329,10 +365,20 @@ bool GibEngine::World::Database::SaveSceneNodeRecord(int parentId, Scene::Node* 
 		cmd.bind(":id", node->GetDatabaseRecord()->GetId());
 		cmd.bind(":parentId", parentId);
 
+		cmd.bind(":entityId", node->GetDatabaseRecord()->GetEntityId());
+		
 		if (node->GetEntity() != nullptr)
 		{
 			cmd.bind(":entityType", node->GetEntity()->GetTypeName(), sqlite3pp::nocopy);
-			cmd.bind(":entityId", node->GetDatabaseRecord()->GetEntityId());
+		}
+		else if (node->GetChildNodeCount() > 0)
+		{
+			// Read the first node, and store that entity (Mesh etc.)
+			auto childNode = *node->GetChildNodesBegin();
+			if(childNode != nullptr)
+			{
+				cmd.bind(":entityType", childNode->GetEntity()->GetTypeName(), sqlite3pp::nocopy);
+			}
 		}
 
 		const std::string position = ConvertVec3ToString(pos);
@@ -407,6 +453,23 @@ bool GibEngine::World::Database::SaveSceneNodeRecord(int parentId, Scene::Node* 
 	return false;
 }
 
+bool GibEngine::World::Database::SaveEntity(GibEngine::Scene::Node* entityNode)
+{
+	Entity* entity = entityNode->GetEntity();
+
+	switch (entity->GetType())
+	{
+	case EntityType::SKYBOX:
+		return SaveSkybox(entityNode);
+	case EntityType::POINT_LIGHT:
+		return SavePointLight(entityNode);
+	case EntityType::MESH:
+		return SaveMesh(entityNode);
+	default:
+		return false;
+	}
+}
+
 int GibEngine::World::Database::GetLastAutoincrementId()
 {
     sqlite3pp::query qry(*db, SELECT_LAST_AUTOINCREMENT_ID);
@@ -458,6 +521,7 @@ GibEngine::Scene::Node* GibEngine::World::Database::FindNode(int nodeId)
 			}
 			else
 			{
+				Logger::Instance->error("Failed to parse Scene Node type `{}`, no loader available.", entityType);
 				continue;
 			}
 		}

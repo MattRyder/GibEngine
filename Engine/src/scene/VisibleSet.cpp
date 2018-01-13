@@ -1,10 +1,8 @@
 #include "scene/VisibleSet.h"
 
-void GibEngine::Scene::VisibleSet::AddLight(const Scene::Node * lightNode)
+void GibEngine::Scene::VisibleSet::AddLight(const Scene::Node* lightNode)
 {
-	auto pointLight = reinterpret_cast<PointLight*>(lightNode->GetEntity());
-
-	lights.push_back(pointLight);
+	lights.push_back(lightNode);
 }
 
 void GibEngine::Scene::VisibleSet::AddMeshInstance(const Scene::Node* meshNode)
@@ -69,7 +67,7 @@ const GibEngine::Scene::Node* GibEngine::Scene::VisibleSet::GetSkyboxNode() cons
 	return skyboxNode;
 }
 
-std::vector<GibEngine::PointLight*> GibEngine::Scene::VisibleSet::GetLights() const
+std::vector<const GibEngine::Scene::Node*> GibEngine::Scene::VisibleSet::GetLights() const
 {
 	return lights;
 }

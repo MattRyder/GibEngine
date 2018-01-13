@@ -33,6 +33,7 @@ namespace GibEngine
 
 			bool SaveSceneNode(int parentNodeId, Scene::Node* node);
 			bool SaveSceneNodeRecord(int parentId, Scene::Node* node);
+			bool SaveEntity(Scene::Node* entityNode);
 
         public:
             Database(const char* databaseFilepath);

@@ -13,7 +13,7 @@ void GibEngine::Renderer::ForwardRenderPass::Render(const GibEngine::Scene::Visi
 	for (auto meshInstancePair : visibleSet.GetMeshInstanceMap())
 	{
 		auto mesh = meshInstancePair.first;
-		if (!(mesh->GetFlags() & Mesh::Flags::RENDER_FORWARD))
+		if (!Mesh::FlagMask(mesh->GetFlags() & Mesh::Flags::RENDER_FORWARD))
 		{
 			continue;
 		}

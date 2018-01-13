@@ -51,7 +51,7 @@ GibEngine::Game::Game(int argc, char** argv)
 		
 		// Create a Model node:
 		File* modelFile = File::GetModelFile("brickwall/brickwall.obj");
-		Scene::Node* meshNode = MeshService::Load(modelFile);
+		Scene::Node* meshNode = MeshService::Load(modelFile, nullptr);
 		glm::mat4 meshPos = glm::scale(glm::mat4(), glm::vec3(2.0f));
 		meshNode->SetLocalTransform(meshPos);
 		rootNode->AddChildNode(meshNode);
@@ -256,10 +256,6 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 		
 		GibEngine::World::Database* db = new World::Database(worldPath.c_str());
 		rootSceneNode = db->LoadLevel(levelID);
-
-		// Add the debug meshes to the root loaded:
-		Scene::Node* planeNode = MeshService::GeneratePlane(1000, 1000, 10);
-		rootSceneNode->AddChildNode(planeNode);
 
 		Logger::Instance->info("Loaded Level from Scene Root: {}", levelID);
 

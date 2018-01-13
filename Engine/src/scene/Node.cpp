@@ -1,12 +1,13 @@
 #include "scene/Node.h"
 
-GibEngine::Scene::Node::Node(const char* name) : parentNode(nullptr), entity(nullptr), name(strdup(name))
+GibEngine::Scene::Node::Node(const char* name)
+	: parentNode(nullptr), entity(nullptr), name(strdup(name)), flags(Flags::DEFAULT)
 {
 	dbRecord = new World::DatabaseRecord();
 }
 
 GibEngine::Scene::Node::Node(const char* name, World::DatabaseRecord* dbRecord)
-	: name(name), parentNode(nullptr), entity(nullptr), dbRecord(dbRecord) { }
+	: name(name), parentNode(nullptr), entity(nullptr), dbRecord(dbRecord), flags(Flags::DEFAULT) { }
 
 void GibEngine::Scene::Node::RecalculateWorldTransform()
 {
@@ -23,6 +24,22 @@ void GibEngine::Scene::Node::RecalculateWorldTransform()
 	for (auto child : childNodes)
 	{
 		child->RecalculateWorldTransform();
+	}
+}
+
+void GibEngine::Scene::Node::SetEntityDirty()
+{
+	if (dbRecord != nullptr)
+	{
+		dbRecord->SetEntityState(World::DatabaseRecord::State::DIRTY);
+	}
+}
+
+void GibEngine::Scene::Node::SetNodeDirty()
+{
+	if (dbRecord != nullptr)
+	{
+		dbRecord->SetState(World::DatabaseRecord::State::DIRTY);
 	}
 }
 
