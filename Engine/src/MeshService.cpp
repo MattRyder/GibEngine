@@ -74,6 +74,7 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 		childMeshNode->GetDatabaseRecord()->SetState(World::DatabaseRecord::State::CLEAN);
 
 		parentNode->AddChildNode(childMeshNode);
+		parentNode->SetFlags(parentNode->GetFlags() ^ Scene::Node::Flags::MESH_ROOT);
 	}
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)

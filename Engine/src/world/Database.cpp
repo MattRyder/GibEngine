@@ -148,7 +148,7 @@ bool GibEngine::World::Database::SaveMesh(Scene::Node* meshNode)
 	// Return early if this is not a root mesh
 	if (!Scene::Node::FlagMask(meshNode->GetFlags() & Scene::Node::Flags::MESH_ROOT))
 	{
-		return true;
+		//return true;
 	}
 
 	Mesh* mesh = reinterpret_cast<Mesh*>(meshNode->GetEntity());

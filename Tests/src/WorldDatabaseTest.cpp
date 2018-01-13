@@ -25,6 +25,7 @@ TEST_F(WorldDatabaseTest, SaveSkybox)
 TEST_F(WorldDatabaseTest, SaveMesh)
 {
 	auto meshRootNode = *mesh->GetChildNodesBegin();
+	meshRootNode->GetDatabaseRecord()->SetEntityState(DatabaseRecord::State::NEW);
 	bool res = database->SaveMesh(meshRootNode);
 
 	ASSERT_TRUE(res);
@@ -35,6 +36,8 @@ TEST_F(WorldDatabaseTest, SaveMesh)
 TEST_F(WorldDatabaseTest, SavePointLight)
 {
 	Scene::Node* lNode = new Scene::Node("Light Node");
+	lNode->GetDatabaseRecord()->SetEntityState(DatabaseRecord::State::NEW);
+
 	lNode->SetEntity(light);
 
 	bool res = database->SavePointLight(lNode);
