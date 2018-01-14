@@ -23,8 +23,6 @@ public:
 		light = new PointLight(
 			glm::vec3(), glm::vec3(0.5f), glm::vec3(0.75f), glm::vec3(0.25f), 0.800f, 1.0f
 		);
-
-		delete meshFile;
 	}
 
 	virtual void TearDown()
