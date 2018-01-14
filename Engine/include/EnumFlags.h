@@ -1,4 +1,5 @@
 /*
+EnumFlags.h - Derived from original file: `enum_flags.h` 
 Copyright (c) 2013, Yuri Yaryshev (aka Lord Odin)
 
 The MIT License (MIT)
@@ -22,71 +23,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-/*
-Usage sample:
+#pragma once
 
-#indlude "enum_flags.h"
+#define GIB_FLAGS_ENUM_DECL(T, INT_T) \
+inline T	operator~	(T x) 		{ 	return static_cast<T>	(~static_cast<INT_T>(x)); 							}; \
+inline T	operator&	(T x, T y) 	{ 	return static_cast<T>	(static_cast<INT_T>(x) & static_cast<INT_T>(y)); 		}; \
+inline T	operator|	(T x, T y)	{	return static_cast<T>	(static_cast<INT_T>(x) | static_cast<INT_T>(y));	}; \
+inline T	operator^	(T x, T y)	{	return static_cast<T>	(static_cast<INT_T>(x) ^ static_cast<INT_T>(y));	}; \
+inline T&	operator&=	(T& x, T y)	{	x = x & y;	return x;	}; \
+inline T&	operator|=	(T& x, T y)	{	x = x | y;	return x;	}; \
+inline T&	operator^=	(T& x, T y)	{	x = x ^ y;	return x;	};
 
-ENUM_FLAGS(foo_t)
-enum class foo_t
-{
-none			= 0x00
-,a				= 0x01
-,b				= 0x02
-};
-
-ENUM_FLAGS(foo2_t)
-enum class foo2_t
-{
-none			= 0x00
-,d				= 0x01
-,e				= 0x02
-};
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-if(flags(foo_t::a & foo_t::b)) {};
-// if(flags(foo2_t::d & foo_t::b)) {};	// Type safety test - won't compile if uncomment
-};
-
-*/
-
-#ifndef __ENUM_FLAGS_H__
-#define __ENUM_FLAGS_H__
-
-/*
-Use this line before header, if you don't want flags(T x) function to be implemented for your enum.
-#define USE_ENUM_FLAGS_FUNCTION 0
-*/
-
-#define USE_ENUM_FLAGS_FUNCTION 0
-
-
-#ifndef USE_ENUM_FLAGS_FUNCTION
-#define USE_ENUM_FLAGS_FUNCTION 1
-#endif
-
-
-#define ENUM_FLAGS_EX_NO_FLAGS_FUNC(T,INT_T) \
-enum class T;	\
-inline T	operator	&	(T x, T y)		{	return static_cast<T>	(static_cast<INT_T>(x) & static_cast<INT_T>(y));	}; \
-inline T	operator	|	(T x, T y)		{	return static_cast<T>	(static_cast<INT_T>(x) | static_cast<INT_T>(y));	}; \
-inline T	operator	^	(T x, T y)		{	return static_cast<T>	(static_cast<INT_T>(x) ^ static_cast<INT_T>(y));	}; \
-inline T	operator	~	(T x)			{	return static_cast<T>	(~static_cast<INT_T>(x));							}; \
-inline T&	operator	&=	(T& x, T y)		{	x = x & y;	return x;	}; \
-inline T&	operator	|=	(T& x, T y)		{	x = x | y;	return x;	}; \
-inline T&	operator	^=	(T& x, T y)		{	x = x ^ y;	return x;	};
-
-#if(USE_ENUM_FLAGS_FUNCTION)
-
-#define ENUM_FLAGS_EX(T,INT_T) ENUM_FLAGS_EX_NO_FLAGS_FUNC(T,INT_T) \
-	inline bool			flags(T x)			{	return static_cast<INT_T>(x) != 0;};
-
-#else
-
-#define ENUM_FLAGS_EX(T,INT_T) ENUM_FLAGS_EX_NO_FLAGS_FUNC(T,INT_T) 
-
-#endif
-
-#define ENUM_FLAGS(T) ENUM_FLAGS_EX(T,char)
-#endif
+#define GIB_FLAGS(T)	GIB_FLAGS_ENUM_DECL(T, char)

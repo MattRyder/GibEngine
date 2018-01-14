@@ -55,7 +55,7 @@ namespace GibEngine
 	public:
 		static const int MOVE_SPEED = 10;
 
-		enum class Flags
+		enum class Flags : int
 		{
 			RENDER_ENABLED = 1 << 1,
 			RENDER_WIREFRAME = 1 << 2,
@@ -104,5 +104,5 @@ namespace GibEngine
 		const char* ownerAssetName;
 	};
 
-	ENUM_FLAGS(Mesh::Flags)
+	GIB_FLAGS(Mesh::Flags)
 }

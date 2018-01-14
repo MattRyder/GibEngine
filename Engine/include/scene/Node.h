@@ -11,7 +11,7 @@ namespace GibEngine
 		class Node
 		{
 		public:
-			enum class Flags
+			enum class Flags : int
 			{
 				// Nothing special
 				DEFAULT = 1 << 1,
@@ -43,7 +43,6 @@ namespace GibEngine
 			void SetEntity(Entity* entity);
 			void SetLocalTransform(glm::mat4 transformMatrix);
 
-
 			Entity* ModifyEntity();
 
 			void SetNodeDirty();
@@ -51,7 +50,7 @@ namespace GibEngine
 
 			void RecalculateWorldTransform();
 
-			static bool FlagMask(Flags x) { return static_cast<char>(x) != 0; };
+			static bool FlagMask(const Flags x) { return static_cast<char>(x) != 0; };
 
 		private:
 			Node* parentNode;
@@ -64,11 +63,8 @@ namespace GibEngine
 			const char* name;
 			glm::mat4 worldTransform;
 			glm::mat4 localTransform;
-
-
 		};
-	
-		ENUM_FLAGS(Node::Flags)
+		
+		GIB_FLAGS(Node::Flags)
 	}
-
 }
