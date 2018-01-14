@@ -50,6 +50,12 @@ if(JSON11_FOUND)
   list(APPEND GIBENGINE_LIBRARIES ${JSON11_LIBRARIES})
 endif()
 
+find_package(Sqlite3 REQUIRED)
+if(SQLITE3_FOUND)
+  list(APPEND GIBENGINE_INCLUDE_DIRS ${SQLITE3_INCLUDE_DIRS})
+  list(APPEND GIBENGINE_LIBRARIES ${SQLITE3_LIBRARIES})
+endif()  
+
 set(GibEngine_VERSION_MAJOR 1)
 set(GibEngine_VERSION_MINOR 0)
 set(GibEngine_VERSION_PATCH 0)
@@ -62,10 +68,8 @@ set(GIBENGINE_INCLUDE_DIRS ${GIBENGINE_INCLUDE_DIRS}
 include_directories(${GIBENGINE_INCLUDE_DIRS})
 
 set(SQLITE3PP_SRC
-  include/sqlite3pp/sqlite3.h
   include/sqlite3pp/sqlite3pp.h
   include/sqlite3pp/sqlite3ppext.h
-  src/sqlite3pp/sqlite3.c
   src/sqlite3pp/sqlite3pp.cpp
   src/sqlite3pp/sqlite3ppext.cpp)
 
@@ -209,7 +213,7 @@ endif()
 
 target_link_libraries(GibEngine ${GIBENGINE_LIBRARIES})
 
-add_dependencies(GibEngine glm glfw assimp spdlog cxxopts json11)
+add_dependencies(GibEngine glm glfw assimp spdlog cxxopts json11 sqlite3)
 
 if(MSVC)
   if(GLFW_FOUND)
