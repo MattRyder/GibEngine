@@ -5,11 +5,12 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 	// Load each mesh for this node:
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
+		unsigned int meshIndex = node->mMeshes[i];
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
 		std::vector<Material*> materials;
 
-		aiMesh* mesh = scene->mMeshes[i];
+		aiMesh* mesh = scene->mMeshes[meshIndex];
 		const char* name = mesh->mName.C_Str();
 		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 		aiMatrix4x4 t = node->mTransformation;

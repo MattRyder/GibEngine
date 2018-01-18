@@ -91,9 +91,10 @@ namespace GibEditor
 			}
 
 		private:
-			const float INCREMENT_SLOW = 0.100f;
-			const float INCREMENT_MID  = 0.500f;
-			const float INCREMENT_FAST = 1.000f;
+			const float INCREMENT_SLOWEST	= 0.001f;
+			const float INCREMENT_SLOW		= 0.100f;
+			const float INCREMENT_MID		= 0.500f;
+			const float INCREMENT_FAST		= 1.000f;
 
 			const ImVec4 colorSuccess = ImVec4(0.439f, 0.972f, 0.227f, 1.0f);
 			const ImVec4 colorWarn = ImVec4(0.972f, 0.862f, 0.227f, 1.0f);
@@ -115,7 +116,7 @@ namespace GibEditor
 
 			glm::mat4 matrix = sceneNode->GetLocalTransform();
 			glm::vec3 pos = glm::vec3(matrix[3][0], matrix[3][1], matrix[3][2]);
-			glm::vec3 rot = glm::vec3();
+			glm::quat rot = sceneNode->GetRotation();
 			glm::vec3 scale = glm::vec3(matrix[0][0], matrix[1][1], matrix[2][2]);
 
 			if (ImGui::DragFloat3("Position", glm::value_ptr(pos), INCREMENT_SLOW, -1000.0f, 1000.0f))
@@ -125,8 +126,10 @@ namespace GibEditor
 				sceneNode->SetNodeDirty();
 			}
 
-			if (ImGui::DragFloat3("Rotation", glm::value_ptr(rot), 1.0f, -1000.0f, 1000.0f))
+			if (ImGui::DragFloat("Rotation Y", &rot.y, INCREMENT_MID, 0, 360))
 			{
+				sceneNode->RotateY(rot.y);
+				sceneNode->SetNodeDirty();
 			}
 
 			if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), INCREMENT_SLOW, -1000.0f, 1000.0f))
@@ -161,14 +164,14 @@ namespace GibEditor
 			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
 
 			float linearAttenuation = light->GetLinearAttenuation();
-			if (ImGui::DragFloat("Linear Attenuation", &linearAttenuation, INCREMENT_SLOW, 0, 10.0f))
+			if (ImGui::DragFloat("Linear Attenuation", &linearAttenuation, INCREMENT_SLOW, 0, 50.0f))
 			{
 				light->SetLinearAttenuation(linearAttenuation);
 				setLightDirty = true;
 			}
 
 			float quadAttenuation = light->GetQuadraticAttenuation();
-			if (ImGui::DragFloat("Quadratic Attenuation", &quadAttenuation, INCREMENT_SLOW, 0, 10.0f))
+			if (ImGui::DragFloat("Quadratic Attenuation", &quadAttenuation, INCREMENT_SLOW, 0, 50.0f))
 			{
 				light->SetQuadraticAttenuation(quadAttenuation);
 				setLightDirty = true;

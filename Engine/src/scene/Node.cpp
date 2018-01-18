@@ -13,12 +13,12 @@ void GibEngine::Scene::Node::RecalculateWorldTransform()
 {
 	if (parentNode != nullptr)
 	{
-		worldTransform = parentNode->GetWorldTransform() * localTransform;
+		worldTransform = parentNode->GetWorldTransform() * glm::toMat4(rotationQuaternion) * localTransform;
 	}
 	else
 	{
 		// Root node's word trans is the local trans:
-		worldTransform = localTransform;
+		worldTransform = glm::toMat4(rotationQuaternion) * localTransform;
 	}
 
 	for (auto child : childNodes)
@@ -33,6 +33,36 @@ void GibEngine::Scene::Node::SetEntityDirty()
 	{
 		dbRecord->SetEntityState(World::DatabaseRecord::State::DIRTY);
 	}
+}
+
+void GibEngine::Scene::Node::Translate(const glm::vec3 & translation)
+{
+	glm::translate(localTransform, translation);
+}
+
+void GibEngine::Scene::Node::Rotate(const float angle, const glm::vec3& axis)
+{
+	rotationQuaternion = glm::rotate(rotationQuaternion, angle, axis);
+}
+
+void GibEngine::Scene::Node::RotateX(const float angle)
+{
+	Rotate(angle, X_AXIS);
+}
+
+void GibEngine::Scene::Node::RotateY(const float angle)
+{
+	Rotate(angle, Y_AXIS);
+}
+
+void GibEngine::Scene::Node::RotateZ(const float angle)
+{
+	Rotate(angle, Z_AXIS);
+}
+
+void GibEngine::Scene::Node::Scale(const glm::vec3& scale)
+{
+	glm::scale(localTransform, scale);
 }
 
 void GibEngine::Scene::Node::SetNodeDirty()
@@ -73,6 +103,11 @@ const char* GibEngine::Scene::Node::GetName() const
 	return name;
 }
 
+const glm::quat GibEngine::Scene::Node::GetRotation() const
+{
+	return rotationQuaternion;
+}
+
 size_t GibEngine::Scene::Node::GetChildNodeCount() const
 {
 	return childNodes.size();
@@ -99,6 +134,12 @@ void GibEngine::Scene::Node::SetEntity(Entity* entity)
 void GibEngine::Scene::Node::SetLocalTransform(glm::mat4 transformMatrix)
 {
 	localTransform = transformMatrix;
+	RecalculateWorldTransform();
+}
+
+void GibEngine::Scene::Node::SetRotation(glm::quat rotationQuaternion)
+{
+	this->rotationQuaternion = rotationQuaternion;
 	RecalculateWorldTransform();
 }
 

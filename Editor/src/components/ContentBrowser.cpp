@@ -43,7 +43,7 @@ void GibEditor::Components::ContentBrowser::Render()
 						// filter out the files into entity types we can load:
 						const char* extension = file->GetExtension();
 
-						if (strcmp(extension, "obj") == 0)
+						if (strcmp(extension, "obj") == 0 || strcmp(extension, "dae") == 0)
 						{
 							availableContent.at(GibEngine::EntityType::MESH).push_back(file);
 						}
@@ -88,6 +88,7 @@ void GibEditor::Components::ContentBrowser::Render()
 				if (ImGui::Button(contentFile->GetFilename(), buttonSize))
 				{
 					GibEngine::Scene::Node* meshNode = GibEngine::MeshService::Load(contentFile, &defaultGenerationData);
+					meshNode->GetDatabaseRecord()->SetState(GibEngine::World::DatabaseRecord::State::NEW);
 					rootSceneNode->AddChildNode(meshNode);
 				}
 

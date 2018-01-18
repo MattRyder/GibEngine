@@ -18,10 +18,7 @@ GibEngine::Mesh::~Mesh()
 	delete uploadTicket;
 
 	vertices.clear();
-	std::vector<Vertex>().swap(vertices);
-	
 	indices.clear();
-	std::vector<unsigned int>().swap(indices);
 
 	for (auto material : materials)
 	{
@@ -182,6 +179,13 @@ bool GibEngine::Mesh::IsUploaded()
 void GibEngine::Mesh::SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept)
 {
 	this->uploadTicket = meshUploadReciept;
+
+	// clear the meshes vertex data from the heap
+	vertices.clear();
+	vertices.shrink_to_fit();
+	
+	indices.clear();
+	indices.shrink_to_fit();
 }
 
 void GibEngine::Mesh::SetFlags(Flags flags)

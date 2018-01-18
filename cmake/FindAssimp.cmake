@@ -91,7 +91,7 @@ ExternalProject_Add(assimp
     -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/lib/assimp
 )
 ExternalProject_Get_Property(assimp source_dir)
-set(assimp_INCLUDE_DIRS ${source_dir}/include)
+set(assimp_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/lib/assimp/include)
 
 if(MSVC)
   set(assimp_LIBRARIES ${CMAKE_BINARY_DIR}/lib/assimp/lib/${CMAKE_STATIC_LIBRARY_PREFIX}assimp-${ASSIMP_MSVC_VERSION}-mt${CMAKE_STATIC_LIBRARY_SUFFIX})
