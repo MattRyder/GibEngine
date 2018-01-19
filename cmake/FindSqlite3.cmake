@@ -19,8 +19,8 @@ ELSE(SQLITE3_FOUND)
   set(SQLITE_INSTALL_DIR ${CMAKE_BINARY_DIR}/lib/sqlite3)
 
   ExternalProject_Add(sqlite3
-    GIT_REPOSITORY https://github.com/alex85k/sqlite3-cmake
-    GIT_TAG 9564ab3bda829ac7d29613f7ae703f3bd77f76b8
+    GIT_REPOSITORY https://github.com/GibEngine/sqlite3-cmake
+    GIT_TAG 3bb48c239ca84eb672a6718380c4e8cf1581c2c4
     CMAKE_ARGS
       -DCMAKE_INSTALL_PREFIX=${SQLITE_INSTALL_DIR}
   )
