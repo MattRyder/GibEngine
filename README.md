@@ -1,6 +1,9 @@
 # GibEngine
 -----------------------
-A 3D game engine
+
+A 3D game engine, and associated world editor. Builds available for Windows, Ubuntu Linux.
+
+![GibEditor Screenshot](https://i.imgur.com/2rxN2Ti.jpg)
 
 | Windows | Linux | Codacy Grade |
 | :------ | :---- | :----------- |
@@ -9,12 +12,24 @@ A 3D game engine
 # Requirements
  * cmake > 3.1
  * C++11 compatible compiler
+ * OpenGL 4.0 or OpenGL ES 3.0 compatible GPU
 
-# Build
+# Build Instructions
+
+## GNU/Linux
 ``` bash
 git clone https://github.com/MattRyder/GibEngine.git
 mkdir build
 cd build
 cmake ..
 make
+```
+
+## Windows, MSVC
+``` bash
+git clone https://github.com/MattRyder/GibEngine.git
+mkdir build
+cd build
+cmake -G "Visual Studio 14 2015 Win64" ..
+# Open GibEngine.sln within the `build` directory
 ```
