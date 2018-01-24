@@ -9,8 +9,6 @@ auto time = std::chrono::duration_cast<std::chrono::milliseconds>(clockEnd - clo
 Logger::Instance->info("BENCHMARK TIME: {}ms", time);\
 }
 
-std::vector<std::thread> GibEngine::MeshService::jobQueue = std::vector<std::thread>();
-
 void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parentNode, const aiScene* scene, Mesh::Flags flags, aiNode* node)
 {
 	// Load each mesh for this node:
