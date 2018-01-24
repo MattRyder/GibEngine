@@ -1,4 +1,15 @@
 #include "MeshService.h"
+#include <chrono>
+
+#define BENCHMARK(FUNC) {\
+auto clock = std::chrono::high_resolution_clock::now();\
+FUNC;\
+auto clockEnd = std::chrono::high_resolution_clock::now();\
+auto time = std::chrono::duration_cast<std::chrono::milliseconds>(clockEnd - clock).count();\
+Logger::Instance->info("BENCHMARK TIME: {}ms", time);\
+}
+
+std::vector<std::thread> GibEngine::MeshService::jobQueue = std::vector<std::thread>();
 
 void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parentNode, const aiScene* scene, Mesh::Flags flags, aiNode* node)
 {
@@ -52,7 +63,7 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 
 			vertices.push_back(vertex);
 		}
-
+		
 		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 		{
 			aiFace face = mesh->mFaces[i];
@@ -62,7 +73,7 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 			}
 		}
 
-		materials.push_back(LoadMaterial(rootMeshFile->GetDirectory(), material));
+		materials.push_back(LoadMaterial(scene, rootMeshFile->GetDirectory(), material));
 
 		Mesh* processedMesh = new Mesh(name, rootMeshFile->GetAssetName(), vertices, indices, materials);
 		processedMesh->SetFlags(flags);
@@ -84,7 +95,7 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 	}
 }
 
-GibEngine::Material* GibEngine::MeshService::LoadMaterial(const char* meshDirectory, const aiMaterial* aiMat)
+GibEngine::Material* GibEngine::MeshService::LoadMaterial(const aiScene* scene, const char* meshDirectory, const aiMaterial* aiMat)
 {
 	// Load Material for Mesh:
 	Material* material = new Material();
@@ -112,10 +123,17 @@ GibEngine::Material* GibEngine::MeshService::LoadMaterial(const char* meshDirect
 		{aiTextureType_SPECULAR, TextureType::SPECULAR}
 	};
 
+
+	// TODO: Improve the speed of this, it's ~250ms
+	//Yep threading this will massively improve load times.
 	for (auto texTypePair : textureTypes)
 	{
-		std::vector<Texture*> textureList = LoadMaterialTextures(meshDirectory, aiMat, texTypePair.first, texTypePair.second);
-		material->Textures.insert(material->Textures.end(), textureList.begin(), textureList.end());
+		auto loadTextureAsync = [](Material* material, const aiScene* scene, const char* meshDirectory, const aiMaterial* aiMat, aiTextureType aiTexType, TextureType engineTexType) {
+			std::vector<Texture*> textureList = LoadMaterialTextures(scene, meshDirectory, aiMat, aiTexType, engineTexType);
+			material->Textures.insert(material->Textures.end(), textureList.begin(), textureList.end());
+		};
+
+		loadTextureAsync(material, scene, meshDirectory, aiMat, texTypePair.first, texTypePair.second);
 	}
 
 	return material;
@@ -145,20 +163,49 @@ GibEngine::Mesh::Flags GibEngine::MeshService::ParseFlagsJson(const std::vector<
 	return flags;
 }
 
-std::vector<GibEngine::Texture*> GibEngine::MeshService::LoadMaterialTextures(const char* meshDirectory, const aiMaterial* material, aiTextureType type, GibEngine::TextureType textureType)
+std::vector<GibEngine::Texture*> GibEngine::MeshService::LoadMaterialTextures(const aiScene* scene, const char* meshDirectory, const aiMaterial* material, aiTextureType type, GibEngine::TextureType textureType)
 {
+	Texture* texture = nullptr;
 	std::vector<Texture*> textures;
 	for (unsigned int i = 0; i < material->GetTextureCount(type); i++) {
 		aiString str;
 		material->GetTexture(type, i, &str);
 
-		std::string* texturePath = new std::string(meshDirectory);
-		texturePath->append("//");
-		texturePath->append(str.C_Str());
+		if (str.C_Str()[0] == '*')
+		{
+			// Go get the embedded texture for the index in `str`
+			int sceneTextureIndex = atoi(&str.C_Str()[1]);
 
-		Texture* texture = Texture::Load(textureType, texturePath);
-		textures.push_back(texture);
+			const aiTexture* sceneTexture = scene->mTextures[sceneTextureIndex];
+
+			// Deal with the hints revealed by aiTexture:
+			bool isCompressedTexture = false;
+			if (sceneTexture->mHeight == 0)
+			{
+				// This texture is a compressed texture
+				isCompressedTexture = true;
+			}
+
+			if (isCompressedTexture)
+			{
+				unsigned char* compressedTextureData = reinterpret_cast<unsigned char*>(sceneTexture->pcData);
+				std::string* textureName = new std::string(str.C_Str());
+				texture = Texture::LoadFromMemory(textureType, textureName, compressedTextureData, sceneTexture->mWidth);
+				textures.push_back(texture);
+				delete compressedTextureData;
+			}
+		}
+		else
+		{
+			std::string* texturePath = new std::string(meshDirectory);
+			texturePath->append("//");
+			texturePath->append(str.C_Str());
+
+			Texture* texture = Texture::Load(textureType, texturePath);
+			textures.push_back(texture);
+		}
 	}
+
 	return textures;
 }
 

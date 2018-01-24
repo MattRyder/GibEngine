@@ -10,6 +10,8 @@ namespace GibEngine
 	{
 		class DeferredLightingPass : public RenderPass
 		{
+			Scene::VisibleSet lastVisibleSet;
+
 		public:
 			DeferredLightingPass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer* framebuffer);
 			void Render(const Scene::VisibleSet& visibleSet) override;

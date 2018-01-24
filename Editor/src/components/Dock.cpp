@@ -8,7 +8,6 @@ GibEditor::Components::Dock::Dock(GibEngine::Scene::Node* rootSceneNode, GibEngi
 
 void GibEditor::Components::Dock::Render()
 {
-
 	ImGui::BeginDockspace();
 
 	ImGui::SetNextDock(ImGuiDockSlot_Left);

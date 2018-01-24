@@ -13,7 +13,7 @@ void GibEngine::Renderer::RenderToTexturePass::Render(const GibEngine::Scene::Vi
 
 	graphicsApi->BindShader(shader->GetShaderId());
 
-	GLint textureLocation = glGetUniformLocation(shader->GetShaderId(), TEXTURE_SLOT_NAME);
+	GLint textureLocation = graphicsApi->GetUniformLocation(TEXTURE_SLOT_NAME);
 
 	if (textureLocation == -1)
 	{

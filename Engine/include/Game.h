@@ -25,10 +25,21 @@ namespace GibEngine
 
 	class Game
 	{
+		struct Config
+		{
+			bool vsyncEnabled;
+		};
+
+		Config config;
 		GLFWwindow* window;
 		const char* windowTitle = ENGINE_NAME;
 
-		float lastFrameTime = 0;
+		float fpsIntervalTimer;
+		float lastFrameTime;
+		float deltaTime;
+
+		int frameCounter;
+		int framesPerSecond;
 		glm::vec2 requestedWindowSize;
 
 		// TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
@@ -64,6 +75,7 @@ namespace GibEngine
 		GLFWwindow* GetWindow();
 		Renderer::Pipeline* GetRenderPipeline() const;
 		Input::InputManager* GetInputManager() const;
-		float GetDeltaTime();
+		float GetDeltaTime() const;
+		int GetFramesPerSecond() const;
 	};
 }

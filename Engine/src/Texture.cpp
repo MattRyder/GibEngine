@@ -82,6 +82,21 @@ GibEngine::Texture* GibEngine::Texture::LoadCubemap(std::string* cubemapDirector
     return cubemapTexture;
 }
 
+GibEngine::Texture* GibEngine::Texture::LoadFromMemory(TextureType type, std::string *fileName, unsigned char* data, size_t length)
+{
+	Texture* texture = new Texture(type, fileName);
+	TextureData* textureData = new TextureData();
+
+	int width = 0, height = 0, channels = 0;
+	textureData->Data = stbi_load_from_memory(data, length, &width, &height, &channels, STBI_rgb_alpha);
+	textureData->Channels = channels;
+	textureData->Height = height;
+	textureData->Width = width;
+	
+	texture->SetTextureData(textureData);
+	return texture;
+}
+
 GibEngine::TextureType GibEngine::Texture::GetTextureType()
 {
 	return this->type;

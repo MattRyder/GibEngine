@@ -64,7 +64,7 @@ bool GibEngine::Renderer::RenderPass::IsEnabled() const
 
 void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::VisibleSet& visibleSet)
 {
-	int pl = glGetUniformLocation(shader->GetShaderId(), "pointLightCount");
+	int pl = graphicsApi->GetUniformLocation("pointLightCount");
 	glUniform1i(pl, visibleSet.GetLights().size());
 
 	for (unsigned int i = 0; i < visibleSet.GetLights().size(); i++)
@@ -115,17 +115,17 @@ void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::Visible
 			PointLight *pointLight = reinterpret_cast<PointLight *>(light);
 
 			glUniform1f(
-				glGetUniformLocation(shader->GetShaderId(), linearAttenuation.c_str()),
+				graphicsApi->GetUniformLocation(linearAttenuation.c_str()),
 				pointLight->GetLinearAttenuation()
 			);
 
 			glUniform1f(
-				glGetUniformLocation(shader->GetShaderId(), quadraticAttenuation.c_str()),
+				graphicsApi->GetUniformLocation(quadraticAttenuation.c_str()),
 				pointLight->GetQuadraticAttenuation()
 			);
 
 			glUniform1f(
-				glGetUniformLocation(shader->GetShaderId(), volumeRadius.c_str()),
+				graphicsApi->GetUniformLocation(volumeRadius.c_str()),
 				pointLight->GetVolumeRadius()
 			);
 		}

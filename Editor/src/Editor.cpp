@@ -1,7 +1,8 @@
 #include "Editor.h"
 
 
-GibEditor::Editor::Editor(int argc, char** argv) : GibEngine::Game(argc, argv)
+GibEditor::Editor::Editor(int argc, char** argv) 
+	: GibEngine::Game(argc, argv), deltaDisplayIntervalTimer(0), lastReadDeltaTime(0)
 {
 	std::function<void()> exitCallback = [&]() -> void { glfwSetWindowShouldClose(GetWindow(), true); };
 	auto openWorldFileCallback = [&]() -> void
@@ -78,14 +79,41 @@ void GibEditor::Editor::Render()
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Always);
 
 	auto framebuffer = GetRenderPipeline()->GetFramebuffer();
-	ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight()), ImGuiSetCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight() - ImGui::GetTextLineHeightWithSpacing()), ImGuiSetCond_Always);
 
-	if (ImGui::Begin("", (bool*)0, ROOT_PANEL_FLAGS))
+	if (ImGui::Begin("MainMenuWindow", (bool*)0, ROOT_PANEL_FLAGS))
 	{
 		menubar->Render();
+		dock->Render();
+		ImGui::End();
+
 	}
 
-	dock->Render();
+
+	ImGui::SetNextWindowPos(ImVec2(0, framebuffer->GetBufferHeight() - ImGui::GetTextLineHeightWithSpacing()));
+	ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), ImGui::GetTextLineHeightWithSpacing()));
+	if (ImGui::Begin("StatusBarWindow", 0, ROOT_PANEL_FLAGS))
+	{
+		if (ImGui::BeginMenuBar())
+		{
+			if (deltaDisplayIntervalTimer > 1.0f)
+			{
+				lastReadDeltaTime = GetDeltaTime();
+				deltaDisplayIntervalTimer = 0;
+			}
+			else
+			{
+				deltaDisplayIntervalTimer += GetDeltaTime();
+			}
+
+			ImGui::Text("Frame Render: %.5fms (%i FPS)", lastReadDeltaTime, GetFramesPerSecond());
+
+			ImGui::EndMenuBar();
+		}
+		ImGui::End();
+
+	}
+
 
 	//if (ImGui::Begin("Style Editor"))
 	//{
@@ -94,8 +122,6 @@ void GibEditor::Editor::Render()
 	//}
 
 	//statusBar->Render();
-
-	ImGui::End();
 
 	ImGui::Render();
 }
@@ -115,6 +141,11 @@ void GibEditor::Editor::Update()
 	   {
 		   flags = static_cast<Flags>(flags ^ Flags::DISABLE_UI_RENDER);
 		   keydownInterval = 0;
+	   }
+
+	   if (inputManager->GetKeyboardState()[GLFW_KEY_V])
+	   {
+		   ToggleVsync();
 	   }
    }
    else

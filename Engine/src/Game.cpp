@@ -1,6 +1,7 @@
 ﻿#include "Game.h"
 
 GibEngine::Game::Game(int argc, char** argv)
+	: deltaTime(0), framesPerSecond(0), lastFrameTime(0), fpsIntervalTimer(0), frameCounter(0)
 {
 	this->ParseOptions(argc, argv);
 
@@ -16,11 +17,11 @@ GibEngine::Game::Game(int argc, char** argv)
 	this->playerCamera->SetPosition(glm::vec3(15, 15, 0));
 	this->playerCamera->LookAt(0, 0, 0);
 
-	//this->chaseCamera = new ChaseCamera(WINDOW_WIDTH, WINDOW_HEIGHT, 0.1f, 2500.0f, 45.0f, nullptr);
-
 	this->inputManager = new Input::InputManager(window);
 
 	SetupPipeline();
+	glfwSwapInterval(1);
+
 
 	if(!true)
 	{
@@ -71,15 +72,31 @@ GibEngine::Game::~Game()
 	delete inputManager;
 	delete renderPipeline;
 	delete playerCamera;
-	//delete chaseCamera;
 }
 
 void GibEngine::Game::Render()
 {
+	// Generate the delta for the previous and this frame:
+	float currentFrameTime = static_cast<float>(glfwGetTime());
+	deltaTime = currentFrameTime - lastFrameTime;
+	lastFrameTime = currentFrameTime;
+
+	if (fpsIntervalTimer > 1.0f)
+	{
+		framesPerSecond = frameCounter;
+		frameCounter = 0;
+		fpsIntervalTimer = 0;
+	}
+	else
+	{
+		frameCounter++;
+		fpsIntervalTimer += deltaTime;
+	}
+
 	if (this->renderPipeline != nullptr)
 	{
 		const Scene::VisibleSet visibleSet = Scene::VisibleSet(playerCamera, rootSceneNode);
-		this->renderPipeline->Render(visibleSet);
+		this->renderPipeline->Render(visibleSet, GetDeltaTime());
 	}
 }
 
@@ -95,7 +112,6 @@ void GibEngine::Game::Update()
 	}
 
 	this->playerCamera->Update(deltaTime, inputManager->GetMousePosition(), inputManager->GetScrollState(), inputManager->GetKeyboardState());
-	//this->chaseCamera->Update(deltaTime, inputManager->GetMousePosition(), inputManager->GetScrollState(), inputManager->GetKeyboardState());
 
 	if (inputManager->GetKeyboardState()[GLFW_KEY_F11])
 	{
@@ -263,7 +279,10 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 	}
 }
 
-void GibEngine::Game::ToggleVsync() { }
+void GibEngine::Game::ToggleVsync()
+{
+	glfwSwapInterval((config.vsyncEnabled = !config.vsyncEnabled) ? 1 : 0);
+}
 
 GLFWwindow* GibEngine::Game::GetWindow()
 {
@@ -280,12 +299,13 @@ GibEngine::Input::InputManager* GibEngine::Game::GetInputManager() const
 	return inputManager;
 }
 
-float GibEngine::Game::GetDeltaTime()
+int GibEngine::Game::GetFramesPerSecond() const
 {
-	float currentFrameTime = static_cast<float>(glfwGetTime());
-	float deltaTime = currentFrameTime - lastFrameTime;
-	lastFrameTime = currentFrameTime;
+	return framesPerSecond;
+}
 
+float GibEngine::Game::GetDeltaTime() const
+{
 	return deltaTime;
 }
 

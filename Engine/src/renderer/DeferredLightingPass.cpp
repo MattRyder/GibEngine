@@ -1,7 +1,7 @@
 #include "renderer/DeferredLightingPass.h"
 
 GibEngine::Renderer::DeferredLightingPass::DeferredLightingPass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer* framebuffer)
-	: RenderPass(graphicsApi, shader, framebuffer)
+	: RenderPass(graphicsApi, shader, framebuffer), lastVisibleSet(nullptr, nullptr)
 {
 	LoadQuadData();
 }
@@ -14,7 +14,14 @@ void GibEngine::Renderer::DeferredLightingPass::Render(const Scene::VisibleSet& 
 
 	graphicsApi->BindCamera(visibleSet.GetCamera());
 
-	BindLights(visibleSet);
+	if (visibleSet.GetLights().size() > 0 && lastVisibleSet.GetLights().size() > 0)
+	{
+		if (std::is_permutation(visibleSet.GetLights().begin(), visibleSet.GetLights().end(), lastVisibleSet.GetLights().begin()))
+		{
+			BindLights(visibleSet);
+			lastVisibleSet = visibleSet;
+		}
+	}
 
 	buffer_t buffer = framebuffer->GetBuffer();
 	const char* framebufferStrings[FRAMEBUFFERTYPE_LAST] = { "framebuffer_Position", "framebuffer_Albedo", "framebuffer_Normal", "framebuffer_Texture" };

@@ -98,7 +98,7 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 	this->passes.emplace(type, renderPass);
 }
 
-void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet& visibleSet)
+void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet& visibleSet, const float deltaTime)
 {	
 	if (renderingPaused)
 	{

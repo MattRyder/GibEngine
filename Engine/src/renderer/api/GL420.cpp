@@ -1,10 +1,9 @@
 #include "renderer/api/GL420.h"
 
 
-GibEngine::Renderer::API::GL420::GL420()
+GibEngine::Renderer::API::GL420::GL420() 
+	: uniformBufferManager(new UniformBufferManager()), shaderUniformLocationCache()
 {
-	uniformBufferManager = new UniformBufferManager();
-
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -27,6 +26,7 @@ void GibEngine::Renderer::API::GL420::BlitFramebuffer(unsigned int framebufferSo
 	UnbindFramebuffer();
 }
 
+bool foo = !true;
 void GibEngine::Renderer::API::GL420::BindCamera(GibEngine::CameraBase *camera)
 {
 	const char* CAMERA_BUFFER_NAME = "cameraUBO";
@@ -39,8 +39,12 @@ void GibEngine::Renderer::API::GL420::BindCamera(GibEngine::CameraBase *camera)
 		return;
 	}
 
-	GLuint cameraUBOIndex = glGetUniformBlockIndex(currentShaderID, CAMERA_BUFFER_NAME);
-	glUniformBlockBinding(currentShaderID, cameraUBOIndex, cameraUBO->GetBufferBindingIndex());
+	if (foo)
+	{
+		GLuint cameraUBOIndex = glGetUniformBlockIndex(currentShaderID, CAMERA_BUFFER_NAME);
+		glUniformBlockBinding(currentShaderID, cameraUBOIndex, cameraUBO->GetBufferBindingIndex());
+		foo = false;
+	}
 }
 
 void GibEngine::Renderer::API::GL420::BindFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer)
@@ -56,19 +60,19 @@ void GibEngine::Renderer::API::GL420::BindMaterial(GibEngine::Material* material
 	};
 
 	glUniform3fv(
-		glGetUniformLocation(currentShaderID, "material.ambientColor"),
+		GetUniformLocation("material.ambientColor"),
 		1,
 		glm::value_ptr(material->AmbientColor)
 	);
 
 	glUniform3fv(
-		glGetUniformLocation(currentShaderID, "material.diffuseColor"),
+		GetUniformLocation("material.diffuseColor"),
 		1,
 		glm::value_ptr(material->DiffuseColor)
 	);
 
 	glUniform3fv(
-		glGetUniformLocation(currentShaderID, "material.specularColor"),
+		GetUniformLocation("material.specularColor"),
 		1,
 		glm::value_ptr(material->SpecularColor)
 	);
@@ -86,7 +90,7 @@ void GibEngine::Renderer::API::GL420::BindMaterial(GibEngine::Material* material
 		const char *textureTypeStr = texture->GetTextureTypeString();
 		std::string textureUniformName = std::string("texture_" +
 			std::string(textureTypeStr) + std::to_string(locationIndex));
-		GLint textureLocation = glGetUniformLocation(currentShaderID, textureUniformName.c_str());
+		GLint textureLocation = GetUniformLocation(textureUniformName.c_str());
 
 		if (textureLocation == -1)
 		{
@@ -269,13 +273,19 @@ void GibEngine::Renderer::API::GL420::DrawSkybox(GibEngine::Skybox *skybox)
 
 int GibEngine::Renderer::API::GL420::GetUniformLocation(const char* uniformName)
 {
-	GLint uniformLocation = glGetUniformLocation(currentShaderID, uniformName);
+	auto shaderUniforms = shaderUniformLocationCache[currentShaderID];
+	auto cachedUniformLocation = shaderUniforms.find(uniformName);
 
-	if (uniformLocation == -1)
+	if (cachedUniformLocation != shaderUniforms.end())
 	{
-		Logger::Instance->error("[{}] Failed to find Uniform: {}", __FUNCTION__, uniformName);
-		return -1;
+		//Logger::Instance->info("CACHE HIT: {}", uniformName);
+		return cachedUniformLocation->second;
 	}
+
+	// Cache miss, perform a lookup via OpenGL:
+	int uniformLocation = glGetUniformLocation(currentShaderID, uniformName);
+
+	shaderUniformLocationCache[currentShaderID][uniformName] = uniformLocation;
 
 	return uniformLocation;
 }
@@ -309,13 +319,13 @@ void GibEngine::Renderer::API::GL420::UnbindFramebuffer()
 
 void GibEngine::Renderer::API::GL420::BindShader(unsigned int shaderId)
 {
-	GLint currentProgram;
-	glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+	//GLint currentProgram;
+	//glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
 
-	if (currentProgram > 0 && currentProgram != shaderId)
-	{
-		Logger::Instance->error("Shader::End() must be called before Shader::Begin()");
-	}
+	//if (currentProgram > 0 && currentProgram != shaderId)
+	//{
+	//	Logger::Instance->error("Shader::End() must be called before Shader::Begin()");
+	//}
 
 	glUseProgram(shaderId);
 	this->currentShaderID = shaderId;
@@ -472,7 +482,7 @@ void GibEngine::Renderer::API::GL420::UploadTexture2D(GibEngine::Texture *textur
 		texture->SetTextureId(textureId);
 	}
 
-	delete texData->Data;
+	free(texData->Data);
 }
 
 void GibEngine::Renderer::API::GL420::UploadTextureCubemap(GibEngine::Texture *texture)

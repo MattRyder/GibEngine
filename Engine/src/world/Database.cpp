@@ -579,5 +579,7 @@ glm::vec3 GibEngine::World::Database::ReadVec3(const char* vec3String)
         value = std::strtok(NULL, ",");
     }
 
+	delete mutVec3Str;
+
     return vec;
 }

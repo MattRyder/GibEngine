@@ -12,11 +12,12 @@ void GibEngine::Renderer::SkyboxRenderPass::Render(const GibEngine::Scene::Visib
 
 	graphicsApi->BindShader(shader->GetShaderId());
 	
-	graphicsApi->BindCamera(visibleSet.GetCamera());
+	// GL4+ uses UBOs so this isn't required, but is for GLES3!
+	//graphicsApi->BindCamera(visibleSet.GetCamera());
 
 	glm::mat4 skyboxMatrix = visibleSet.GetSkyboxNode()->GetWorldTransform();
 	glUniformMatrix4fv(
-		glGetUniformLocation(shader->GetShaderId(), "skyboxModelMatrix"), 1, GL_FALSE, glm::value_ptr(skyboxMatrix)
+		graphicsApi->GetUniformLocation("skyboxModelMatrix"), 1, GL_FALSE, glm::value_ptr(skyboxMatrix)
 	);
 
 	auto skybox = reinterpret_cast<Skybox*>(visibleSet.GetSkyboxNode()->GetEntity());

@@ -35,8 +35,9 @@ namespace GibEditor
 		Components::Dock* dock;
 		Components::StatusBar* statusBar;
 
-
 		float keydownInterval = 0;
+		float deltaDisplayIntervalTimer;
+		float lastReadDeltaTime;
 
 		const ImGuiWindowFlags ROOT_PANEL_FLAGS = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar
 			| ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;

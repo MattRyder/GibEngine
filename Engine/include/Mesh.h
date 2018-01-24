@@ -80,8 +80,6 @@ namespace GibEngine
 		bool IsUploaded();
 		std::vector<GibEngine::Texture*> LoadMaterialTextures(aiMaterial *material, aiTextureType type, GibEngine::TextureType textureType);
 
-		void ProcessMesh(aiMesh *mesh, const aiScene *scene);
-
 		void SetIndices(std::vector<unsigned int> indices);
 		void SetVertices(std::vector<Vertex> vertices);
 		void SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept);

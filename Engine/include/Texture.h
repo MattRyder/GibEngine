@@ -64,6 +64,7 @@ namespace GibEngine
 
 		static Texture* Load(TextureType type, std::string *fileName);
 		static Texture* LoadCubemap(std::string *cubemapDirectory, const char *textureExtension);
+		static Texture* LoadFromMemory(TextureType type, std::string* fileName, unsigned char* data, size_t length);
 
 		std::string* GetFilename();
 		unsigned int GetTextureId();
