@@ -1,7 +1,7 @@
 #include "../include/Mesh.h"
 
 GibEngine::Mesh::Mesh(const char* name)
-	: Entity(EntityType::MESH, name), ownerAssetName(nullptr), flags(Flags::RENDER_ENABLED ^ Flags::RENDER_DEFERRED) { }
+	: Entity(EntityType::MESH, name), ownerAssetName(nullptr), flags(Flags::RENDER_ENABLED ^ Flags::RENDER_DEFERRED), material(nullptr) { }
 
 GibEngine::Mesh::Mesh(const char* name, const char* ownerFilePath, std::vector<GibEngine::Vertex> vertices, std::vector<unsigned int> indices, GibEngine::Material* material)
 	: Entity(EntityType::MESH, name), ownerAssetName(strdup(ownerFilePath)), vertices(vertices), indices(indices), material(material), flags(Flags::RENDER_ENABLED ^ Flags::RENDER_DEFERRED) { }

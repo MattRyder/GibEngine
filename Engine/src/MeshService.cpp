@@ -131,7 +131,7 @@ GibEngine::Material* GibEngine::MeshService::LoadMaterial(const aiScene* scene, 
 			material->Textures.insert(material->Textures.end(), textureList.begin(), textureList.end());
 		};
 
-		//loadTextureAsync(material, scene, meshDirectory, aiMat, texTypePair.first, texTypePair.second);
+		loadTextureAsync(material, scene, meshDirectory, aiMat, texTypePair.first, texTypePair.second);
 	}
 
 	return material;
