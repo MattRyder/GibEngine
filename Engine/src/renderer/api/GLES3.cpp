@@ -43,24 +43,32 @@ void GibEngine::Renderer::API::GLES3::BindMaterial(GibEngine::Material* material
 
 	for (unsigned int i = 0; i < material->Textures.size(); i++)
 	{
-		Texture* texture = material->Textures[i];
+		GLint textureLocation = -1;
+		MaterialTexture* matTex = material->Textures[i];
 		
-		int locationIndex = textureLocIndex.at(texture->GetTextureType());
-		const char *textureTypeStr = texture->GetTextureTypeString();
-		std::string textureUniformName = std::string("texture_" + 
-			std::string(textureTypeStr) + std::to_string(locationIndex));
-		GLint textureLocation = glGetUniformLocation(currentShaderID, textureUniformName.c_str());
+		if (matTex->textureUniformName == nullptr)
+		{
+			int locationIndex = textureLocIndex.at(matTex->texture->GetTextureType());
+			const char *textureTypeStr = matTex->texture->GetTextureTypeString();
+
+			std::string textureUniformName = std::string("texture_" +
+				std::string(textureTypeStr) + std::to_string(locationIndex));
+
+			matTex->textureUniformName = strdup(textureUniformName.c_str());
+		}
+		
+		textureLocation = GetUniformLocation(matTex->textureUniformName);
 
 		if(textureLocation == -1)
 		{
-			Logger::Instance->error("Cannot find texture2D sampler: {}", textureUniformName.c_str());			
+			Logger::Instance->error("Cannot find texture2D sampler: {}", matTex->textureUniformName);			
 		}
 
 		glUniform1i(textureLocation, static_cast<float>(i));
 		
-		BindTexture2D(i, texture->GetTextureId());
+		BindTexture2D(i, matTex->texture->GetTextureId());
 
-		textureLocIndex.at(texture->GetTextureType())++;
+		textureLocIndex.at(matTex->texture->GetTextureType())++;
 	}
 }
 

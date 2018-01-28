@@ -6,7 +6,7 @@ GibEngine::Renderer::RenderToTexturePass::RenderToTexturePass(API::IGraphicsApi 
 	LoadQuadData();
 }
 
-void GibEngine::Renderer::RenderToTexturePass::Render(const GibEngine::Scene::VisibleSet& visibleSet)
+void GibEngine::Renderer::RenderToTexturePass::Render(const GibEngine::Scene::VisibleSet* visibleSet)
 {
 	const int TEXTURE_SLOT_ZERO = 0;
 	const char* TEXTURE_SLOT_NAME = "renderedTexture";

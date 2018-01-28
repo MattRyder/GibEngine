@@ -2,8 +2,10 @@
 
 
 GibEngine::Renderer::API::GL420::GL420() 
-	: uniformBufferManager(new UniformBufferManager()), shaderUniformLocationCache()
+	: uniformBufferManager(new UniformBufferManager()), shaderCacheMap()
 {
+	currentShaderID = 0;
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -26,7 +28,6 @@ void GibEngine::Renderer::API::GL420::BlitFramebuffer(unsigned int framebufferSo
 	UnbindFramebuffer();
 }
 
-bool foo = !true;
 void GibEngine::Renderer::API::GL420::BindCamera(GibEngine::CameraBase *camera)
 {
 	const char* CAMERA_BUFFER_NAME = "cameraUBO";
@@ -39,12 +40,8 @@ void GibEngine::Renderer::API::GL420::BindCamera(GibEngine::CameraBase *camera)
 		return;
 	}
 
-	if (foo)
-	{
-		GLuint cameraUBOIndex = glGetUniformBlockIndex(currentShaderID, CAMERA_BUFFER_NAME);
-		glUniformBlockBinding(currentShaderID, cameraUBOIndex, cameraUBO->GetBufferBindingIndex());
-		foo = false;
-	}
+	GLuint cameraUBOIndex = glGetUniformBlockIndex(currentShaderID, CAMERA_BUFFER_NAME);
+	glUniformBlockBinding(currentShaderID, cameraUBOIndex, cameraUBO->GetBufferBindingIndex());
 }
 
 void GibEngine::Renderer::API::GL420::BindFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer)
@@ -59,50 +56,56 @@ void GibEngine::Renderer::API::GL420::BindMaterial(GibEngine::Material* material
 		{ TextureType::DIFFUSE, 0 },{ TextureType::NORMAL, 0 },{ TextureType::SPECULAR, 0 }
 	};
 
-	glUniform3fv(
-		GetUniformLocation("material.ambientColor"),
-		1,
-		glm::value_ptr(material->AmbientColor)
-	);
+	//glUniform3fv(
+	//	GetUniformLocation("material.ambientColor"),
+	//	1,
+	//	glm::value_ptr(material->AmbientColor)
+	//);
 
-	glUniform3fv(
-		GetUniformLocation("material.diffuseColor"),
-		1,
-		glm::value_ptr(material->DiffuseColor)
-	);
+	//glUniform3fv(
+	//	GetUniformLocation("material.diffuseColor"),
+	//	1,
+	//	glm::value_ptr(material->DiffuseColor)
+	//);
 
-	glUniform3fv(
-		GetUniformLocation("material.specularColor"),
-		1,
-		glm::value_ptr(material->SpecularColor)
-	);
+	//glUniform3fv(
+	//	GetUniformLocation("material.specularColor"),
+	//	1,
+	//	glm::value_ptr(material->SpecularColor)
+	//);
 
 	for (unsigned int i = 0; i < material->Textures.size(); i++)
 	{
-		Texture* texture = material->Textures[i];
+		GLint textureLocation = -1;
+		MaterialTexture* matTex = material->Textures[i];
 
-		if (texture->GetTextureId() == 0)
+		if (!matTex->texture->IsUploaded())
 		{
-			UploadTexture2D(texture);
+			UploadTexture2D(matTex->texture);
 		}
 
-		int locationIndex = textureLocIndex.at(texture->GetTextureType());
-		const char *textureTypeStr = texture->GetTextureTypeString();
-		std::string textureUniformName = std::string("texture_" +
-			std::string(textureTypeStr) + std::to_string(locationIndex));
-		GLint textureLocation = GetUniformLocation(textureUniformName.c_str());
+		if (matTex->textureUniformName == nullptr)
+		{
+			int locationIndex = textureLocIndex.at(matTex->texture->GetTextureType());
+			const char *textureTypeStr = matTex->texture->GetTextureTypeString();
+
+			std::string textureUniformName = std::string("texture_" +
+				std::string(textureTypeStr) + std::to_string(locationIndex));
+
+			matTex->textureUniformName = strdup(textureUniformName.c_str());
+			textureLocIndex.at(matTex->texture->GetTextureType())++;
+		}
+
+		textureLocation = GetUniformLocation(matTex->textureUniformName);
 
 		if (textureLocation == -1)
 		{
-			Logger::Instance->error("Cannot find texture2D sampler: {}", textureUniformName.c_str());
-			continue;
+			Logger::Instance->error("Cannot find texture2D sampler: {}", matTex->textureUniformName);
 		}
 
 		glUniform1i(textureLocation, static_cast<float>(i));
 
-		BindTexture2D(i, texture->GetTextureId());
-
-		textureLocIndex.at(texture->GetTextureType())++;
+		BindTexture2D(i, matTex->texture->GetTextureId());
 	}
 }
 
@@ -273,19 +276,22 @@ void GibEngine::Renderer::API::GL420::DrawSkybox(GibEngine::Skybox *skybox)
 
 int GibEngine::Renderer::API::GL420::GetUniformLocation(const char* uniformName)
 {
-	auto shaderUniforms = shaderUniformLocationCache[currentShaderID];
-	auto cachedUniformLocation = shaderUniforms.find(uniformName);
+	//auto shaderCache = shaderCacheMap[currentShaderID];
+	//auto cachedUniformLocation = shaderCache.uniformLocations.find(uniformName);
 
-	if (cachedUniformLocation != shaderUniforms.end())
-	{
-		//Logger::Instance->info("CACHE HIT: {}", uniformName);
-		return cachedUniformLocation->second;
-	}
+	//if (cachedUniformLocation != shaderCache.uniformLocations.end())
+	//{
+	//	//Logger::Instance->info("CACHE HIT: {}", uniformName);
+	//	return cachedUniformLocation->second;
+	//}
 
 	// Cache miss, perform a lookup via OpenGL:
 	int uniformLocation = glGetUniformLocation(currentShaderID, uniformName);
 
-	shaderUniformLocationCache[currentShaderID][uniformName] = uniformLocation;
+	//shaderCache.uniformLocations[uniformName] = uniformLocation;
+	//shaderCacheMap[currentShaderID] = shaderCache;
+	//Logger::Instance->info("CACHE MISS: {}", uniformName);
+
 
 	return uniformLocation;
 }
@@ -319,13 +325,17 @@ void GibEngine::Renderer::API::GL420::UnbindFramebuffer()
 
 void GibEngine::Renderer::API::GL420::BindShader(unsigned int shaderId)
 {
-	//GLint currentProgram;
-	//glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+	if (shaderId == currentShaderID)
+	{
+		return;
+	}
 
-	//if (currentProgram > 0 && currentProgram != shaderId)
-	//{
-	//	Logger::Instance->error("Shader::End() must be called before Shader::Begin()");
-	//}
+	if (currentShaderID > 0 && currentShaderID != shaderId)
+	{
+		Logger::Instance->error("Shader::End() must be called before Shader::Begin()");
+		return;
+	}
+
 
 	glUseProgram(shaderId);
 	this->currentShaderID = shaderId;

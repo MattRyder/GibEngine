@@ -15,8 +15,8 @@ namespace GibEngine
 			const Node* skyboxNode;
 			
 			CameraBase* camera;
-			std::map<Mesh*, std::vector<glm::mat4>> meshInstances;
-			std::vector<const Scene::Node*> lights;
+			std::map<Mesh*, std::vector<glm::mat4>>* meshInstances;
+			std::vector<const Scene::Node*>* lights;
 
 			void AddLight(const Scene::Node* lightNode);
 			void AddMeshInstance(const Scene::Node* meshNode);
@@ -24,12 +24,13 @@ namespace GibEngine
 
 		public:
 			VisibleSet(CameraBase* camera, Node* rootSceneNode);
+			~VisibleSet();
 
 			CameraBase* GetCamera() const;
 			const Scene::Node* GetSkyboxNode() const;
-			std::vector<const Scene::Node*> GetLights() const;
+			std::vector<const Scene::Node*>* GetLights() const;
 
-			std::map<Mesh*, std::vector<glm::mat4>> GetMeshInstanceMap() const;
+			std::map<Mesh*, std::vector<glm::mat4>>* GetMeshInstanceMap() const;
 		};
 	}
 }

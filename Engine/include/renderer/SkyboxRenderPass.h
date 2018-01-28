@@ -12,7 +12,7 @@ namespace GibEngine
 		public:
 			SkyboxRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader);
 
-			virtual void Render(const Scene::VisibleSet& visibleSet) override;
+			virtual void Render(const Scene::VisibleSet* visibleSet) override;
 			void UploadSkybox(Skybox* skybox);
 		};
 

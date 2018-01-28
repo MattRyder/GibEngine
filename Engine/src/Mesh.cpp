@@ -3,11 +3,11 @@
 GibEngine::Mesh::Mesh(const char* name)
 	: Entity(EntityType::MESH, name), ownerAssetName(nullptr), flags(Flags::RENDER_ENABLED ^ Flags::RENDER_DEFERRED) { }
 
-GibEngine::Mesh::Mesh(const char* name, const char* ownerFilePath, std::vector<GibEngine::Vertex> vertices, std::vector<unsigned int> indices, std::vector<GibEngine::Material*> material)
-	: Entity(EntityType::MESH, name), ownerAssetName(strdup(ownerFilePath)), vertices(vertices), indices(indices), materials(material), flags(Flags::RENDER_ENABLED ^ Flags::RENDER_DEFERRED) { }
+GibEngine::Mesh::Mesh(const char* name, const char* ownerFilePath, std::vector<GibEngine::Vertex> vertices, std::vector<unsigned int> indices, GibEngine::Material* material)
+	: Entity(EntityType::MESH, name), ownerAssetName(strdup(ownerFilePath)), vertices(vertices), indices(indices), material(material), flags(Flags::RENDER_ENABLED ^ Flags::RENDER_DEFERRED) { }
 
 GibEngine::Mesh::Mesh(const char* name, const char* ownerFilePath, std::vector<Vertex> vertices)
-	: Mesh(name, ownerFilePath, vertices, std::vector<unsigned int>(), std::vector<Material*>()) { }
+	: Mesh(name, ownerFilePath, vertices, std::vector<unsigned int>(), nullptr) { }
 
 GibEngine::Mesh::~Mesh()
 {
@@ -20,7 +20,8 @@ GibEngine::Mesh::~Mesh()
 	vertices.clear();
 	indices.clear();
 
-	for (auto material : materials)
+	
+	if (material != nullptr)
 	{
 		for (auto texture : material->Textures)
 		{
@@ -28,9 +29,9 @@ GibEngine::Mesh::~Mesh()
 		}
 
 		material->Textures.clear();
-		delete material;
 	}
-	materials.clear();	
+
+	delete material;
 }
 
 void GibEngine::Mesh::SetIndices(std::vector<unsigned int> indices)
@@ -63,9 +64,9 @@ std::vector<unsigned int> GibEngine::Mesh::GetIndices() const
 	return this->indices;
 }
 
-std::vector<GibEngine::Material*> GibEngine::Mesh::GetMaterials() const
+GibEngine::Material* GibEngine::Mesh::GetMaterial() const
 {
-	return this->materials;
+	return this->material;
 }
 
 GibEngine::MeshUploadTicket* GibEngine::Mesh::GetMeshUploadTicket() const

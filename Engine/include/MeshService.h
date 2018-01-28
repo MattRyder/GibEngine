@@ -12,7 +12,7 @@ namespace GibEngine
 
 		static Mesh::Flags ParseFlagsJson(const std::vector<json11::Json>& renderFlagsJsonArray);
 
-		static std::vector<GibEngine::Texture*> LoadMaterialTextures(
+		static std::vector<GibEngine::MaterialTexture*> LoadMaterialTextures(
 			const aiScene* scene, const char* meshDirectory, const aiMaterial* material, aiTextureType type, GibEngine::TextureType textureType);
 
 		static Scene::Node* GeneratePlane(unsigned int length, unsigned int width, int intervalSize, Mesh::Flags flags);

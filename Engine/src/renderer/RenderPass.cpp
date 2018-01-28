@@ -49,7 +49,7 @@ void GibEngine::Renderer::RenderPass::LoadQuadData()
 	quadMesh->SetMeshUploadTicket(graphicsApi->UploadMesh(quadMesh));
 }
 
-void GibEngine::Renderer::RenderPass::Render(const GibEngine::Scene::VisibleSet& visibleSet) { }
+void GibEngine::Renderer::RenderPass::Render(const GibEngine::Scene::VisibleSet* visibleSet) { }
 
 
 GibEngine::Shader* GibEngine::Renderer::RenderPass::GetShader() const
@@ -62,14 +62,15 @@ bool GibEngine::Renderer::RenderPass::IsEnabled() const
 	return passEnabled;
 }
 
-void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::VisibleSet& visibleSet)
+void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::VisibleSet* visibleSet)
 {
+	auto lightCount = visibleSet->GetLights()->size();
 	int pl = graphicsApi->GetUniformLocation("pointLightCount");
-	glUniform1i(pl, visibleSet.GetLights().size());
+	glUniform1i(pl, lightCount);
 
-	for (unsigned int i = 0; i < visibleSet.GetLights().size(); i++)
+	for (unsigned int i = 0; i < lightCount; i++)
 	{
-		const Scene::Node* lightNode = visibleSet.GetLights()[i];
+		const Scene::Node* lightNode = visibleSet->GetLights()->at(i);
 		PointLight* light = reinterpret_cast<PointLight*>(lightNode->GetEntity());
 
 		std::string lightId, position, ambient, diffuse, specular,

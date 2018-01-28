@@ -75,6 +75,7 @@ namespace GibEngine
 		Cubemap* GetCubemap();
 
 		bool IsLoaded() { return this->isLoaded; }
+		bool IsUploaded() { return this->isUploaded; }
 
 		void SetTextureData(TextureData *textureData);
 		void SetTextureId(unsigned int textureId);

@@ -11,7 +11,14 @@ namespace GibEngine
         {
             class GL420 : public IGraphicsApi
             {
-				std::map<unsigned int, std::map<const char*, unsigned int>> shaderUniformLocationCache;
+				
+				struct ShaderCache
+				{
+					std::map<const char*, int> uniformLocations;
+					std::map<const char*, int> uboBindings;
+				};
+
+				std::map<unsigned int, ShaderCache> shaderCacheMap;
 				UniformBufferManager* uniformBufferManager;
 
             public:

@@ -1,7 +1,7 @@
 ﻿#include "Game.h"
 
 GibEngine::Game::Game(int argc, char** argv)
-	: deltaTime(0), framesPerSecond(0), lastFrameTime(0), fpsIntervalTimer(0), frameCounter(0)
+	: deltaTime(0), framesPerSecond(0), lastFrameTime(0), fpsIntervalTimer(0), frameCounter(0), visibleSet(new Scene::VisibleSet(nullptr, nullptr))
 {
 	this->ParseOptions(argc, argv);
 
@@ -16,6 +16,8 @@ GibEngine::Game::Game(int argc, char** argv)
 	this->playerCamera = new FreeCamera(requestedWindowSize.x, requestedWindowSize.y, 0.1f, 2500.0f, 45.0f);
 	this->playerCamera->SetPosition(glm::vec3(15, 15, 0));
 	this->playerCamera->LookAt(0, 0, 0);
+
+	visibleSet = new Scene::VisibleSet(playerCamera, rootSceneNode);
 
 	this->inputManager = new Input::InputManager(window);
 
@@ -95,7 +97,7 @@ void GibEngine::Game::Render()
 
 	if (this->renderPipeline != nullptr)
 	{
-		const Scene::VisibleSet visibleSet = Scene::VisibleSet(playerCamera, rootSceneNode);
+		
 		this->renderPipeline->Render(visibleSet, GetDeltaTime());
 	}
 }

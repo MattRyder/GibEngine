@@ -39,13 +39,13 @@ namespace GibEngine
 
 			virtual ~RenderPass();
 
-			virtual void Render(const Scene::VisibleSet& visibleSet);
+			virtual void Render(const Scene::VisibleSet* visibleSet);
 
 			Shader* GetShader() const;
 
 			bool IsEnabled() const;
 
-			void BindLights(const Scene::VisibleSet& visibleSet);
+			void BindLights(const Scene::VisibleSet* visibleSet);
 			void FlagLightingBindRequired();
 
 			void TakeScreenshot();

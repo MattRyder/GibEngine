@@ -3,9 +3,9 @@
 GibEngine::Renderer::SkyboxRenderPass::SkyboxRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader) 
 	: RenderPass(graphicsApi, shader) { }
 
-void GibEngine::Renderer::SkyboxRenderPass::Render(const GibEngine::Scene::VisibleSet& visibleSet)
+void GibEngine::Renderer::SkyboxRenderPass::Render(const GibEngine::Scene::VisibleSet* visibleSet)
 {
-	if (visibleSet.GetSkyboxNode() == nullptr)
+	if (visibleSet->GetSkyboxNode() == nullptr)
 	{
 		return;
 	}
@@ -15,12 +15,12 @@ void GibEngine::Renderer::SkyboxRenderPass::Render(const GibEngine::Scene::Visib
 	// GL4+ uses UBOs so this isn't required, but is for GLES3!
 	//graphicsApi->BindCamera(visibleSet.GetCamera());
 
-	glm::mat4 skyboxMatrix = visibleSet.GetSkyboxNode()->GetWorldTransform();
+	glm::mat4 skyboxMatrix = visibleSet->GetSkyboxNode()->GetWorldTransform();
 	glUniformMatrix4fv(
 		graphicsApi->GetUniformLocation("skyboxModelMatrix"), 1, GL_FALSE, glm::value_ptr(skyboxMatrix)
 	);
 
-	auto skybox = reinterpret_cast<Skybox*>(visibleSet.GetSkyboxNode()->GetEntity());
+	auto skybox = reinterpret_cast<Skybox*>(visibleSet->GetSkyboxNode()->GetEntity());
 	if (skybox->GetCubemap()->GetTextureId() == 0)
 	{
 		UploadSkybox(skybox);

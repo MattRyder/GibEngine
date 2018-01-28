@@ -3,15 +3,16 @@
 GibEngine::Renderer::DeferredGeometryPass::DeferredGeometryPass(API::IGraphicsApi* graphicsApi, Shader* shader)
 	: RenderPass(graphicsApi, shader) { }
 
-void GibEngine::Renderer::DeferredGeometryPass::Render(const GibEngine::Scene::VisibleSet& visibleSet)
+void GibEngine::Renderer::DeferredGeometryPass::Render(const GibEngine::Scene::VisibleSet* visibleSet)
 {
 	graphicsApi->BindShader(shader->GetShaderId());
 
-	graphicsApi->BindCamera(visibleSet.GetCamera());
+	graphicsApi->BindCamera(visibleSet->GetCamera());
 
-	for (auto meshInstancePair : visibleSet.GetMeshInstanceMap())
+	auto instMap = visibleSet->GetMeshInstanceMap();
+	for (auto iter = instMap->begin(); iter != instMap->end(); ++iter)
 	{
-		auto mesh = meshInstancePair.first;
+		auto mesh = iter->first;
 		if (!Mesh::FlagMask(mesh->GetFlags() & Mesh::Flags::RENDER_DEFERRED))
 		{
 			continue;
@@ -20,12 +21,12 @@ void GibEngine::Renderer::DeferredGeometryPass::Render(const GibEngine::Scene::V
 		if (mesh->GetMeshUploadTicket() == nullptr)
 		{
 			mesh->SetMeshUploadTicket(graphicsApi->UploadMesh(mesh));
+			graphicsApi->UpdateMeshInstances(mesh->GetMeshUploadTicket(), iter->second);
 		}
 
-		graphicsApi->UpdateMeshInstances(mesh->GetMeshUploadTicket(), meshInstancePair.second);
 
-		graphicsApi->BindMaterial(mesh->GetMaterials()[0]);
-		graphicsApi->DrawMesh(mesh, meshInstancePair.second.size());
+		graphicsApi->BindMaterial(mesh->GetMaterial());
+		graphicsApi->DrawMesh(mesh, iter->second.size());
 	}
 
 	graphicsApi->UnbindShader();

@@ -98,7 +98,7 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 	this->passes.emplace(type, renderPass);
 }
 
-void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet& visibleSet, const float deltaTime)
+void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet* visibleSet, const float deltaTime)
 {	
 	if (renderingPaused)
 	{
@@ -109,7 +109,7 @@ void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet& v
 
 	graphicsApi->ClearFramebuffer();
 
-	graphicsApi->UpdateCamera(visibleSet.GetCamera());
+	graphicsApi->UpdateCamera(visibleSet->GetCamera());
 
 	RenderPass* pass = GetRenderPass(RenderPassType::DEFERRED_GEOMETRY);
 	if (pass->IsEnabled())

@@ -53,7 +53,7 @@ namespace GibEngine
 
 			void AddPass(RenderPassType type);
 
-			void Render(const Scene::VisibleSet& visibleSet, const float deltaTime);
+			void Render(const Scene::VisibleSet* visibleSet, const float deltaTime);
 			void Update(float deltaTime);
 
 			bool IsRenderPaused();

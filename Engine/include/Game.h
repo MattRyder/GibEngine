@@ -52,6 +52,7 @@ namespace GibEngine
 		Renderer::ShaderLanguage shaderLanguage = Renderer::ShaderLanguage::GLSL_420;
 		
 		Scene::Node* rootSceneNode = nullptr;
+		Scene::VisibleSet* visibleSet;
 		
 		Renderer::Pipeline* renderPipeline = nullptr;
 		Input::InputManager* inputManager = nullptr;

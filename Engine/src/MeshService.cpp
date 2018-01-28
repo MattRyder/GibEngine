@@ -71,9 +71,9 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 			}
 		}
 
-		materials.push_back(LoadMaterial(scene, rootMeshFile->GetDirectory(), material));
+		auto mat = LoadMaterial(scene, rootMeshFile->GetDirectory(), material);
 
-		Mesh* processedMesh = new Mesh(name, rootMeshFile->GetAssetName(), vertices, indices, materials);
+		Mesh* processedMesh = new Mesh(name, rootMeshFile->GetAssetName(), vertices, indices, mat);
 		processedMesh->SetFlags(flags);
 
 		Scene::Node* childMeshNode = new Scene::Node(name);
@@ -127,11 +127,11 @@ GibEngine::Material* GibEngine::MeshService::LoadMaterial(const aiScene* scene, 
 	for (auto texTypePair : textureTypes)
 	{
 		auto loadTextureAsync = [](Material* material, const aiScene* scene, const char* meshDirectory, const aiMaterial* aiMat, aiTextureType aiTexType, TextureType engineTexType) {
-			std::vector<Texture*> textureList = LoadMaterialTextures(scene, meshDirectory, aiMat, aiTexType, engineTexType);
+			std::vector<MaterialTexture*> textureList = LoadMaterialTextures(scene, meshDirectory, aiMat, aiTexType, engineTexType);
 			material->Textures.insert(material->Textures.end(), textureList.begin(), textureList.end());
 		};
 
-		loadTextureAsync(material, scene, meshDirectory, aiMat, texTypePair.first, texTypePair.second);
+		//loadTextureAsync(material, scene, meshDirectory, aiMat, texTypePair.first, texTypePair.second);
 	}
 
 	return material;
@@ -161,11 +161,14 @@ GibEngine::Mesh::Flags GibEngine::MeshService::ParseFlagsJson(const std::vector<
 	return flags;
 }
 
-std::vector<GibEngine::Texture*> GibEngine::MeshService::LoadMaterialTextures(const aiScene* scene, const char* meshDirectory, const aiMaterial* material, aiTextureType type, GibEngine::TextureType textureType)
+std::vector<GibEngine::MaterialTexture*> GibEngine::MeshService::LoadMaterialTextures(const aiScene* scene, const char* meshDirectory, const aiMaterial* material, aiTextureType type, GibEngine::TextureType textureType)
 {
+	MaterialTexture* matTex = nullptr;
 	Texture* texture = nullptr;
-	std::vector<Texture*> textures;
-	for (unsigned int i = 0; i < material->GetTextureCount(type); i++) {
+	std::vector<MaterialTexture*> textures;
+
+	for (unsigned int i = 0; i < material->GetTextureCount(type); i++) 
+	{
 		aiString str;
 		material->GetTexture(type, i, &str);
 
@@ -189,7 +192,6 @@ std::vector<GibEngine::Texture*> GibEngine::MeshService::LoadMaterialTextures(co
 				unsigned char* compressedTextureData = reinterpret_cast<unsigned char*>(sceneTexture->pcData);
 				std::string* textureName = new std::string(str.C_Str());
 				texture = Texture::LoadFromMemory(textureType, textureName, compressedTextureData, sceneTexture->mWidth);
-				textures.push_back(texture);
 				delete compressedTextureData;
 			}
 		}
@@ -199,9 +201,13 @@ std::vector<GibEngine::Texture*> GibEngine::MeshService::LoadMaterialTextures(co
 			texturePath->append("//");
 			texturePath->append(str.C_Str());
 
-			Texture* texture = Texture::Load(textureType, texturePath);
-			textures.push_back(texture);
+			texture = Texture::Load(textureType, texturePath);
 		}
+
+		matTex = new MaterialTexture();
+		matTex->texture = texture;
+		
+		textures.push_back(matTex);
 	}
 
 	return textures;

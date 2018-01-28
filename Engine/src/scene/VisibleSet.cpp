@@ -1,28 +1,38 @@
 #include "scene/VisibleSet.h"
 
 GibEngine::Scene::VisibleSet::VisibleSet(CameraBase* camera, Node* rootSceneNode)
-	: camera(camera), rootSceneNode(rootSceneNode), skyboxNode(nullptr), lights(std::vector<const Scene::Node*>()), meshInstances(std::map<Mesh*, std::vector<glm::mat4>>())
+	: camera(camera),
+	rootSceneNode(rootSceneNode),
+	skyboxNode(nullptr),
+	lights(new std::vector<const Scene::Node*>()),
+	meshInstances(new std::map<Mesh*, std::vector<glm::mat4>>())
 {
 	ParseNode(rootSceneNode);
 }
 
+GibEngine::Scene::VisibleSet::~VisibleSet()
+{
+	delete meshInstances;
+	delete lights;
+}
+
 void GibEngine::Scene::VisibleSet::AddLight(const Scene::Node* lightNode)
 {
-	lights.push_back(lightNode);
+	lights->push_back(lightNode);
 }
 
 void GibEngine::Scene::VisibleSet::AddMeshInstance(const Scene::Node* meshNode)
 {
 	auto mesh = reinterpret_cast<Mesh*>(meshNode->GetEntity());
 	
-	auto meshIter = meshInstances.find(mesh);
-	if (meshIter != meshInstances.end())
+	auto meshIter = meshInstances->find(mesh);
+	if (meshIter != meshInstances->end())
 	{
-		meshInstances.at(mesh).push_back(meshNode->GetWorldTransform());
+		meshInstances->at(mesh).push_back(meshNode->GetWorldTransform());
 	}
 	else
 	{
-		meshInstances.insert(std::pair<Mesh*, std::vector<glm::mat4>>(mesh, std::vector<glm::mat4>()));
+		meshInstances->insert(std::pair<Mesh*, std::vector<glm::mat4>>(mesh, std::vector<glm::mat4>()));
 		AddMeshInstance(meshNode);
 	}
 }
@@ -67,12 +77,12 @@ const GibEngine::Scene::Node* GibEngine::Scene::VisibleSet::GetSkyboxNode() cons
 	return skyboxNode;
 }
 
-std::vector<const GibEngine::Scene::Node*> GibEngine::Scene::VisibleSet::GetLights() const
+std::vector<const GibEngine::Scene::Node*>* GibEngine::Scene::VisibleSet::GetLights() const
 {
 	return lights;
 }
 
-std::map<GibEngine::Mesh*, std::vector<glm::mat4>> GibEngine::Scene::VisibleSet::GetMeshInstanceMap() const
+std::map<GibEngine::Mesh*, std::vector<glm::mat4>>* GibEngine::Scene::VisibleSet::GetMeshInstanceMap() const
 {
 	return meshInstances;
 }

@@ -28,6 +28,12 @@ namespace GibEngine
 		float Determinant = 0;
 	};
 
+	struct MaterialTexture
+	{
+		Texture* texture;
+		const char* textureUniformName;
+	};
+
 	// The color and shine of the Model
 	typedef struct material_t
 	{
@@ -36,7 +42,7 @@ namespace GibEngine
 		glm::vec3 SpecularColor;
 		GLfloat Opacity;
 		GLuint Shininess;
-		std::vector<Texture*> Textures;
+		std::vector<MaterialTexture*> Textures;
 	} Material;
 
 	// An object containing information regarding how to reference
@@ -66,12 +72,12 @@ namespace GibEngine
 
 		Mesh(const char* name);
 		Mesh(const char* name, const char* ownerFileName, std::vector<Vertex> vertices);
-		Mesh(const char* name, const char* ownerAssetName, std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Material*> material);
+		Mesh(const char* name, const char* ownerAssetName, std::vector<Vertex> vertices, std::vector<unsigned int> indices, Material* material);
 		~Mesh();
 
 		Flags GetFlags() const;
+		Material* GetMaterial() const;
 		std::vector<unsigned int> GetIndices() const;
-		std::vector<Material*> GetMaterials() const;
 		MeshUploadTicket* GetMeshUploadTicket() const;
 		std::vector<Vertex> GetVertices() const;
 		const char* GetOwnerAssetName() const;
@@ -97,7 +103,7 @@ namespace GibEngine
 
 		std::vector<Vertex> vertices;
 		std::vector<GLuint> indices;
-		std::vector<Material*> materials;
+		Material* material;
 
 		const char* ownerAssetName;
 	};

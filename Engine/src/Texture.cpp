@@ -9,11 +9,7 @@ const char* GibEngine::Texture::TextureTypeStrings[4] = {
 };
 
 GibEngine::Texture::Texture()
-{
-	this->fileName = nullptr;
-	this->type = TextureType::TEXTURETYPE_LAST;
-	this->textureId = 0;	
-}
+	: isUploaded(false), isLoaded(false), textureId(0), fileName(nullptr), type(TextureType::TEXTURETYPE_LAST) { }
 
 GibEngine::Texture::Texture(GibEngine::TextureType type, std::string *fileName) : Texture()
 {
