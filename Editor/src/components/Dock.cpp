@@ -93,6 +93,16 @@ void GibEditor::Components::Dock::RenderSceneTreeNode(GibEngine::Scene::Node* no
 			entityInspector = new Components::EntityInspector(node);
 		}
 	}
+	else if (GibEngine::Scene::Node::FlagMask(node->GetFlags() & GibEngine::Scene::Node::Flags::MESH_ROOT))
+	{
+		auto meshPtr = reinterpret_cast<GibEngine::Mesh*>((*node->GetChildNodesBegin())->GetEntity());
+		auto meshName = std::string(node->GetName()) + std::string(": ") + meshPtr->GetOwnerAssetName();
+		if (ImGui::Selectable(meshName.c_str()))
+		{
+			delete entityInspector;
+			entityInspector = new Components::EntityInspector(node);
+		}
+	}
 	else
 	{
 		ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen ^ ImGuiTreeNodeFlags_Bullet ^ ImGuiTreeNodeFlags_Leaf;

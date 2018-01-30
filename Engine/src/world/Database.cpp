@@ -1,6 +1,8 @@
 #include "world/Database.h"
 
-GibEngine::World::Database::Database(const char* databaseFilepath)
+GibEngine::World::Database::Database(const char * databaseFilepath) : Database(databaseFilepath, false) { }
+
+GibEngine::World::Database::Database(const char* databaseFilepath, bool debugMode) : debugMode(debugMode)
 {
     std::ifstream dbFile(databaseFilepath);
     bool dbExists = dbFile.good();
@@ -195,7 +197,7 @@ bool GibEngine::World::Database::SavePointLight(Scene::Node* lightSceneNode)
 	case DatabaseRecord::State::DIRTY:
 	{
 		sqlite3pp::command updateCmd(*db, UPDATE_LIGHT_COMMAND);
-		updateCmd.bind(":id", lightSceneNode->GetDatabaseRecord()->GetId());
+		updateCmd.bind(":id", lightSceneNode->GetDatabaseRecord()->GetEntityId());
 		updateCmd.bind(":lightType", "PointLight", sqlite3pp::nocopy);
 
 		const std::string ambient = ConvertVec3ToString(pl->GetAmbientColor());
@@ -323,16 +325,15 @@ bool GibEngine::World::Database::SaveSceneNode(int parentNodeId, Scene::Node* no
 			Scene::Node* meshEntityNode = *node->GetChildNodesBegin();
 
 			// Save the Entity
-			SaveEntity(meshEntityNode);
+			objectSaved = SaveEntity(meshEntityNode);
 		}
 
 		SaveSceneNodeRecord(parentNodeId, node);
 		return true;
 	}
-	
-	if (node->GetEntity() != nullptr)
+	else if (node->GetEntity() != nullptr)
 	{
-		SaveEntity(node);
+		objectSaved = SaveEntity(node);
 	}
 
 	if (!objectSaved || !SaveSceneNodeRecord(parentNodeId, node))
@@ -518,6 +519,11 @@ GibEngine::Scene::Node* GibEngine::World::Database::FindNode(int nodeId)
 				node = new Scene::Node("Point Light");
 				node->SetEntity(LoadLight(entityId));
 				node->GetDatabaseRecord()->SetAttachedEntityId(entityId);
+
+				if (debugMode)
+				{
+					MeshService::AttachVisibleSphere(node);
+				}
 			}
 			else
 			{

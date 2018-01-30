@@ -56,7 +56,12 @@ void GibEngine::GLFW::ErrorCallback(int error, const char* description)
 
 void GibEngine::GLFW::SetWindowSizeCallback(GLFWwindow* window, int width, int height)
 {
-	Logger::Instance->info("Window Resized: {} x {}", width, height);
+	Logger::Instance->info("Window Resize Called: {} x {}", width, height);
+
+	if (width <= 0 && height <= 0)
+	{
+		return;
+	}
 
 	WindowResizeEvent.Raised = true;
 	WindowResizeEvent.Width = width;

@@ -21,9 +21,8 @@ void GibEngine::Renderer::DeferredGeometryPass::Render(const GibEngine::Scene::V
 		if (mesh->GetMeshUploadTicket() == nullptr)
 		{
 			mesh->SetMeshUploadTicket(graphicsApi->UploadMesh(mesh));
-			graphicsApi->UpdateMeshInstances(mesh->GetMeshUploadTicket(), iter->second);
 		}
-
+			graphicsApi->UpdateMeshInstances(mesh->GetMeshUploadTicket(), iter->second);
 
 		graphicsApi->BindMaterial(mesh->GetMaterial());
 		graphicsApi->DrawMesh(mesh, iter->second.size());

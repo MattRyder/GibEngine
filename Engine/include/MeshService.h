@@ -2,6 +2,7 @@
 
 #include <thread>
 #include "scene/Node.h"
+#include "PointLight.h"
 
 namespace GibEngine
 {
@@ -20,5 +21,7 @@ namespace GibEngine
 	public:
 		static Scene::Node* Load(File* file, json11::Json* generationData);
 		static Scene::Node* Generate(json11::Json* generationData);
+
+		static void AttachVisibleSphere(Scene::Node* parentNode);
 	};
 }

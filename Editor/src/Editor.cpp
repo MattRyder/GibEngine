@@ -86,9 +86,7 @@ void GibEditor::Editor::Render()
 		menubar->Render();
 		dock->Render();
 		ImGui::End();
-
 	}
-
 
 	ImGui::SetNextWindowPos(ImVec2(0, framebuffer->GetBufferHeight() - ImGui::GetTextLineHeightWithSpacing()));
 	ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), ImGui::GetTextLineHeightWithSpacing()));

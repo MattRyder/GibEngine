@@ -22,9 +22,10 @@ void GibEngine::Renderer::ForwardRenderPass::Render(const GibEngine::Scene::Visi
 		if (mesh->GetMeshUploadTicket() == nullptr)
 		{
 			mesh->SetMeshUploadTicket(graphicsApi->UploadMesh(mesh));
-			graphicsApi->UpdateMeshInstances(mesh->GetMeshUploadTicket(), iter->second);
 		}
 
+
+			graphicsApi->UpdateMeshInstances(mesh->GetMeshUploadTicket(), iter->second);
 
 		//if (mesh->GetMaterials().size() > 0)
 		//{

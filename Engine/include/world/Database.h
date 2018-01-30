@@ -23,6 +23,9 @@ namespace GibEngine
     {
         class Database
         {
+			// If Debug Mode, load with visibility meshes etc.
+			bool debugMode;
+
             sqlite3pp::database* db;
             
 			std::string ConvertVec3ToString(glm::vec3 vec);
@@ -36,7 +39,8 @@ namespace GibEngine
 			bool SaveEntity(Scene::Node* entityNode);
 
         public:
-            Database(const char* databaseFilepath);
+			Database(const char* databaseFilepath);
+            Database(const char* databaseFilepath, bool debugMode);
 			~Database();
 
 			void Disconnect();
@@ -52,7 +56,6 @@ namespace GibEngine
 			bool SaveMesh(Scene::Node* meshNode);
 			bool SavePointLight(Scene::Node* lightSceneNode);
 			bool SaveLevel(Scene::Node* sceneRootNode);
-			
         };
     }
 }

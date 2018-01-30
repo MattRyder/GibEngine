@@ -17,7 +17,6 @@ GibEngine::Game::Game(int argc, char** argv)
 	this->playerCamera->SetPosition(glm::vec3(15, 15, 0));
 	this->playerCamera->LookAt(0, 0, 0);
 
-	visibleSet = new Scene::VisibleSet(playerCamera, rootSceneNode);
 
 	this->inputManager = new Input::InputManager(window);
 
@@ -83,11 +82,14 @@ void GibEngine::Game::Render()
 	deltaTime = currentFrameTime - lastFrameTime;
 	lastFrameTime = currentFrameTime;
 
+	visibleSet = new Scene::VisibleSet(playerCamera, rootSceneNode);
+	
 	if (fpsIntervalTimer > 1.0f)
 	{
 		framesPerSecond = frameCounter;
 		frameCounter = 0;
 		fpsIntervalTimer = 0;
+
 	}
 	else
 	{
@@ -272,7 +274,7 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 	{
 		unsigned int levelID = opts["levelID"].as<unsigned int>();
 		
-		GibEngine::World::Database* db = new World::Database(worldPath.c_str());
+		GibEngine::World::Database* db = new World::Database(worldPath.c_str(), true);
 		rootSceneNode = db->LoadLevel(levelID);
 
 		Logger::Instance->info("Loaded Level from Scene Root: {}", levelID);

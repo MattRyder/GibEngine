@@ -108,8 +108,12 @@ void GibEditor::Components::ContentBrowser::Render()
 		if (ImGui::Button("Point Light", buttonSize))
 		{
 			GibEngine::PointLight* light = new GibEngine::PointLight();
-			GibEngine::Scene::Node* lightNode = new GibEngine::Scene::Node("New Light");
+			GibEngine::Scene::Node* lightNode = new GibEngine::Scene::Node("New Point Light");
 			lightNode->SetEntity(light);
+			lightNode->GetDatabaseRecord()->SetEntityState(GibEngine::World::DatabaseRecord::State::NEW);
+
+			GibEngine::MeshService::AttachVisibleSphere(lightNode);
+
 			rootSceneNode->AddChildNode(lightNode);
 		}
 

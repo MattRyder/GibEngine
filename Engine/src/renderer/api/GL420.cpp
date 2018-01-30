@@ -336,7 +336,6 @@ void GibEngine::Renderer::API::GL420::BindShader(unsigned int shaderId)
 		return;
 	}
 
-
 	glUseProgram(shaderId);
 	this->currentShaderID = shaderId;
 }

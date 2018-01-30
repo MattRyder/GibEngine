@@ -17,7 +17,6 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 		unsigned int meshIndex = node->mMeshes[i];
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
-		std::vector<Material*> materials;
 
 		aiMesh* mesh = scene->mMeshes[meshIndex];
 		const char* name = mesh->mName.C_Str();
@@ -84,7 +83,6 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 		childMeshNode->GetDatabaseRecord()->SetState(World::DatabaseRecord::State::CLEAN);
 
 		parentNode->AddChildNode(childMeshNode);
-		parentNode->SetFlags(parentNode->GetFlags() ^ Scene::Node::Flags::MESH_ROOT);
 	}
 
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -259,6 +257,17 @@ GibEngine::Scene::Node* GibEngine::MeshService::Generate(json11::Json* generatio
 	}
 
 	return nullptr;
+}
+
+void GibEngine::MeshService::AttachVisibleSphere(GibEngine::Scene::Node* parentNode)
+{
+	json11::Json sphereMeshGenData = json11::Json::object
+	{
+		{ "MeshFlags", json11::Json::array { "RENDER_WIREFRAME", "RENDER_FORWARD"} }
+	};
+
+	auto visibleMeshNode = GibEngine::MeshService::Load(GibEngine::File::GetModelFile("default/sphere/sphere.obj"), &sphereMeshGenData);
+	parentNode->AddChildNode(visibleMeshNode);
 }
 
 GibEngine::Scene::Node* GibEngine::MeshService::GeneratePlane(unsigned int length, unsigned int width, int intervalSize, Mesh::Flags flags)

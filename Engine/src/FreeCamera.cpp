@@ -36,7 +36,7 @@ void GibEngine::FreeCamera::Update(double deltaTime, glm::vec2 mouseState, glm::
 void GibEngine::FreeCamera::UpdatePosition(double deltaTime, int *keyState)
 {
     glm::vec3 position = GetPosition();
-    float movementSpeed = static_cast<float>(cameraMovementSpeed * deltaTime);
+    float movementSpeed = static_cast<float>(deltaTime / cameraMovementSpeed );
 
     if (keyState[GLFW_KEY_W])
         position += (cameraFront + movementSpeed);
@@ -57,12 +57,12 @@ void GibEngine::FreeCamera::UpdateDirection(double deltaTime, double mouseDeltaX
     lastMouseX = mouseDeltaX;
     lastMouseY = mouseDeltaY;
 
-    GLfloat sensitivity = 0.005f;
+	float sensitivity = 0.45f;
     offsetX *= sensitivity;
     offsetY *= sensitivity;
 
-    cameraYaw += offsetX;
-    cameraPitch += offsetY;
+    cameraYaw += offsetX * deltaTime;
+    cameraPitch += offsetY * deltaTime;
 
     if (cameraPitch > 1.0f) cameraPitch = 1.0f;
     if (cameraPitch < -1.0f) cameraPitch = -1.0f;
