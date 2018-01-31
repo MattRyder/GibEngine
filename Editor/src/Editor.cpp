@@ -85,16 +85,18 @@ void GibEditor::Editor::Render()
 	{
 		menubar->Render();
 		dock->Render();
+
 		ImGui::End();
 	}
 
+	auto padding = ImGui::GetStyle().WindowPadding;
 	ImGui::SetNextWindowPos(ImVec2(0, framebuffer->GetBufferHeight() - ImGui::GetTextLineHeightWithSpacing()));
 	ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), ImGui::GetTextLineHeightWithSpacing()));
 	if (ImGui::Begin("StatusBarWindow", 0, ROOT_PANEL_FLAGS))
 	{
 		if (ImGui::BeginMenuBar())
 		{
-			if (deltaDisplayIntervalTimer > 1.0f)
+			if (deltaDisplayIntervalTimer > 0.5f)
 			{
 				lastReadDeltaTime = GetDeltaTime();
 				deltaDisplayIntervalTimer = 0;
@@ -112,14 +114,11 @@ void GibEditor::Editor::Render()
 
 	}
 
-
 	//if (ImGui::Begin("Style Editor"))
 	//{
 	//	ImGui::ShowStyleEditor(&ImGui::GetStyle());
 	//	ImGui::End();
 	//}
-
-	//statusBar->Render();
 
 	ImGui::Render();
 }

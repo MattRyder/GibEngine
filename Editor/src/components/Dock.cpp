@@ -28,6 +28,7 @@ void GibEditor::Components::Dock::Render()
 		ImGui::EndDock();
 	}
 
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
 	if (entityInspector != nullptr)
 	{
 		ImGui::SetNextDock(ImGuiDockSlot_Right);
@@ -72,6 +73,7 @@ void GibEditor::Components::Dock::Render()
 		}
 	}
 
+	ImGui::PopStyleVar();
 	ImGui::EndDockspace();
 }
 

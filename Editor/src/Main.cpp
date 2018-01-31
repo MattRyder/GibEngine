@@ -57,11 +57,13 @@ void SetupImGuiStyle()
 
 	style.WindowPadding = ImVec2(0, 0);
 	style.WindowRounding = 0;
-	style.ItemSpacing = ImVec2(7, 7);
+	style.ItemSpacing = ImVec2(10, 10);
 	style.ItemInnerSpacing = ImVec2(8, 4);
-	style.ScrollbarSize = 14;
+	style.ScrollbarSize = 20;
 	style.ScrollbarRounding = 0;
+	style.IndentSpacing = 30;
 	style.TouchExtraPadding = ImVec2(10, 10);
+	style.FramePadding = ImVec2(0, 10);
 
 	style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
@@ -75,7 +77,7 @@ void SetupImGuiStyle()
 	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.15f, 0.15f, 0.13f, 0.67f);
 	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.27f, 0.27f, 0.54f, 0.83f);
 	style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.40f, 0.40f, 0.80f, 0.20f);
-	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.82f, 0.82f, 0.82f, 1.00f);
+	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.19f, 0.48f, 0.75f, 1.00f);
 	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.25f, 0.25f, 0.25f, 0.70f);
 	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.07f, 0.07f, 0.08f, 0.40f);
 	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 0.80f);
@@ -90,7 +92,7 @@ void SetupImGuiStyle()
 	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.15f, 0.30f, 0.61f, 1.00f);
 	style.Colors[ImGuiCol_Header] = ImVec4(0.00f, 0.00f, 0.00f, 0.50f);
 	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
-	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.19f, 0.48f, 0.75f, 1.00f);
 	style.Colors[ImGuiCol_Column] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
 	style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.15f, 0.31f, 0.38f, 1.00f);
 	style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.15f, 0.31f, 0.61f, 1.00f);
