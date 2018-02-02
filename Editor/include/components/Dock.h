@@ -33,7 +33,6 @@ namespace GibEditor
 			virtual void Render() override;
 
 			Dock::Type GetSelectedDock() const;
-			void RenderSceneTreeNode(GibEngine::Scene::Node* node);
 
 		private:
 			GibEngine::Scene::Node* rootSceneNode;
@@ -44,6 +43,8 @@ namespace GibEditor
 
 			Dock::Type selectedDock = Dock::Type::GAME;
 			ActiveEntityInspector activeInspector = ActiveEntityInspector::NONE;
+			
+			void RenderSceneTreeNode(GibEngine::Scene::Node* node);
 		};
 	}
 }

@@ -8,7 +8,7 @@ void GibEditor::Components::Menubar::Render()
 	{
 		if (ImGui::BeginMenu("File"))
 		{
-			if (ImGui::MenuItem("New World", "CTRL + N")) { }
+			if (ImGui::MenuItem("New World", "CTRL + N")) { this->newWorldCallbackFunc(); }
 			if (ImGui::MenuItem("Open World", "CTRL + O")) { this->openFileDialogCallbackFunc(); }
 			if (ImGui::MenuItem("Save World", "CTRL + S")) { this->saveFileDialogCallbackFunc(rootSceneNode); }
 			if (ImGui::MenuItem("Exit GibEditor", "ALT + F4")) { this->exitCallback(); }
@@ -28,6 +28,11 @@ void GibEditor::Components::Menubar::Render()
 void GibEditor::Components::Menubar::SetSceneNode(GibEngine::Scene::Node* node)
 {
 	rootSceneNode = node;
+}
+
+void GibEditor::Components::Menubar::SetOnNewWorldCallback(const std::function<void()>& newWorldCallbackFunc)
+{
+	this->newWorldCallbackFunc = newWorldCallbackFunc;
 }
 
 void GibEditor::Components::Menubar::SetOnExitCallback(const std::function<void()> &exitCallbackFunc)

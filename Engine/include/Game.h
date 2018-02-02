@@ -57,6 +57,8 @@ namespace GibEngine
 		Renderer::Pipeline* renderPipeline = nullptr;
 		Input::InputManager* inputManager = nullptr;
 
+		Scene::Node* CreateWorld();
+
 	public:
 		Game(int argc, char** argv);
 		virtual ~Game();
@@ -72,6 +74,7 @@ namespace GibEngine
 
 		void SetWindowTitle(const char* windowTitle);
 		void SetWindowSize(int windowWidth, int windowHeight);
+		void SetSceneRoot(Scene::Node* rootSceneNode);
 
 		GLFWwindow* GetWindow();
 		Renderer::Pipeline* GetRenderPipeline() const;

@@ -28,40 +28,14 @@ GibEngine::Game::Game(int argc, char** argv)
 	{
 		GibEngine::World::Database* worldDb = new World::Database("demo_nodes.gwo");
 
-		Skybox* skybox = new Skybox("stormy", "png");
-
-		PointLight* light = new PointLight(
-			glm::vec3(0, 1.65f, 0),
-			glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.0f, 0.0f), glm::vec3(0.9f, 0.9f, 0.9f),
-			0.75f, // -1.0 -- 1.0
-			1.0f); // 0.0 -- 1.0
-
-		Scene::Node* rootNode = new Scene::Node("Root Node");
-
-		// Create the Scene graph for the demo world:
-		Scene::Node* skyboxNode = new Scene::Node("Skybox");
-		skyboxNode->SetEntity(skybox);
-		rootNode->AddChildNode(skyboxNode);
-
-		// Create a Point Light node within the Scene:
-		Scene::Node* pointLightNode = new Scene::Node("Test Point Light");
-		pointLightNode->SetEntity(light);
-		glm::mat4 lightPos = glm::mat4();
-		lightPos[3] = glm::vec4(0.0f, 1.65f, 2.0f, 1.0f);
-		pointLightNode->SetLocalTransform(lightPos);
-		rootNode->AddChildNode(pointLightNode);
-		
-		// Create a Model node:
-		File* modelFile = File::GetModelFile("brickwall/brickwall.obj");
-		Scene::Node* meshNode = MeshService::Load(modelFile, nullptr);
-		glm::mat4 meshPos = glm::scale(glm::mat4(), glm::vec3(2.0f));
-		meshNode->SetLocalTransform(meshPos);
-		rootNode->AddChildNode(meshNode);
+		Scene::Node* rootNode = CreateWorld();
 
 		if (worldDb->SaveLevel(rootNode))
 		{
 			// TODO: attach rootNode to new Level record
 		}
+
+		delete rootNode;
 	}
 }
 
@@ -283,6 +257,41 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 	}
 }
 
+GibEngine::Scene::Node* GibEngine::Game::CreateWorld()
+{
+	Skybox* skybox = new Skybox("stormy", "png");
+
+	PointLight* light = new PointLight(
+		glm::vec3(0, 1.65f, 0),
+		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.0f, 0.0f), glm::vec3(0.9f, 0.9f, 0.9f),
+		0.75f, // -1.0 -- 1.0
+		1.0f); // 0.0 -- 1.0
+
+	Scene::Node* rootNode = new Scene::Node("Scene Root");
+
+	// Create the Scene graph for the demo world:
+	Scene::Node* skyboxNode = new Scene::Node("Skybox");
+	skyboxNode->SetEntity(skybox);
+	rootNode->AddChildNode(skyboxNode);
+
+	// Create a Point Light node within the Scene:
+	Scene::Node* pointLightNode = new Scene::Node("Point Light");
+	pointLightNode->SetEntity(light);
+	glm::mat4 lightPos = glm::mat4();
+	lightPos[3] = glm::vec4(0.0f, 1.65f, 2.0f, 1.0f);
+	pointLightNode->SetLocalTransform(lightPos);
+	rootNode->AddChildNode(pointLightNode);
+
+	// Create a Model node:
+	File* modelFile = File::GetModelFile("brickwall/brickwall.obj");
+	Scene::Node* meshNode = MeshService::Load(modelFile, nullptr);
+	glm::mat4 meshPos = glm::scale(glm::mat4(), glm::vec3(2.0f));
+	meshNode->SetLocalTransform(meshPos);
+	rootNode->AddChildNode(meshNode);
+
+	return rootNode;
+}
+
 void GibEngine::Game::ToggleVsync()
 {
 	glfwSwapInterval((config.vsyncEnabled = !config.vsyncEnabled) ? 1 : 0);
@@ -324,4 +333,10 @@ void GibEngine::Game::SetWindowSize(int windowWidth, int windowHeight)
 	windowWidth = windowWidth > 1 ? windowWidth : 1;
 	windowHeight = windowHeight > 1 ? windowHeight : 1;
 	glfwSetWindowSize(this->window, windowWidth, windowHeight);
+}
+
+void GibEngine::Game::SetSceneRoot(Scene::Node* rootSceneNode)
+{
+	delete this->rootSceneNode;
+	this->rootSceneNode = rootSceneNode;
 }

@@ -28,6 +28,18 @@ GibEditor::Editor::Editor(int argc, char** argv)
 		}
 	};
 
+	auto newWorldCallback = [&]() -> void
+	{
+		GibEngine::Scene::Node* rootNode = CreateWorld();
+		SetSceneRoot(rootNode);
+		menubar->SetSceneNode(rootNode);
+		
+		delete dock;
+		dock = new Components::Dock(rootNode, this->GetRenderPipeline());
+
+
+	};
+
 	auto toggleUiRenderCallback = [&]() -> void 
 	{
 		flags = static_cast<Flags>(flags ^ Flags::DISABLE_UI_RENDER);
@@ -56,6 +68,7 @@ GibEditor::Editor::Editor(int argc, char** argv)
 
 	menubar = new Components::Menubar(rootSceneNode);
 	menubar->SetOnExitCallback(exitCallback);
+	menubar->SetOnNewWorldCallback(newWorldCallback);
 	menubar->SetOnOpenFileDialogCallback(openWorldFileCallback);
 	menubar->SetOnSaveFileDialogCallback(saveWorldCallback);
 	menubar->SetToggleUiRenderCallback(toggleUiRenderCallback);

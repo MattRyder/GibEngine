@@ -10,7 +10,7 @@ namespace GibEditor
 		class Menubar : IComponent
 		{
 			GibEngine::Scene::Node* rootSceneNode;
-			std::function<void()> exitCallback, openFileDialogCallbackFunc,  toggleUiRenderCallbackFunc;
+			std::function<void()> exitCallback, newWorldCallbackFunc, openFileDialogCallbackFunc,  toggleUiRenderCallbackFunc;
 			std::function<void(GibEngine::Scene::Node*)> saveFileDialogCallbackFunc;
 
 		public:
@@ -19,6 +19,7 @@ namespace GibEditor
 
 			void SetSceneNode(GibEngine::Scene::Node* node);
 
+			void SetOnNewWorldCallback(const std::function<void()>& newWorldCallbackFunc);
 			void SetOnExitCallback(const std::function<void()>& exitCallbackFunc);
 			void SetOnOpenFileDialogCallback(const std::function<void()>& openFileDialogCallbackFunc);
 			void SetOnSaveFileDialogCallback(const std::function<void(GibEngine::Scene::Node*)>& saveFileDialogCallbackFunc);
