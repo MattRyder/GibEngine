@@ -1,6 +1,6 @@
 #include "CameraBase.h"
 
-GibEngine::CameraBase::CameraBase(EntityType entityType, int cameraWidth, int cameraHeight,
+GibEngine::CameraBase::CameraBase(Entity::Type entityType, int cameraWidth, int cameraHeight,
 	float nearPlane, float farPlane, float fieldOfViewDegrees) : Entity(entityType)
 {
 	this->projectionMatrix = ConstructProjectionMatrix(
@@ -22,12 +22,12 @@ glm::mat4 GibEngine::CameraBase::GetViewMatrix()
 	return this->viewMatrix;
 }
 
-void GibEngine::CameraBase::LookAt(float x, float y, float z)
+const std::string GibEngine::CameraBase::GetAllocatedBufferName() const
 {
-	LookAt(glm::vec3(x, y, z));
+	return this->GetTypeName() + "_" + std::to_string(this->GetID());
 }
 
-void GibEngine::CameraBase::LookAt(glm::vec3 target)
+void GibEngine::CameraBase::LookAt(const glm::vec3& target)
 {
 	this->viewMatrix = glm::mat4(glm::lookAt(GetPosition(), target, cameraUp));
 }

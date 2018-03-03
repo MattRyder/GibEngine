@@ -1,6 +1,6 @@
 #include "LightBase.h"
 
-GibEngine::LightBase::LightBase(EntityType lightType, glm::vec3 position, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specularColor)
+GibEngine::LightBase::LightBase(Entity::Type lightType, glm::vec3 position, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specularColor)
 	: Entity(lightType, "LightBase")
 {
 	this->ambientColor = ambientColor;

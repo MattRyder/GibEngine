@@ -5,73 +5,21 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Entity.h"
 #include "Mesh.h"
-#include "Shader.h"
-
-const static size_t SKYBOX_VERTICES_COUNT = 108;
-
-const static float skyboxVertices[SKYBOX_VERTICES_COUNT] = {
-	-1.0f,  1.0f, -1.0f,
-	-1.0f, -1.0f, -1.0f,
-	1.0f, -1.0f, -1.0f,
-	1.0f, -1.0f, -1.0f,
-	1.0f,  1.0f, -1.0f,
-	-1.0f,  1.0f, -1.0f,
-
-	-1.0f, -1.0f,  1.0f,
-	-1.0f, -1.0f, -1.0f,
-	-1.0f,  1.0f, -1.0f,
-	-1.0f,  1.0f, -1.0f,
-	-1.0f,  1.0f,  1.0f,
-	-1.0f, -1.0f,  1.0f,
-
-	1.0f, -1.0f, -1.0f,
-	1.0f, -1.0f,  1.0f,
-	1.0f,  1.0f,  1.0f,
-	1.0f,  1.0f,  1.0f,
-	1.0f,  1.0f, -1.0f,
-	1.0f, -1.0f, -1.0f,
-
-	-1.0f, -1.0f,  1.0f,
-	-1.0f,  1.0f,  1.0f,
-	1.0f,  1.0f,  1.0f,
-	1.0f,  1.0f,  1.0f,
-	1.0f, -1.0f,  1.0f,
-	-1.0f, -1.0f,  1.0f,
-
-	-1.0f,  1.0f, -1.0f,
-	1.0f,  1.0f, -1.0f,
-	1.0f,  1.0f,  1.0f,
-	1.0f,  1.0f,  1.0f,
-	-1.0f,  1.0f,  1.0f,
-	-1.0f,  1.0f, -1.0f,
-
-	-1.0f, -1.0f, -1.0f,
-	-1.0f, -1.0f,  1.0f,
-	1.0f, -1.0f, -1.0f,
-	1.0f, -1.0f, -1.0f,
-	-1.0f, -1.0f,  1.0f,
-	1.0f, -1.0f,  1.0f
-};
 
 namespace GibEngine
 {
-	class Skybox : public Mesh
+	class Skybox : public Entity
 	{
-		Texture *skyboxCubemap;
-		const char* textureExtension;
+		const Mesh* cubeMesh;
+		std::shared_ptr<Texture> skyboxCubemap;
 
 	public:
-		const int SKYBOX_MOVE_SPEED = 1;
-
-		Skybox(const char* skyboxTextureName, const char* skyboxTextureExtension);
+		Skybox(const Mesh* cubeMesh, const std::shared_ptr<Texture> cubemap);
 		~Skybox();
 
-		void LoadCubemap();
-
-		Texture* GetCubemap();
-		const char* GetExtension();
+		const MeshUploadTicket GetMeshUploadTicket() const;
+		std::shared_ptr<Texture> GetTexture() const;
 
 		virtual void Update(double deltaTime) override;
 	};

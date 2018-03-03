@@ -89,8 +89,4 @@ source_group("Components" FILES ${COMPONENT_FILES})
 
 target_link_libraries(GibEditor GibEngine ${GTK3_LIBRARIES})
 
-add_custom_command(TARGET GibEditor PRE_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                   ${CMAKE_SOURCE_DIR}/Assets $<TARGET_FILE_DIR:GibEditor>/Assets)
-
 add_dependencies(GibEditor GibEngine)

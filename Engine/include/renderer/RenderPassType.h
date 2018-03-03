@@ -10,7 +10,8 @@ namespace GibEngine
       DEFERRED_LIGHTING,
       FORWARD_RENDERING,
 	  SKYBOX,
-	  RENDER_TO_TEXTURE
+	  RENDER_TO_TEXTURE,
+	  RENDERPASSTYPE_LAST,
     };
   }
 }

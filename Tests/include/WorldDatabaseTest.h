@@ -4,44 +4,62 @@
 #include <fstream>
 
 #include "world/Database.h"
+#include "mocks/MockGraphicsApi.h"
 
 using namespace GibEngine;
 using namespace GibEngine::World;
+using namespace GibEngine::Renderer::API;
+using testing::AtLeast;
+using testing::_;
+using testing::NiceMock;
+using testing::Return;
 
 class WorldDatabaseTest : public ::testing::Test
 {
 public:
 	virtual void SetUp()
 	{
-		database = new Database(FILENAME);
+		light = std::unique_ptr<PointLight>(new PointLight(glm::vec3(), glm::vec3(0.5f), glm::vec3(0.75f), glm::vec3(0.25f), 0.800f, 1.0f));
 
-		//level = database->CreateLevel(strdup(LEVEL_NAME));
-		skybox = new Skybox(SKYBOX_NAME[0], SKYBOX_NAME[1]);
+#ifdef WIN32
+		fs = std::shared_ptr<FileSystem::IFileSystem>(new FileSystem::WindowsFileSystem());
+#elif __unix__
+		fs = std::shared_ptr<FileSystem::IFileSystem>(new FileSystem::UnixFileSystem());
+#endif
+		auto ptr = std::shared_ptr<MeshUploadTicket>(new MeshUploadTicket());
 
-		File* meshFile = File::GetModelFile(MESH_NAME);
-		mesh = MeshService::Load(meshFile, nullptr);
-		light = new PointLight(
-			glm::vec3(), glm::vec3(0.5f), glm::vec3(0.75f), glm::vec3(0.25f), 0.800f, 1.0f
-		);
+		NiceMock<MockGraphicsApi>* mock = new NiceMock<MockGraphicsApi>();
+		std::shared_ptr<NiceMock<MockGraphicsApi>> graphicsApi = std::shared_ptr<NiceMock<MockGraphicsApi>>(mock);
+
+		EXPECT_CALL(*mock, UploadMesh(_, _))
+			.Times(AtLeast(1))
+			.WillOnce(Return(ptr));
+
+		auto skyboxMesh = MeshService::Generate(graphicsApi, MeshService::CUBE_GENERATION_JSON);
+		auto cubemap = MeshService::LoadCubemap(graphicsApi, fs->GetWorkingDirectory() + SKYBOX_NAME[0], SKYBOX_NAME[1]);
+
+		database = std::unique_ptr<Database>(new Database(FILENAME, fs, graphicsApi, false));
+		skybox = std::unique_ptr<Skybox>(new Skybox(skyboxMesh, cubemap));
 	}
 
 	virtual void TearDown()
 	{
-		database->Disconnect();
-		int res = std::remove(FILENAME);
+		if (database != nullptr)
+		{
+			database->Disconnect();
+		}
 
-		 delete database;
-		 delete skybox;
-		 delete mesh;
-		 delete light;
+		int res = std::remove(FILENAME.c_str());
 	}
 
-	const char* FILENAME = "test.db";
-	const char* MESH_NAME = "brickwall/brickwall.obj";
-	const char* SKYBOX_NAME[2] = { "default", "png" };
+	const std::string FILENAME = "test.db";
+	const std::string MESH_NAME = "/../../Assets/Models/brickwall/brickwall.obj";
+	const std::string SKYBOX_NAME[2] = { "/../../Assets/Skybox/default", "png" };
 	
-	Database* database = nullptr;
-	Skybox* skybox = nullptr;
-	Scene::Node* mesh = nullptr;
-	PointLight* light = nullptr;
+	std::unique_ptr<Database> database;
+	std::unique_ptr<Skybox> skybox;
+	std::unique_ptr<PointLight> light;
+
+	std::shared_ptr<FileSystem::IFileSystem> fs;
+	std::shared_ptr<MockGraphicsApi> graphicsApi;
 };

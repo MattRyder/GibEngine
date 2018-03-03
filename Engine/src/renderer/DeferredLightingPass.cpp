@@ -1,24 +1,24 @@
 #include "renderer/DeferredLightingPass.h"
 
-GibEngine::Renderer::DeferredLightingPass::DeferredLightingPass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer* framebuffer)
-	: RenderPass(graphicsApi, shader, framebuffer), lastVisibleSet(nullptr, nullptr)
+GibEngine::Renderer::DeferredLightingPass::DeferredLightingPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader *shader, Framebuffer* framebuffer)
+	: RenderPass(graphicsApi, shader, framebuffer)
 {
 	LoadQuadData();
 }
 
-void GibEngine::Renderer::DeferredLightingPass::Render(const Scene::VisibleSet* visibleSet)
+void GibEngine::Renderer::DeferredLightingPass::Render(const Scene::VisibleSet& visibleSet)
 {
 	const int FRAMEBUFFER_TEXTURE_COUNT = 3;
 
 	graphicsApi->BindShader(shader->GetShaderId());
 
-	graphicsApi->BindCamera(visibleSet->GetCamera());
+	graphicsApi->BindCamera(visibleSet.GetCamera().get());
 
 	//if (visibleSet.GetLights().size() > 0 && lastVisibleSet.GetLights().size() > 0)
 	//{
 	//	if (std::is_permutation(visibleSet.GetLights().begin(), visibleSet.GetLights().end(), lastVisibleSet.GetLights().begin()))
 	//	{
-			BindLights(visibleSet);
+			//BindLights(visibleSet);
 	//		//lastVisibleSet = visibleSet;
 	//	}
 	//}
@@ -36,7 +36,7 @@ void GibEngine::Renderer::DeferredLightingPass::Render(const Scene::VisibleSet* 
 	}
 
 	glDepthMask(GL_FALSE);
-	graphicsApi->DrawPrimitive(quadMesh->GetMeshUploadTicket());
+	graphicsApi->DrawPrimitive(*quadMesh->GetMeshUploadTicket());
 	glDepthMask(GL_TRUE);
 
 	graphicsApi->UnbindShader();

@@ -20,11 +20,14 @@ namespace GibEngine
                 enum BufferIndex { VERTEX, INDEX, INSTANCE_MATRIX, BUFFERINDEX_LAST };
 
 				virtual ~IGraphicsApi() { }
+
+				// meta information
+				virtual const std::string GetVersionString() = 0;
                 
 				virtual void BlitFramebuffer(unsigned int framebufferSource, unsigned int framebufferDest, unsigned int framebufferWidth, unsigned int framebufferHeight, unsigned int framebufferFlags) = 0;
 
                 virtual void BindCamera(GibEngine::CameraBase *camera) = 0;
-                virtual void BindFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer) = 0;
+                virtual void BindFramebuffer(const GibEngine::Renderer::Framebuffer& framebuffer) = 0;
 				virtual void BindMaterial(GibEngine::Material *material) = 0;
                 virtual void BindTexture2D(unsigned int textureSlot, unsigned int textureId) = 0;
 				virtual void BindTextureCubemap(unsigned int textureSlot, unsigned int cubemapTextureId) = 0;
@@ -38,24 +41,26 @@ namespace GibEngine
 
 				virtual void ClearFramebuffer() = 0;
 
-                virtual void DrawPrimitive(MeshUploadTicket* meshUploadTicket) = 0;
-                virtual void DrawMesh(GibEngine::Mesh *mesh, size_t instanceCount) = 0;
-                virtual void DrawSkybox(GibEngine::Skybox *skybox) = 0;
+                virtual void DrawPrimitive(const MeshUploadTicket& meshUploadTicket) = 0;
+                virtual void DrawMesh(const GibEngine::Mesh& mesh, size_t instanceCount) = 0;
+                virtual void DrawSkybox(const GibEngine::MeshUploadTicket& skyboxMeshTicket) = 0;
 
 				virtual int GetUniformLocation(const char* uniformName) = 0;
 
 				virtual unsigned char* ReadFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer) = 0;
 				virtual unsigned char* ReadFramebufferTexture(GibEngine::Renderer::Framebuffer *framebuffer, GibEngine::Renderer::FramebufferType framebufferTextureType) = 0;
 
-				virtual bool UpdateMeshInstances(MeshUploadTicket *meshUploadTicket, std::vector<glm::mat4> instanceMatrixList) = 0;
+				// REGISTER
+				// Allocates any resources required for game objects within GFX API
+				virtual void RegisterCamera(std::shared_ptr<CameraBase> camera) = 0;
+
+				virtual bool UpdateMeshInstances(const MeshUploadTicket& meshUploadTicket, const std::vector<glm::mat4>& instanceMatrixList) = 0;
 				virtual bool UpdateCamera(CameraBase *camera) = 0;
 
-				virtual MeshUploadTicket* UploadMesh(std::vector<GibEngine::Vertex> vertexList, std::vector<unsigned int> indexList) = 0;
-                virtual MeshUploadTicket* UploadMesh(GibEngine::Mesh *mesh) = 0;
-                virtual void UploadTexture2D(GibEngine::Texture *texture) = 0;
-                virtual void UploadTextureCubemap(GibEngine::Texture* texture) = 0;
+				virtual std::shared_ptr<MeshUploadTicket> UploadMesh(const std::vector<GibEngine::Vertex>& vertexList, const std::vector<unsigned int>& indexList) = 0;
+                virtual void UploadTexture2D(unsigned int* textureId, const TextureData& textureData) = 0;
+				virtual void UploadTextureCubemap(unsigned int* textureId, std::vector<TextureData>& cubemapSideData) = 0;
                 
-
                 virtual void UnbindFramebuffer() = 0;
 				virtual void UnbindShader() = 0;
             };

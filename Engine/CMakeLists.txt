@@ -102,6 +102,16 @@ set(INPUT_SRC
   src/input/Controller.cpp
   src/input/InputManager.cpp)
 
+set(FILESYSTEM_INCLUDES include/filesystem/IFileSystem.h)
+
+if(WIN32)
+  list(APPEND FILESYSTEM_INCLUDES include/filesystem/WindowsFileSystem.h)
+  set(FILESYSTEM_SRC src/filesystem/WindowsFileSystem.cpp)
+elseif(UNIX)
+  list(APPEND FILESYSTEM_INCLUDES include/filesystem/UnixFileSystem.h)
+  set(FILESYSTEM_SRC src/filesystem/UnixFileSystem.cpp)
+endif()
+
 set(RENDERER_INCLUDES
   include/renderer/api/IGraphicsApi.h
   include/renderer/api/GL420.h
@@ -142,10 +152,8 @@ set(ROOT_INCLUDES
   include/glfw/glfw_callback.h
   include/AABB.h
   include/CameraBase.h
-  include/ChaseCamera.h
   include/Entity.h
   include/EnumFlags.h
-  include/File.h
   include/FreeCamera.h
   include/Game.h
   include/Logger.h
@@ -160,9 +168,7 @@ set(ROOT_INCLUDES
 set(ROOT_SRC
   src/AABB.cpp
   src/CameraBase.cpp
-  src/ChaseCamera.cpp
   src/Entity.cpp
-  src/File.cpp
   src/FreeCamera.cpp
   src/Game.cpp
   src/Logger.cpp
@@ -181,6 +187,8 @@ add_library(GibEngine
   ${THIRDPARTY_SRC}
   ${WORLD_INCLUDES}
   ${WORLD_SRC}
+  ${FILESYSTEM_INCLUDES}
+  ${FILESYSTEM_SRC}
   ${INPUT_INCLUDES}
   ${INPUT_SRC}
   ${SCENE_INCLUDES}
@@ -196,6 +204,7 @@ source_group("Header Files\\ThirdParty" FILES ${THIRDPARTY_INCLUDES})
 source_group("Header Files\\World" FILES ${WORLD_INCLUDES})
 source_group("Header Files\\Input" FILES ${INPUT_INCLUDES})
 source_group("Header Files\\Renderer" FILES ${RENDERER_INCLUDES})
+source_group("Header Files\\FileSystem" FILES ${FILESYSTEM_INCLUDES})
 source_group("Header Files\\Scene" FILES ${SCENE_INCLUDES})
 source_group("Source Files" FILES ${ROOT_SRC})
 source_group("Source Files\\ThirdParty" FILES ${THIRDPARTY_SRC})
@@ -204,6 +213,7 @@ source_group("Source Files\\World" FILES ${WORLD_SRC})
 source_group("Source Files\\Input" FILES ${INPUT_SRC})
 source_group("Source Files\\Scene" FILES ${SCENE_SRC})
 source_group("Source Files\\Renderer" FILES ${RENDERER_SRC})
+source_group("Source Files\\FileSystem" FILES ${FILESYSTEM_SRC})
 
 if(WIN32)
   LIST(APPEND GIBENGINE_LIBRARIES opengl32)

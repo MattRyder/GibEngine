@@ -29,6 +29,8 @@ namespace GibEditor
 
 		Components::Dock* GetDock() const;
 
+		static bool FlagMask(Flags x) { return static_cast<char>(x) != 0; };
+
 	private:
 		Flags flags = Flags::DEFAULT;
 		Components::Menubar* menubar;
@@ -43,6 +45,7 @@ namespace GibEditor
 			| ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
 		void SetWindowShouldClose(bool value);
-
     };
+
+	GIB_FLAGS(Editor::Flags)
 }

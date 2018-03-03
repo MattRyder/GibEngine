@@ -2,7 +2,7 @@
 
  TEST_F(FreeCameraTest, AssignedCameraType)
  {
- 	ASSERT_EQ(camera->GetType(), EntityType::CAMERA);
+ 	ASSERT_EQ(camera->GetType(), Entity::Type::CAMERA);
  }
 
  TEST_F(FreeCameraTest, CanConstructProjectionMatrix)

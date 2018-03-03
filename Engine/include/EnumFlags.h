@@ -27,7 +27,7 @@ THE SOFTWARE.
 
 #define GIB_FLAGS_ENUM_DECL(T, INT_T) \
 inline T	operator~	(T x) 		{ 	return static_cast<T>	(~static_cast<INT_T>(x)); 							}; \
-inline T	operator&	(T x, T y) 	{ 	return static_cast<T>	(static_cast<INT_T>(x) & static_cast<INT_T>(y)); 		}; \
+inline T	operator&	(T x, T y) 	{ 	return static_cast<T>	(static_cast<INT_T>(x) & static_cast<INT_T>(y)); 	}; \
 inline T	operator|	(T x, T y)	{	return static_cast<T>	(static_cast<INT_T>(x) | static_cast<INT_T>(y));	}; \
 inline T	operator^	(T x, T y)	{	return static_cast<T>	(static_cast<INT_T>(x) ^ static_cast<INT_T>(y));	}; \
 inline T&	operator&=	(T& x, T y)	{	x = x & y;	return x;	}; \

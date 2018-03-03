@@ -16,6 +16,7 @@
 
 #include "scene/Node.h"
 #include "MeshService.h"
+#include "filesystem/IFileSystem.h"
 
 namespace GibEngine
 {
@@ -26,10 +27,12 @@ namespace GibEngine
 			// If Debug Mode, load with visibility meshes etc.
 			bool debugMode;
 
-            sqlite3pp::database* db;
+            std::shared_ptr<sqlite3pp::database> db;
+			std::shared_ptr<FileSystem::IFileSystem> fs;
+			std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi;
             
-			std::string ConvertVec3ToString(glm::vec3 vec);
-            glm::vec3 ReadVec3(const char* vec3String);
+			std::string ConvertVec3ToString(const glm::vec3& vec);
+            glm::vec3 ReadVec3(std::string vec3String);
             int GetLastAutoincrementId();
 
 			Scene::Node* FindNode(int nodeId);
@@ -39,13 +42,13 @@ namespace GibEngine
 			bool SaveEntity(Scene::Node* entityNode);
 
         public:
-			Database(const char* databaseFilepath);
-            Database(const char* databaseFilepath, bool debugMode);
+			Database(const std::string& databaseFilepath, std::shared_ptr<FileSystem::IFileSystem> fs, std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi);
+            Database(const std::string& databaseFilepath, std::shared_ptr<FileSystem::IFileSystem> fs, std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, bool debugMode);
 			~Database();
 
 			void Disconnect();
             
-			bool CreateLevel(int nodeId, const char* name);
+			bool CreateLevel(int nodeId, const std::string& name);
 
 			Skybox* LoadSkybox(int skyboxId);
 			PointLight* LoadLight(int lightId);

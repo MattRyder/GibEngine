@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GL/gl3w.h>
 #include "IGraphicsApi.h"
 
 namespace GibEngine
@@ -14,10 +15,12 @@ namespace GibEngine
 				GLES3() = default;
 				virtual ~GLES3() override;
 
+				virtual const std::string GetVersionString() override { return "300_es";  }
+
 				virtual void BlitFramebuffer(unsigned int framebufferSource, unsigned int framebufferDest, unsigned int framebufferWidth, unsigned int framebufferHeight, unsigned int framebufferFlags) override;
 
                 virtual void BindCamera(GibEngine::CameraBase *camera) override;
-                virtual void BindFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer) override;
+                virtual void BindFramebuffer(const GibEngine::Renderer::Framebuffer& framebuffer) override;
 				virtual void BindMaterial(GibEngine::Material *material) override;
 				virtual void BindShader(unsigned int shaderId) override;
 				virtual void BindTexture2D(unsigned int textureSlot, unsigned int textureId) override;
@@ -30,19 +33,22 @@ namespace GibEngine
 				virtual void DeleteFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer) override;
 				virtual void ClearFramebuffer() override;
 
-                virtual void DrawPrimitive(MeshUploadTicket* meshUploadTicket) override;
-                virtual void DrawMesh(GibEngine::Mesh *mesh, size_t instanceCount) override;
-                virtual void DrawSkybox(GibEngine::Skybox *skybox) override;
+                virtual void DrawPrimitive(const MeshUploadTicket& meshUploadTicket) override;
+                virtual void DrawMesh(const GibEngine::Mesh& mesh, size_t instanceCount) override;
+                virtual void DrawSkybox(const GibEngine::MeshUploadTicket& skyboxMeshTicket) override;
 
 				virtual int GetUniformLocation(const char* uniformName) override;
 
-				virtual bool UpdateMeshInstances(MeshUploadTicket *meshUploadTicket, std::vector<glm::mat4> instanceMatrixList) override;
+				// REGISTER
+				// Allocates any resources required for game objects within GFX API
+				virtual void RegisterCamera(std::shared_ptr<CameraBase> camera) override;
+
+				virtual bool UpdateMeshInstances(const MeshUploadTicket& meshUploadTicket, const std::vector<glm::mat4>& instanceMatrixList) override;
 				virtual bool UpdateCamera(CameraBase *camera) override;
 
-				virtual MeshUploadTicket* UploadMesh(std::vector<GibEngine::Vertex> vertexList, std::vector<unsigned int> indexList) override;
-                virtual MeshUploadTicket* UploadMesh(GibEngine::Mesh *mesh) override;
-                virtual void UploadTexture2D(GibEngine::Texture *texture) override;    
-                virtual void UploadTextureCubemap(GibEngine::Texture *texture) override;
+				virtual std::shared_ptr<MeshUploadTicket> UploadMesh(const std::vector<GibEngine::Vertex>& vertexList, const std::vector<unsigned int>& indexList) override;
+                virtual void UploadTexture2D(unsigned int* textureId, const TextureData& textureData) override;
+				virtual void UploadTextureCubemap(unsigned int* textureId, std::vector<TextureData>& cubemapSideData) override;
 
                 virtual void UnbindFramebuffer() override;
 				virtual void UnbindShader() override;

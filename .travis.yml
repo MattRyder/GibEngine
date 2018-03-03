@@ -25,4 +25,5 @@ script:
   - cd build
   - cmake .. -DBUILD_TESTS=ON
   - make
+  - cd Debug/
   - ./GibTest

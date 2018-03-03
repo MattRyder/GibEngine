@@ -1,47 +1,28 @@
 #include "renderer/SkyboxRenderPass.h"
 
-GibEngine::Renderer::SkyboxRenderPass::SkyboxRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader) 
-	: RenderPass(graphicsApi, shader) { }
+GibEngine::Renderer::SkyboxRenderPass::SkyboxRenderPass(std::shared_ptr<Renderer::API::IGraphicsApi>graphicsApi, Shader *shader)
+	: RenderPass(graphicsApi, shader), skyboxUniformLocation(-1) { }
 
-void GibEngine::Renderer::SkyboxRenderPass::Render(const GibEngine::Scene::VisibleSet* visibleSet)
+void GibEngine::Renderer::SkyboxRenderPass::Render(const GibEngine::Scene::VisibleSet& visibleSet)
 {
-	if (visibleSet->GetSkyboxNode() == nullptr)
-	{
-		return;
-	}
-
 	graphicsApi->BindShader(shader->GetShaderId());
 	
 	// GL4+ uses UBOs so this isn't required, but is for GLES3!
 	//graphicsApi->BindCamera(visibleSet.GetCamera());
 
-	glm::mat4 skyboxMatrix = visibleSet->GetSkyboxNode()->GetWorldTransform();
-	glUniformMatrix4fv(
-		graphicsApi->GetUniformLocation("skyboxModelMatrix"), 1, GL_FALSE, glm::value_ptr(skyboxMatrix)
-	);
-
-	auto skybox = reinterpret_cast<Skybox*>(visibleSet->GetSkyboxNode()->GetEntity());
-	if (skybox->GetCubemap()->GetTextureId() == 0)
+	if (skyboxUniformLocation == -1)
 	{
-		UploadSkybox(skybox);
+		skyboxUniformLocation = graphicsApi->GetUniformLocation("skyboxModelMatrix");
 	}
 
-	graphicsApi->BindTextureCubemap(0, skybox->GetCubemap()->GetTextureId());
+	glm::mat4 skyboxMatrix = visibleSet.GetSkyboxNode().GetWorldTransform();
+	glUniformMatrix4fv(skyboxUniformLocation, 1, GL_FALSE, glm::value_ptr(skyboxMatrix));
 
-	graphicsApi->DrawSkybox(skybox);
+	auto skybox = reinterpret_cast<Skybox*>(visibleSet.GetSkyboxNode().GetEntity());
+
+	graphicsApi->BindTextureCubemap(0, skybox->GetTexture()->GetTextureId());
+
+	graphicsApi->DrawSkybox(skybox->GetMeshUploadTicket());
 
 	graphicsApi->UnbindShader();
-}
-
-void GibEngine::Renderer::SkyboxRenderPass::UploadSkybox(Skybox* skybox)
-{
-	if (skybox == nullptr)
-	{
-		return;
-	}
-
-	MeshUploadTicket* ticket = graphicsApi->UploadMesh(skybox);
-	skybox->SetMeshUploadTicket(ticket);
-
-	graphicsApi->UploadTextureCubemap(skybox->GetCubemap());
 }

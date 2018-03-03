@@ -1,32 +1,20 @@
 #include "renderer/Pipeline.h"
 
-const char* GibEngine::Renderer::Pipeline::ShaderLanguageStrings[] =
+GibEngine::Renderer::Pipeline::Pipeline(int framebufferWidth, int framebufferHeight, std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem, std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi)
+	: fileSystem(fileSystem), graphicsApi(graphicsApi)
 {
-  "300_es",
-  "420"
-};
-
-GibEngine::Renderer::Pipeline::Pipeline(int framebufferWidth, int framebufferHeight, ShaderLanguage supportedShaderLanguage)
-{
-	this->shaderLanguage = supportedShaderLanguage;
-
-	this->SelectGraphicsApi(this->shaderLanguage);
-
 	this->framebuffer = new Framebuffer(framebufferWidth, framebufferHeight);
 	graphicsApi->CreateFramebuffer(framebuffer, framebufferWidth, framebufferHeight);
-
-	this->passes = std::map<RenderPassType, RenderPass*>();
 }
 
 GibEngine::Renderer::Pipeline::~Pipeline()
 {
-	for (auto passObj : this->passes)
+	for (auto renderPass : this->passes)
 	{
-		delete passObj.second->GetShader();
-		delete passObj.second;
+		delete renderPass->GetShader();
+		delete renderPass;
 	}
-	
-	delete graphicsApi;
+
 	delete framebuffer;
 }
 
@@ -58,20 +46,20 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 
 	Renderer::RenderPass *renderPass;
 
-	// Dynamically load the shader, for the appropriate GLSL version, for each OpenGL phase:
-	File *vertexFile = GibEngine::File::GetShaderFile(
-		(std::string(GetShaderLanguageString(this->shaderLanguage)) +
-		 std::string("/") +
-		 shaderFileName + std::string("_vs") +
-		 std::string(".glsl")).c_str());
+	
+	std::shared_ptr<std::string> vertexSource, fragmentSource;
+	const std::string glVersionDirectory = graphicsApi->GetVersionString();
 
-	File *fragmentFile = GibEngine::File::GetShaderFile(
-		(std::string(GetShaderLanguageString(this->shaderLanguage)) +
-		 std::string("/") +
-		 shaderFileName + std::string("_fs") +
-		 std::string(".glsl")).c_str());
+	vertexSource = std::shared_ptr<std::string>(new std::string());
+	fragmentSource = std::shared_ptr<std::string>(new std::string());
 
-	Shader *shader = new Shader(vertexFile, fragmentFile);
+	const std::string shaderPath = fileSystem->GetWorkingDirectory() + "/../../Assets/Shaders";
+	const std::string vertexRelativePath = shaderPath + std::string("/") + glVersionDirectory + std::string("/") + shaderFileName + std::string("_vs.glsl");
+	const std::string fragmentRelativePath = shaderPath + std::string("/") + glVersionDirectory + std::string("/") + shaderFileName + std::string("_fs.glsl");
+	fileSystem->ReadFile(vertexRelativePath, vertexSource);
+	fileSystem->ReadFile(fragmentRelativePath, fragmentSource);
+
+	Shader *shader = new Shader(vertexSource, fragmentSource);
 
 	switch (type)
 	{
@@ -95,21 +83,40 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 		break;
 	}
 
-	this->passes.emplace(type, renderPass);
+	passes[static_cast<int>(type)] = renderPass;
 }
 
-void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet* visibleSet, const float deltaTime)
-{	
-	if (renderingPaused)
+void GibEngine::Renderer::Pipeline::AddCamera(std::shared_ptr<CameraBase> camera)
+{
+	if (std::find(cameras.begin(), cameras.end(), camera) == cameras.end())
 	{
-		return;
-	}
+		this->cameras.push_back(camera);
 
-	graphicsApi->BindFramebuffer(framebuffer);
+		for (auto pass : passes)
+		{
+			graphicsApi->BindShader(pass->GetShader()->GetShaderId());
+			graphicsApi->RegisterCamera(camera);
+			graphicsApi->UnbindShader();
+		}
+	}
+}
+
+
+void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet& visibleSet, const float deltaTime)
+{	
+	//if (renderingPaused)
+	//{
+	//	return;
+	//}
+
+	graphicsApi->BindFramebuffer(*framebuffer);
 
 	graphicsApi->ClearFramebuffer();
 
-	graphicsApi->UpdateCamera(visibleSet->GetCamera());
+	for (auto camera : cameras)
+	{
+		graphicsApi->UpdateCamera(camera.get());
+	}
 
 	RenderPass* pass = GetRenderPass(RenderPassType::DEFERRED_GEOMETRY);
 	if (pass->IsEnabled())
@@ -151,10 +158,6 @@ void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet* v
 	}
 }
 
-void GibEngine::Renderer::Pipeline::Update(float deltaTime)
-{
-}
-
 bool GibEngine::Renderer::Pipeline::IsRenderPaused()
 {
 	return renderingPaused;
@@ -162,24 +165,18 @@ bool GibEngine::Renderer::Pipeline::IsRenderPaused()
 
 GibEngine::Renderer::RenderPass* GibEngine::Renderer::Pipeline::GetRenderPass(RenderPassType type)
 {
-	std::map<RenderPassType, RenderPass*>::iterator passLookup = passes.find(type);
-	if (passLookup == passes.end())
+	auto val = static_cast<int>(type);
+	if (passes[val] == nullptr)
 	{
 		AddPass(type);
-		return GetRenderPass(type);
 	}
-	
-	return this->passes.at(type);
+
+	return passes[val];
 }
 
 GibEngine::Renderer::Framebuffer* GibEngine::Renderer::Pipeline::GetFramebuffer()
 {
 	return framebuffer;
-}
-
-void GibEngine::Renderer::Pipeline::SetCameraBase(CameraBase* camera)
-{
-	this->camera = camera;
 }
 
 void GibEngine::Renderer::Pipeline::SetRenderPaused(bool renderingPaused)
@@ -191,27 +188,4 @@ void GibEngine::Renderer::Pipeline::ResizeFramebuffer(int width, int height)
 {
 	graphicsApi->DeleteFramebuffer(framebuffer);
 	graphicsApi->CreateFramebuffer(framebuffer, width, height);
-}
-
-const char* GibEngine::Renderer::Pipeline::GetShaderLanguageString(ShaderLanguage language)
-{
-	return ShaderLanguageStrings[static_cast<int>(language)];
-}
-
-void GibEngine::Renderer::Pipeline::SelectGraphicsApi(ShaderLanguage shaderLanguage)
-{
-	if(this->graphicsApi != nullptr)
-	{
-		delete this->graphicsApi;
-	}
-
-	switch(shaderLanguage)
-	{
-		case ShaderLanguage::GLES_3:
-			this->graphicsApi = new Renderer::API::GLES3();
-			break;
-		case ShaderLanguage::GLSL_420:
-			this->graphicsApi = new Renderer::API::GL420();
-			break;
-	}
 }

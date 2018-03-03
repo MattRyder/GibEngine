@@ -10,8 +10,8 @@ namespace GibEngine
 		class RenderToTexturePass : public RenderPass
 		{
 		public:
-			RenderToTexturePass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer* framebuffer);
-			virtual void Render(const Scene::VisibleSet* visibleSet) override;
+			RenderToTexturePass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader *shader, Framebuffer* framebuffer);
+			virtual void Render(const Scene::VisibleSet& visibleSet) override;
 		};
 	}
 }

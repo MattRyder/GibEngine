@@ -49,21 +49,19 @@ int main(int argc, char** argv)
 void SetupImGuiStyle()
 {
 	ImGuiIO& io = ImGui::GetIO();
-
-	GibEngine::File* uiFontFile = GibEngine::File::GetFontFile("Arimo-Regular.ttf");
-	io.Fonts->AddFontFromFileTTF(uiFontFile->GetPath(), 24.0f);
+	io.Fonts->AddFontFromFileTTF("../../Assets/Fonts/Arimo-Regular.ttf", 24.0f);
 	
 	ImGuiStyle& style = ImGui::GetStyle();
 
 	style.WindowPadding = ImVec2(0, 0);
-	style.WindowRounding = 0;
+	style.WindowRounding = 10;
 	style.ItemSpacing = ImVec2(10, 10);
 	style.ItemInnerSpacing = ImVec2(8, 4);
 	style.ScrollbarSize = 20;
 	style.ScrollbarRounding = 0;
 	style.IndentSpacing = 30;
 	style.TouchExtraPadding = ImVec2(10, 10);
-	style.FramePadding = ImVec2(0, 10);
+	style.FramePadding = ImVec2(10, 10);
 
 	style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
@@ -96,6 +94,4 @@ void SetupImGuiStyle()
 	style.Colors[ImGuiCol_Column] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
 	style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.15f, 0.31f, 0.38f, 1.00f);
 	style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.15f, 0.31f, 0.61f, 1.00f);
-
-	delete uiFontFile;
 }

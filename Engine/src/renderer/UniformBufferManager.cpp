@@ -1,9 +1,5 @@
 #include "renderer/UniformBufferManager.h"
 
-GibEngine::Renderer::UniformBufferManager::UniformBufferManager()
-{
-}
-
 GibEngine::Renderer::UniformBufferManager::~UniformBufferManager()
 {
 	for (unsigned int i = 0; i < MAX_UNIFORM_BUFFER_COUNT; i++)
@@ -12,7 +8,7 @@ GibEngine::Renderer::UniformBufferManager::~UniformBufferManager()
 	}
 }
 
-GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::Create(const char* bufferName, size_t bufferSize)
+GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::Create(const std::string bufferName, size_t bufferSize)
 {
 	unsigned int bufferIndex = GetAvailableBufferIndex();
 
@@ -28,7 +24,7 @@ GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::C
 	return buffer;
 }
 
-GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::Create(const char* bufferName, size_t bufferSize, GLvoid * bufferData)
+GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::Create(const std::string bufferName, size_t bufferSize, GLvoid * bufferData)
 {
 	UniformBuffer* buffer = Create(bufferName, bufferSize);
 
@@ -40,7 +36,7 @@ GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::C
 	return buffer;
 }
 
-GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::FindOrCreate(const char * bufferName, size_t bufferSize)
+GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::FindOrCreate(const std::string bufferName, size_t bufferSize)
 {
 	UniformBuffer* buffer = nullptr;
 	if ((buffer = Find(bufferName)) != nullptr)
@@ -49,10 +45,6 @@ GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::F
 	}
 
 	return Create(bufferName, bufferSize);
-}
-
-void GibEngine::Renderer::UniformBufferManager::Bind(Shader* shader)
-{
 }
 
 void GibEngine::Renderer::UniformBufferManager::Update(UniformBuffer* uniformBuffer, GLvoid* newData)
@@ -66,11 +58,11 @@ void GibEngine::Renderer::UniformBufferManager::Destroy(UniformBuffer* uniformBu
 	delete uniformBuffer;
 }
 
-GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::Find(const char* bufferName)
+GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::Find(const std::string bufferName)
 {
 	for (unsigned int i = 0; i < MAX_UNIFORM_BUFFER_COUNT; i++)
 	{
-		if (buffers[i] != nullptr && strcmp(buffers[i]->GetBufferName(), bufferName) == 0)
+		if (buffers[i] != nullptr && buffers[i]->GetBufferName() == bufferName)
 		{
 			return buffers[i];
 		}

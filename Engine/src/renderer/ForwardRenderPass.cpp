@@ -1,31 +1,25 @@
 #include "renderer/ForwardRenderPass.h"
 
-GibEngine::Renderer::ForwardRenderPass::ForwardRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader) : RenderPass(graphicsApi, shader) { }
+GibEngine::Renderer::ForwardRenderPass::ForwardRenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader *shader) : RenderPass(graphicsApi, shader) { }
 
-void GibEngine::Renderer::ForwardRenderPass::Render(const GibEngine::Scene::VisibleSet* visibleSet)
+void GibEngine::Renderer::ForwardRenderPass::Render(const GibEngine::Scene::VisibleSet& visibleSet)
 {
 	glEnable(GL_BLEND);
 
 	graphicsApi->BindShader(shader->GetShaderId());
 
-	graphicsApi->BindCamera(visibleSet->GetCamera());
+	graphicsApi->BindCamera(visibleSet.GetCamera().get());
 
-	auto instMap = visibleSet->GetMeshInstanceMap();
+	auto instMap = visibleSet.GetMeshInstanceMap();
 	for (auto iter = instMap->begin(); iter != instMap->end(); ++iter)
 	{
-		auto mesh = iter->first;
-		if (!Mesh::FlagMask(mesh->GetFlags() & Mesh::Flags::RENDER_FORWARD))
+		const Mesh& mesh = *iter->first;
+		if (!Mesh::FlagMask(mesh.GetFlags() & Mesh::Flags::RENDER_FORWARD))
 		{
 			continue;
 		}
 
-		if (mesh->GetMeshUploadTicket() == nullptr)
-		{
-			mesh->SetMeshUploadTicket(graphicsApi->UploadMesh(mesh));
-		}
-
-
-			graphicsApi->UpdateMeshInstances(mesh->GetMeshUploadTicket(), iter->second);
+		graphicsApi->UpdateMeshInstances(*mesh.GetMeshUploadTicket(), iter->second);
 
 		//if (mesh->GetMaterials().size() > 0)
 		//{

@@ -25,25 +25,25 @@ namespace GibEngine
 		glm::vec2 TexCoord;
 		glm::vec3 Tangent;
 		glm::vec3 Bitangent;
-		float Determinant = 0;
+		float Determinant;
 	};
 
 	struct MaterialTexture
 	{
-		Texture* texture;
-		const char* textureUniformName;
+		std::shared_ptr<Texture> texture;
+		std::string textureUniformName;
 	};
 
 	// The color and shine of the Model
-	typedef struct material_t
+	struct Material
 	{
 		glm::vec3 AmbientColor;
 		glm::vec3 DiffuseColor;
 		glm::vec3 SpecularColor;
-		GLfloat Opacity;
-		GLuint Shininess;
-		std::vector<MaterialTexture*> Textures;
-	} Material;
+		float Opacity;
+		unsigned int Shininess;
+		std::vector<MaterialTexture> Textures;
+	};
 
 	// An object containing information regarding how to reference
 	// the Mesh via the graphics server
@@ -59,9 +59,7 @@ namespace GibEngine
 	class Mesh : public Entity
 	{
 	public:
-		static const int MOVE_SPEED = 10;
-
-		enum class Flags : int
+		enum class Flags : char
 		{
 			RENDER_ENABLED = 1 << 1,
 			RENDER_WIREFRAME = 1 << 2,
@@ -70,43 +68,31 @@ namespace GibEngine
 			RENDER_FORWARD = 1 << 5
 		};
 
-		Mesh(const char* name);
-		Mesh(const char* name, const char* ownerFileName, std::vector<Vertex> vertices);
-		Mesh(const char* name, const char* ownerAssetName, std::vector<Vertex> vertices, std::vector<unsigned int> indices, Material* material);
-		~Mesh();
+		Mesh(std::string name, std::shared_ptr<MeshUploadTicket> uploadTicket, std::shared_ptr<Material> material);
 
 		Flags GetFlags() const;
-		Material* GetMaterial() const;
-		std::vector<unsigned int> GetIndices() const;
-		MeshUploadTicket* GetMeshUploadTicket() const;
-		std::vector<Vertex> GetVertices() const;
-		const char* GetOwnerAssetName() const;
-		const json11::Json* GetGenerationData() const;
+		std::shared_ptr<Material> GetMaterial() const;
+		std::shared_ptr<MeshUploadTicket> GetMeshUploadTicket() const;
+		const json11::Json& GetGenerationData() const;
 
 		bool IsUploaded();
-		std::vector<GibEngine::Texture*> LoadMaterialTextures(aiMaterial *material, aiTextureType type, GibEngine::TextureType textureType);
 
-		void SetIndices(std::vector<unsigned int> indices);
-		void SetVertices(std::vector<Vertex> vertices);
-		void SetMeshUploadTicket(MeshUploadTicket *meshUploadReciept);
 		void SetFlags(Flags flags);
-		void SetGenerationData(json11::Json* generationData);
+		void SetGenerationData(json11::Json generationData);
 
 		virtual void Update(double deltaTime) override;
  
 		static bool FlagMask(Flags x) { return static_cast<char>(x) != 0; };
 
 	private:
-		json11::Json* generationData = nullptr;
-		MeshUploadTicket* uploadTicket = nullptr;
-		Flags flags = Flags::RENDER_ENABLED;
+		json11::Json generationData;
+		Flags flags;
 
-		std::vector<Vertex> vertices;
-		std::vector<GLuint> indices;
-		Material* material;
-
-		const char* ownerAssetName;
+		std::shared_ptr<MeshUploadTicket> uploadTicket;
+		std::shared_ptr<Material> material;
 	};
+
+	inline bool operator<(const Mesh& lhs, const Mesh& rhs) { return lhs.GetID() < rhs.GetID(); }
 
 	GIB_FLAGS(Mesh::Flags)
 }

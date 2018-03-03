@@ -1,11 +1,9 @@
 #pragma once
 
 #include <string>
-#include <assimp/scene.h>
-#include <GL/gl3w.h>
+#include <glm/vec2.hpp>
 
 #include "Logger.h"
-#include "File.h"
 
 namespace GibEngine
 {
@@ -22,7 +20,7 @@ namespace GibEngine
 		int Width;
 		int Height;
 		int Channels;
-		unsigned char *Data;
+		unsigned char* Data;
 
 		bool IsPowerOfTwo()
 		{
@@ -30,57 +28,24 @@ namespace GibEngine
 		}
 	};
 
-	struct Cubemap
-	{
-		std::string* directory;
-		const char* extension;
-
-		TextureData* textures[6];
-	};
-
-
 	class Texture
 	{
-		std::string *fileName;
+		const std::string fileName;
+
 		unsigned int textureId;
-		bool isUploaded;
-
-		Cubemap* cubemap = nullptr;
-		TextureData* imageData;
-		bool isLoaded = false;
-
 		TextureType type;
-
-	protected:
-		Texture();
-		Texture(TextureType type, std::string *fileName);
-
-		static TextureData* LoadTextureData(std::string *textureFilename);
+		glm::vec2 size;
 
 	public:
-		static const char* TextureTypeStrings[4];
+		static const std::string TextureTypeStrings[TextureType::TEXTURETYPE_LAST + 1];
 		
-		~Texture();
+		Texture();
+		Texture(int textureId, TextureType type, glm::vec2 size);
 
-		static Texture* Load(TextureType type, std::string *fileName);
-		static Texture* LoadCubemap(std::string *cubemapDirectory, const char *textureExtension);
-		static Texture* LoadFromMemory(TextureType type, std::string* fileName, unsigned char* data, size_t length);
+		const std::string GetFilename() const;
+		unsigned int GetTextureId() const;
 
-		std::string* GetFilename();
-		unsigned int GetTextureId();
-		TextureType GetTextureType();
-		const char* GetTextureTypeString();
-		TextureData* GetTextureData();
-
-		Cubemap* GetCubemap();
-
-		bool IsLoaded() { return this->isLoaded; }
-		bool IsUploaded() { return this->isUploaded; }
-
-		void SetTextureData(TextureData *textureData);
-		void SetTextureId(unsigned int textureId);
-		void SetCubemap(Cubemap *cubemap);
-		bool SetLoaded(bool loaded);
-
+		TextureType GetTextureType() const;
+		const std::string GetTextureTypeString() const;
 	};
 }

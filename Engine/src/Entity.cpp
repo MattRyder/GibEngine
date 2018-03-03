@@ -1,59 +1,68 @@
 #include "Entity.h"
 
-int GibEngine::Entity::Id;
+// accumulator for the Entity ID system
+int GibEngine::Entity::_Id;
 
-GibEngine::Entity::Entity(EntityType type) : entityId(Id++)
+const std::string GibEngine::Entity::TypeStrings[static_cast<int>(Entity::Type::ENTITY_TYPE_END) + 1] =
 {
-    this->entityType = type;
+	"Entity",
+	"Mesh",
+	"Light",
+	"Point Light",
+	"Directional Light",
+	"Camera",
+	"Player",
+	"Skybox",
+	"Unknown"
+};
 
-	std::stringstream name;
-	name << GetTypeName() << " (EID #" << std::to_string(entityId) << ")";
+GibEngine::Entity::Entity(Type type)
+	: Entity(type, GetTypeString(type) + "__#" + std::to_string(id+1)) { }
 
-	this->entityName = strdup(name.str().c_str());
-    this->entityPosition = glm::vec3();
+GibEngine::Entity::Entity(Type type, std::string name) 
+	: Entity(type, name, glm::vec3()) { }
+
+GibEngine::Entity::Entity(Type type, std::string name, glm::vec3 position)
+	: id(_Id++), type(type), name(name), position(position) { }
+
+
+
+const std::string& GibEngine::Entity::GetTypeName() const
+{
+    return TypeStrings[static_cast<int>(this->type)];
 }
 
-GibEngine::Entity::Entity(EntityType entityType, const char* name) :
-	entityId(Id++), entityType(entityType), entityName(strdup(name)) { }
-
-GibEngine::Entity::~Entity() { }
-
-GibEngine::EntityType GibEngine::Entity::GetType() const
+const std::string GibEngine::Entity::GetTypeString(GibEngine::Entity::Type type)
 {
-    return this->entityType;
-}
-
-const char* GibEngine::Entity::GetTypeName() const
-{
-    return GibEngine::EntityTypeStrings[static_cast<int>(this->entityType)];
-}
-
-const char* GibEngine::Entity::GetTypeString(GibEngine::EntityType type)
-{
-	return EntityTypeStrings[static_cast<int>(type)];
+	return TypeStrings[static_cast<int>(type)];
 }
 
 int GibEngine::Entity::GetID() const
 {
-    return this->entityId;
+    return this->id;
+}
+
+GibEngine::Entity::Type GibEngine::Entity::GetType() const
+{
+	return this->type;
 }
 
 glm::vec3 GibEngine::Entity::GetPosition() const
 {
-    return entityPosition;
+    return this->position;
 }
 
-const char* GibEngine::Entity::GetName() const
+std::string GibEngine::Entity::GetName() const
 {
-    return entityName;
+    return this->name;
 }
 
-void GibEngine::Entity::SetPosition(glm::vec3 entityPosition)
+void GibEngine::Entity::SetPosition(const glm::vec3 position)
 {
-    this->entityPosition = entityPosition;
+    this->position = position;
 }
 
-void GibEngine::Entity::SetName(const char* entityName)
+void GibEngine::Entity::SetName(const std::string name)
 {
-	this->entityName = entityName;
+	this->name = name;
 }

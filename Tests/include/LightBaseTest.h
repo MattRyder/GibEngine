@@ -10,7 +10,7 @@ class LightBaseTest : public ::testing::Test
 public:
 	virtual void SetUp()
 	{
-        lightBase = new GibEngine::LightBase(GibEngine::EntityType::LIGHT,
+        lightBase = new GibEngine::LightBase(GibEngine::Entity::Type::LIGHT,
             position, ambientColor, diffuseColor, specularColor);
     }
 

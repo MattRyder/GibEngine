@@ -1,9 +1,10 @@
 #include "components/Dock.h"
 
-GibEditor::Components::Dock::Dock(GibEngine::Scene::Node* rootSceneNode, GibEngine::Renderer::Pipeline* pipeline)
+GibEditor::Components::Dock::Dock(std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem, std::shared_ptr<GibEngine::Scene::Node> rootSceneNode, std::shared_ptr<GibEngine::Renderer::Pipeline> pipeline)
 	: rootSceneNode(rootSceneNode), pipeline(pipeline)
 {
-	cbrowser = new Components::ContentBrowser(rootSceneNode, pipeline);
+
+	cbrowser = new Components::ContentBrowser(fileSystem, rootSceneNode, pipeline);
 }
 
 void GibEditor::Components::Dock::Render()
@@ -58,7 +59,7 @@ void GibEditor::Components::Dock::Render()
 
 		if (rootSceneNode != nullptr)
 		{
-			RenderSceneTreeNode(rootSceneNode);
+			RenderSceneTreeNode(rootSceneNode.get());
 		}
 
 		ImGui::EndDock();
@@ -84,12 +85,13 @@ GibEditor::Components::Dock::Type GibEditor::Components::Dock::GetSelectedDock()
 
 void GibEditor::Components::Dock::RenderSceneTreeNode(GibEngine::Scene::Node* node)
 {
+	auto nodeName = node->GetName();
 	GibEngine::Scene::Node* selectedNode = entityInspector != nullptr ? entityInspector->GetNode() : nullptr;
 	GibEngine::Entity* nodeEntity = node->GetEntity();
 
 	if (node->GetChildNodeCount() == 0)
 	{
-		if (ImGui::Selectable(node->GetName()))
+		if (ImGui::Selectable(nodeName.c_str()))
 		{
 			delete entityInspector;
 			entityInspector = new Components::EntityInspector(node);
@@ -98,7 +100,7 @@ void GibEditor::Components::Dock::RenderSceneTreeNode(GibEngine::Scene::Node* no
 	else if (GibEngine::Scene::Node::FlagMask(node->GetFlags() & GibEngine::Scene::Node::Flags::MESH_ROOT))
 	{
 		auto meshPtr = reinterpret_cast<GibEngine::Mesh*>((*node->GetChildNodesBegin())->GetEntity());
-		auto meshName = std::string(node->GetName()) + std::string(": ") + meshPtr->GetOwnerAssetName();
+		auto meshName = node->GetName() + ": " + meshPtr->GetName();
 		if (ImGui::Selectable(meshName.c_str()))
 		{
 			delete entityInspector;
@@ -108,7 +110,7 @@ void GibEditor::Components::Dock::RenderSceneTreeNode(GibEngine::Scene::Node* no
 	else
 	{
 		ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen ^ ImGuiTreeNodeFlags_Bullet ^ ImGuiTreeNodeFlags_Leaf;
-		if (ImGui::TreeNodeEx(node->GetName(), treeNodeFlags))
+		if (ImGui::TreeNodeEx(nodeName.c_str(), treeNodeFlags))
 		{
 			if (ImGui::IsItemClicked())
 			{

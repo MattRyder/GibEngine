@@ -11,14 +11,10 @@ GLfloat GibEngine::Renderer::RenderPass::QuadTextureData[] = {
 	1.0f, -1.0f, 0.0f,		1.0f, 0.0f,
 };
 
-GibEngine::Renderer::RenderPass::RenderPass(API::IGraphicsApi* graphicsApi, Shader *shader)
-{
-	this->quadMesh = nullptr;
-	this->graphicsApi = graphicsApi;
-	this->shader = shader;
-}
+GibEngine::Renderer::RenderPass::RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader *shader)
+	: graphicsApi(graphicsApi), shader(shader), quadMesh(nullptr), lightingBindRequired(false), passEnabled(true) { }
 
-GibEngine::Renderer::RenderPass::RenderPass(API::IGraphicsApi* graphicsApi, Shader *shader, Framebuffer *framebuffer)
+GibEngine::Renderer::RenderPass::RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader *shader, Framebuffer *framebuffer)
 	: RenderPass(graphicsApi, shader)
 {
 	this->framebuffer = framebuffer;
@@ -45,11 +41,12 @@ void GibEngine::Renderer::RenderPass::LoadQuadData()
 		quadVerts.push_back(v);
 	}
 
-	quadMesh = new Mesh("RenderPassQuad", nullptr, quadVerts);
-	quadMesh->SetMeshUploadTicket(graphicsApi->UploadMesh(quadMesh));
+	auto meshUploadTicket = graphicsApi->UploadMesh(quadVerts, std::vector<unsigned int>());
+	quadMesh = new Mesh("RenderPassQuad", meshUploadTicket, nullptr);
+	quadMesh->SetGenerationData(json11::Json::object{});
 }
 
-void GibEngine::Renderer::RenderPass::Render(const GibEngine::Scene::VisibleSet* visibleSet) { }
+void GibEngine::Renderer::RenderPass::Render(const GibEngine::Scene::VisibleSet& visibleSet) { }
 
 
 GibEngine::Shader* GibEngine::Renderer::RenderPass::GetShader() const
@@ -62,26 +59,26 @@ bool GibEngine::Renderer::RenderPass::IsEnabled() const
 	return passEnabled;
 }
 
-void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::VisibleSet* visibleSet)
+void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::VisibleSet& visibleSet)
 {
-	auto lightCount = visibleSet->GetLights()->size();
+	auto lightCount = visibleSet.GetLights().size();
 	int pl = graphicsApi->GetUniformLocation("pointLightCount");
 	glUniform1i(pl, lightCount);
 
 	for (unsigned int i = 0; i < lightCount; i++)
 	{
-		const Scene::Node* lightNode = visibleSet->GetLights()->at(i);
-		PointLight* light = reinterpret_cast<PointLight*>(lightNode->GetEntity());
+		const Scene::Node lightNode = visibleSet.GetLights().at(i);
+		PointLight* light = reinterpret_cast<PointLight*>(lightNode.GetEntity());
 
 		std::string lightId, position, ambient, diffuse, specular,
 			linearAttenuation, quadraticAttenuation, volumeRadius, direction;
 
 		switch (light->GetType())
 		{
-		case EntityType::DIRECTIONAL_LIGHT:
+		case Entity::Type::DIRECTIONAL_LIGHT:
 			lightId = "directional";
 			break;
-		case EntityType::POINT_LIGHT:
+		case Entity::Type::POINT_LIGHT:
 			lightId = "point";
 			break;
 		}
@@ -97,9 +94,9 @@ void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::Visible
 		volumeRadius = lightId + ".volumeRadius";
 		direction = lightId + ".direction";
 
-		if (light->GetType() != EntityType::DIRECTIONAL_LIGHT)
+		if (light->GetType() != Entity::Type::DIRECTIONAL_LIGHT)
 		{
-			auto lightWorldTrans = lightNode->GetWorldTransform();
+			auto lightWorldTrans = lightNode.GetWorldTransform();
 			auto lightPosition = glm::vec3(lightWorldTrans[3][0], lightWorldTrans[3][1], lightWorldTrans[3][2]);
 			BindLightUniform3f(position.c_str(), lightPosition);
 		}
@@ -111,7 +108,7 @@ void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::Visible
 
 		BindLightUniform3f(specular.c_str(), light->GetSpecularColor());
 
-		if (light->GetType() == EntityType::POINT_LIGHT)
+		if (light->GetType() == Entity::Type::POINT_LIGHT)
 		{
 			PointLight *pointLight = reinterpret_cast<PointLight *>(light);
 
@@ -140,27 +137,12 @@ void GibEngine::Renderer::RenderPass::FlagLightingBindRequired()
 
 void GibEngine::Renderer::RenderPass::RenderPass::SetPassEnabled(bool value) { this->passEnabled = value; }
 
-void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot()
+void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot(const std::string& filePath)
 {
-	const size_t DATE_MAX_LENGTH = 64;
-	char* date = new char[DATE_MAX_LENGTH];
-
-	std::string filename = std::string();
-
-	time_t now = time(nullptr);
-	struct tm *timeinfo = localtime(&now);
-
-	// Prepend Date to the log message:
-	strftime(date, DATE_MAX_LENGTH, "%F-%H-%M-%S", timeinfo);
-
-	filename.append("GibEngine_").append(date).append(".png");
-	File *screenshotFile = File::GetScreenshotFile(filename.c_str());
-
 	unsigned char *frameBuffer = graphicsApi->ReadFramebufferTexture(this->framebuffer, FramebufferType::RENDER_TO_TEXTURE);
 	unsigned char *lastRow = frameBuffer + (framebuffer->GetBufferWidth() * 3 * (framebuffer->GetBufferHeight() - 1));
-	const char *filePath = screenshotFile->GetPath();
 
-	 if (!stbi_write_png(filePath, framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 3, lastRow, -3 * framebuffer->GetBufferWidth()))
+	 if (!stbi_write_png(filePath.c_str(), framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 3, lastRow, -3 * framebuffer->GetBufferWidth()))
 	 {
 	 	Logger::Instance->error("Failed to write screenshot '{}'", filePath);
 	 }
@@ -169,7 +151,6 @@ void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot()
 	 	Logger::Instance->info("Screenshot saved to '{}'", filePath);
 	 }
 
-	delete[] date;
 	delete[] frameBuffer;
 }
 

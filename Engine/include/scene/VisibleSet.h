@@ -4,6 +4,7 @@
 #include "CameraBase.h"
 #include "PointLight.h"
 #include "Skybox.h"
+#include "renderer/api/IGraphicsApi.h"
 
 namespace GibEngine
 {
@@ -11,26 +12,35 @@ namespace GibEngine
 	{
 		class VisibleSet
 		{
-			const Node* rootSceneNode;
-			const Node* skyboxNode;
-			
-			CameraBase* camera;
-			std::map<Mesh*, std::vector<glm::mat4>>* meshInstances;
-			std::vector<const Scene::Node*>* lights;
+			typedef std::map<const Mesh*, std::vector<glm::mat4>> MeshInstanceMap;
 
-			void AddLight(const Scene::Node* lightNode);
-			void AddMeshInstance(const Scene::Node* meshNode);
-			void ParseNode(const Scene::Node* node);
+			const std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi;
+
+			std::shared_ptr<Scene::Node> rootSceneNode;
+			Node skyboxNode;
+			
+			std::shared_ptr<CameraBase> camera;
+			std::shared_ptr<MeshInstanceMap> meshInstances;
+			std::vector<Scene::Node> lights;
+
+			void AddLight(const Scene::Node& lightNode);
+			void AddMeshInstance(const Scene::Node& meshNode);
+			void ParseNode(const Scene::Node node);
 
 		public:
-			VisibleSet(CameraBase* camera, Node* rootSceneNode);
-			~VisibleSet();
+			VisibleSet(const std::shared_ptr<CameraBase> camera, const std::shared_ptr<Scene::Node> rootSceneNode);
 
-			CameraBase* GetCamera() const;
-			const Scene::Node* GetSkyboxNode() const;
-			std::vector<const Scene::Node*>* GetLights() const;
+			std::shared_ptr<CameraBase> GetCamera() const;
+			const Scene::Node GetSkyboxNode() const;
+			std::vector<Scene::Node> GetLights() const;
 
-			std::map<Mesh*, std::vector<glm::mat4>>* GetMeshInstanceMap() const;
+			void SetRootSceneNode(const std::shared_ptr<Scene::Node> rootSceneNode);
+
+			std::shared_ptr<MeshInstanceMap> GetMeshInstanceMap() const;
+
+			void Parse();
+
+
 		};
 	}
 }

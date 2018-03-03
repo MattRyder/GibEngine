@@ -9,11 +9,11 @@ namespace GibEngine
 	{
 		class SkyboxRenderPass : public RenderPass
 		{
+			int skyboxUniformLocation;
 		public:
-			SkyboxRenderPass(API::IGraphicsApi* graphicsApi, Shader *shader);
+			SkyboxRenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader *shader);
 
-			virtual void Render(const Scene::VisibleSet* visibleSet) override;
-			void UploadSkybox(Skybox* skybox);
+			virtual void Render(const Scene::VisibleSet& visibleSet) override;
 		};
 
 	}

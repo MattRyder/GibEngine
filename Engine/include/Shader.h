@@ -1,9 +1,9 @@
 #pragma once
 
-#include "GL/gl3w.h"
+#include <GL/gl3w.h>
+#include <GLFW/glfw3.h>
 
 #include "Logger.h"
-#include "File.h"
 
 namespace GibEngine
 {
@@ -12,19 +12,12 @@ namespace GibEngine
         GLuint shaderId;
         bool isComplete;
 
-        File *vertexShader;
-        File *fragmentShader;
-
-        void Compile(GLuint shaderId, File *shaderFile);
+        void Compile(GLuint shaderId, const std::string& shaderSource);
         GLuint Link(GLuint vertexShader, GLuint fragmentShader);
 
     public:
-        Shader(File *vertexShaderFile, File *fragmentShaderFile);
+        Shader(std::shared_ptr<std::string> vertexSource, std::shared_ptr<std::string> fragmentSource);
         ~Shader();
-        
-		GLuint Load();
-		void Begin();
-		void End();
 
         GLuint GetShaderId();
         bool IsComplete();

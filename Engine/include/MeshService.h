@@ -1,6 +1,14 @@
 #pragma once
 
 #include <thread>
+
+#ifdef WIN32
+#include "filesystem/WindowsFileSystem.h"
+#elif __unix__
+#include "filesystem/UnixFileSystem.h"
+#endif
+
+#include "renderer/api/IGraphicsApi.h"
 #include "scene/Node.h"
 #include "PointLight.h"
 
@@ -8,20 +16,23 @@ namespace GibEngine
 {
 	class MeshService
 	{
-		static void ProcessNode(File* rootMeshFile, Scene::Node* parentNode, const aiScene* scene, Mesh::Flags flags, aiNode* node);
-		static Material* LoadMaterial(const aiScene* scene, const char* meshDirectory, const aiMaterial* assimpMaterial);
+		const static size_t CUBE_VERTEX_DATA_SIZE = 108;
+		const static float CUBE_VERTEX_DATA[CUBE_VERTEX_DATA_SIZE];
 
-		static Mesh::Flags ParseFlagsJson(const std::vector<json11::Json>& renderFlagsJsonArray);
+		static void ProcessNode(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, Scene::Node* parentNode, const std::string& meshFilePath, const aiScene& scene, Mesh::Flags flags, aiNode& node);
+		
+		static std::shared_ptr<Material> LoadMaterial(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const aiMaterial& assimpMaterial, const std::string& materialTextureDirectoryPath);
 
-		static std::vector<GibEngine::MaterialTexture*> LoadMaterialTextures(
-			const aiScene* scene, const char* meshDirectory, const aiMaterial* material, aiTextureType type, GibEngine::TextureType textureType);
+		static Mesh::Flags ParseFlagsJson(const std::vector<json11::Json> renderFlagsJsonArray);
 
-		static Scene::Node* GeneratePlane(unsigned int length, unsigned int width, int intervalSize, Mesh::Flags flags);
+		static std::vector<Vertex> GeneratePlane(unsigned int length, unsigned int width, int intervalSize);
 
 	public:
-		static Scene::Node* Load(File* file, json11::Json* generationData);
-		static Scene::Node* Generate(json11::Json* generationData);
+		static const json11::Json CUBE_GENERATION_JSON;
 
-		static void AttachVisibleSphere(Scene::Node* parentNode);
+		static Scene::Node* Load(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const std::string meshFileRelativePath, const json11::Json generationData);
+		static Mesh* Generate(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const json11::Json generationData);
+
+		static std::shared_ptr<Texture> LoadCubemap(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const std::string& skyboxAbsolutePathWithName, const std::string& extension);
 	};
 }

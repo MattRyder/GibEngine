@@ -5,8 +5,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "EnumFlags.h"
 #include "Entity.h"
-#include "File.h"
 
 namespace GibEngine
 {
@@ -22,8 +22,18 @@ namespace GibEngine
 		virtual void UpdateDirection(double deltaTime, double mouseDeltaX, double mouseDeltaY) = 0;
 
 	public:
-		CameraBase(EntityType entityType, int cameraWidth, int cameraHeight,
-			float nearPlane, float farPlane, float fieldOfViewDegrees);
+
+		enum class Direction
+		{
+			FORWARD,
+			BACKWARD,
+			LEFT,
+			RIGHT,
+			UP,
+			DOWN
+		};
+
+		CameraBase(Entity::Type entityType, int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees);
 
 		virtual void Update(double deltaTime) override { }
 		virtual void Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState) = 0;
@@ -32,8 +42,11 @@ namespace GibEngine
 
 		virtual glm::mat4 GetProjectionMatrix();
 		virtual glm::mat4 GetViewMatrix();
+		virtual const std::string GetAllocatedBufferName() const;
 
-		void LookAt(float x, float y, float z);
-		void LookAt(glm::vec3 target);
+		void LookAt(const glm::vec3& target);
+
 	};
+	
+	GIB_FLAGS(CameraBase::Direction);
 }

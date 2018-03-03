@@ -3,13 +3,13 @@
 #include <map>
 #include "nfd.h"
 
-#include "File.h"
 #include "Entity.h"
 #include "IComponent.h"
 #include "Observer.h"
+#include "MeshService.h"
 #include "scene/Node.h"
 #include "renderer/Pipeline.h"
-#include "MeshService.h"
+#include "filesystem/IFileSystem.h"
 
 namespace GibEditor
 {
@@ -17,18 +17,17 @@ namespace GibEditor
 	{
 		class ContentBrowser : public IComponent
 		{
-			GibEngine::Scene::Node* rootSceneNode;
-			GibEngine::Renderer::Pipeline* pipeline;
+			std::shared_ptr<GibEngine::Scene::Node> rootSceneNode;
+			std::shared_ptr<GibEngine::Renderer::Pipeline> pipeline;
+			std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem;
 
 			Observer* contentDirectoryObserver;
-			std::map<GibEngine::EntityType, std::vector<GibEngine::File*>> availableContent;
+			std::vector<std::string> meshFileList;
 
 			json11::Json defaultGenerationData;
 
-			void SetupAvailableContentMap();
-
 		public:
-			ContentBrowser(GibEngine::Scene::Node* rootSceneNode, GibEngine::Renderer::Pipeline* pipeline);
+			ContentBrowser(std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem, std::shared_ptr<GibEngine::Scene::Node> rootSceneNode, std::shared_ptr<GibEngine::Renderer::Pipeline> pipeline);
 			~ContentBrowser();
 			
 			void Render() override;

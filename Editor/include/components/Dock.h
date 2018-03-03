@@ -29,14 +29,14 @@ namespace GibEditor
 				POINT_LIGHT,
 			};
 
-			Dock(GibEngine::Scene::Node* rootSceneNode, GibEngine::Renderer::Pipeline* pipeline);
+			Dock(std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem, std::shared_ptr<GibEngine::Scene::Node> rootSceneNode, std::shared_ptr<GibEngine::Renderer::Pipeline> pipeline);
 			virtual void Render() override;
 
 			Dock::Type GetSelectedDock() const;
 
 		private:
-			GibEngine::Scene::Node* rootSceneNode;
-			GibEngine::Renderer::Pipeline* pipeline;
+			std::shared_ptr<GibEngine::Scene::Node> rootSceneNode;
+			std::shared_ptr<GibEngine::Renderer::Pipeline> pipeline;
 			
 			Components::ContentBrowser* cbrowser = nullptr;
 			Components::EntityInspector* entityInspector = nullptr;

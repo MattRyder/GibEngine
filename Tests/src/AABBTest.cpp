@@ -99,3 +99,27 @@ TEST_F(AABBTest, Equals)
 	delete aabb;
 	delete other;
 }
+
+TEST_F(AABBTest, SetPosition)
+{
+	AABB* aabb = new AABB(pos, size);
+	glm::vec3 newPos = glm::vec3(10, 150, 10);
+
+	aabb->SetPosition(newPos);
+	glm::vec3 readPos = aabb->GetPosition();
+
+	ASSERT_TRUE(readPos == newPos);
+	delete aabb;
+}
+
+TEST_F(AABBTest, SetSize)
+{
+	AABB* aabb = new AABB(pos, size);
+	glm::vec3 newSize = glm::vec3(136, 163.5f, 239);
+
+	aabb->SetSize(newSize);
+	glm::vec3 readSize = aabb->GetSize();
+
+	ASSERT_TRUE(readSize == newSize);
+	delete aabb;
+}

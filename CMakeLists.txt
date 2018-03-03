@@ -13,7 +13,11 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 # Required to gen. symbols for GDB
 set(CMAKE_BUILD_TYPE Debug)
 
-option(COPY_DEMO_ASSETS "Copies demo assets for the Editor" ON)
+# It should be building in an env directory, like MSVC, on unix
+if(UNIX)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+endif()
+
 option(BUILD_EDITOR "Builds the GibEditor" ON)
 option(BUILD_TESTS "Build the test suite" ON)
 

@@ -1,6 +1,9 @@
 #include "MeshService.h"
 #include <chrono>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
 #define BENCHMARK(FUNC) {\
 auto clock = std::chrono::high_resolution_clock::now();\
 FUNC;\
@@ -9,19 +12,69 @@ auto time = std::chrono::duration_cast<std::chrono::milliseconds>(clockEnd - clo
 Logger::Instance->info("BENCHMARK TIME: {}ms", time);\
 }
 
-void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parentNode, const aiScene* scene, Mesh::Flags flags, aiNode* node)
+const float GibEngine::MeshService::CUBE_VERTEX_DATA[CUBE_VERTEX_DATA_SIZE] = {
+	-1.0f,  1.0f, -1.0f,
+	-1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+	1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+
+	-1.0f, -1.0f,  1.0f,
+	-1.0f, -1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f,  1.0f,  1.0f,
+	-1.0f, -1.0f,  1.0f,
+
+	1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f,  1.0f,
+	1.0f,  1.0f,  1.0f,
+	1.0f,  1.0f,  1.0f,
+	1.0f,  1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+
+	-1.0f, -1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
+	1.0f,  1.0f,  1.0f,
+	1.0f,  1.0f,  1.0f,
+	1.0f, -1.0f,  1.0f,
+	-1.0f, -1.0f,  1.0f,
+
+	-1.0f,  1.0f, -1.0f,
+	1.0f,  1.0f, -1.0f,
+	1.0f,  1.0f,  1.0f,
+	1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f, -1.0f,
+
+	-1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
+	1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
+	1.0f, -1.0f,  1.0f
+};
+
+const json11::Json GibEngine::MeshService::CUBE_GENERATION_JSON = json11::Json::object
+{
+	{ "MeshType", "Cube" },
+	{ "MeshFlags", json11::Json::array{ "RENDER_ENABLED" } }
+};
+
+void GibEngine::MeshService::ProcessNode(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, Scene::Node* parentNode, const std::string& meshFilePath, const aiScene& scene, Mesh::Flags flags, aiNode& node)
 {
 	// Load each mesh for this node:
-	for (unsigned int i = 0; i < node->mNumMeshes; i++)
+	for (unsigned int i = 0; i < node.mNumMeshes; i++)
 	{
-		unsigned int meshIndex = node->mMeshes[i];
+		unsigned int meshIndex = node.mMeshes[i];
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
 
-		aiMesh* mesh = scene->mMeshes[meshIndex];
-		const char* name = mesh->mName.C_Str();
-		aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-		aiMatrix4x4 t = node->mTransformation;
+		const aiMesh* mesh = scene.mMeshes[meshIndex];
+		const std::string name = mesh->mName.C_Str();
+		const aiMaterial* material = scene.mMaterials[mesh->mMaterialIndex];
+		const aiMatrix4x4 t = node.mTransformation;
 		glm::mat4 meshTransform = glm::mat4
 		(
 			t.a1, t.a2, t.a3, t.a4,
@@ -35,27 +88,24 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 			Vertex vertex;
 			if (mesh->HasTangentsAndBitangents())
 			{
-				const aiVector3D* tangent = &(mesh->mTangents[i]);
-				const aiVector3D* bitangent = &(mesh->mBitangents[i]);
-				const aiVector3D* normal = &(mesh->mNormals[i]);
+				const aiVector3D& tangent = mesh->mTangents[i];
+				const aiVector3D& bitangent = mesh->mBitangents[i];
+				const aiVector3D& normal = mesh->mNormals[i];
 
-				vertex.Tangent = glm::vec3(tangent->x, tangent->y, tangent->z);
-				vertex.Bitangent = glm::vec3(bitangent->x, bitangent->y, bitangent->z);
-				vertex.Normal = glm::vec3(normal->x, normal->y, normal->z);
+				vertex.Tangent = glm::vec3(tangent.x, tangent.y, tangent.z);
+				vertex.Bitangent = glm::vec3(bitangent.x, bitangent.y, bitangent.z);
+				vertex.Normal = glm::vec3(normal.x, normal.y, normal.z);
 				//float det = dot(cross(vertex.Normal, vertex.Tangent), vertex.Bitangent);
 				//vertex.Determinant = (det < 0.0f) ? -1.0f : 1.0f;
 			}
 
-			vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+			const aiVector3D& pos = mesh->mVertices[i];
+			vertex.Position = glm::vec3(pos.x, pos.y, pos.z);
 
 			if (mesh->mTextureCoords[0])
 			{
-				glm::vec2 texCoord = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
-				vertex.TexCoord = texCoord;
-			}
-			else
-			{
-				vertex.TexCoord = glm::vec2(0.0f, 0.0f);
+				const aiVector3D& texCoord = mesh->mTextureCoords[0][i];
+				vertex.TexCoord = glm::vec2(texCoord.x, texCoord.y);
 			}
 
 			vertices.push_back(vertex);
@@ -63,16 +113,22 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 		
 		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 		{
-			aiFace face = mesh->mFaces[i];
+			const aiFace& face = mesh->mFaces[i];
 			for (unsigned int j = 0; j < face.mNumIndices; j++)
 			{
 				indices.push_back(face.mIndices[j]);
 			}
 		}
 
-		auto mat = LoadMaterial(scene, rootMeshFile->GetDirectory(), material);
+		auto meshDirectory = meshFilePath.substr(0, meshFilePath.find_last_of('/') + 1);
+		auto mat = LoadMaterial(graphicsApi, *material, meshDirectory);
 
-		Mesh* processedMesh = new Mesh(name, rootMeshFile->GetAssetName(), vertices, indices, mat);
+		auto meshUploadTicket = graphicsApi->UploadMesh(vertices, indices);
+
+		vertices.clear();
+		indices.clear();
+
+		Mesh* processedMesh = new Mesh(name, meshUploadTicket, mat);
 		processedMesh->SetFlags(flags);
 
 		Scene::Node* childMeshNode = new Scene::Node(name);
@@ -80,31 +136,37 @@ void GibEngine::MeshService::ProcessNode(File* rootMeshFile, Scene::Node* parent
 		childMeshNode->SetLocalTransform(meshTransform);
 
 		// Set the database record up:
-		childMeshNode->GetDatabaseRecord()->SetState(World::DatabaseRecord::State::CLEAN);
+		childMeshNode->SetNodeState(World::DatabaseRecord::State::CLEAN);
 
 		parentNode->AddChildNode(childMeshNode);
 	}
 
-	for (unsigned int i = 0; i < node->mNumChildren; i++)
+	for (unsigned int i = 0; i < node.mNumChildren; i++)
 	{
-		ProcessNode(rootMeshFile, parentNode, scene, flags, node->mChildren[i]);
+		ProcessNode(graphicsApi, parentNode, meshFilePath, scene, flags, *node.mChildren[i]);
 	}
 }
 
-GibEngine::Material* GibEngine::MeshService::LoadMaterial(const aiScene* scene, const char* meshDirectory, const aiMaterial* aiMat)
+std::shared_ptr<GibEngine::Material> GibEngine::MeshService::LoadMaterial(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const aiMaterial& assimpMaterial, const std::string& materialTextureDirectoryPath)
 {
-	// Load Material for Mesh:
-	Material* material = new Material();
+	const std::map<aiTextureType, TextureType> textureTypeMap =
+	{
+		{ aiTextureType_DIFFUSE, TextureType::DIFFUSE },
+		{ aiTextureType_HEIGHT, TextureType::NORMAL },
+		{ aiTextureType_SPECULAR, TextureType::SPECULAR }
+	};
+
+	std::shared_ptr<Material> material = std::shared_ptr<Material>(new Material());
 
 	aiColor3D amb, diff, spec;
 	float opacity;
 	int shine;
 
-	aiMat->Get(AI_MATKEY_COLOR_SPECULAR, spec);
-	aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, diff);
-	aiMat->Get(AI_MATKEY_COLOR_AMBIENT, amb);
-	aiMat->Get(AI_MATKEY_SHININESS, shine);
-	aiMat->Get(AI_MATKEY_OPACITY, opacity);
+	assimpMaterial.Get(AI_MATKEY_COLOR_SPECULAR, spec);
+	assimpMaterial.Get(AI_MATKEY_COLOR_DIFFUSE, diff);
+	assimpMaterial.Get(AI_MATKEY_COLOR_AMBIENT, amb);
+	assimpMaterial.Get(AI_MATKEY_SHININESS, shine);
+	assimpMaterial.Get(AI_MATKEY_OPACITY, opacity);
 
 	material->AmbientColor = glm::vec3(amb.r, amb.g, amb.b);
 	material->DiffuseColor = glm::vec3(diff.r, diff.g, diff.b);
@@ -112,30 +174,64 @@ GibEngine::Material* GibEngine::MeshService::LoadMaterial(const aiScene* scene, 
 	material->Opacity = opacity;
 	material->Shininess = shine;
 
-	std::map<aiTextureType, TextureType> textureTypes =
+	// Load Textures
+	for (auto texturePair : textureTypeMap)
 	{
-		{aiTextureType_DIFFUSE, TextureType::DIFFUSE},
-		{aiTextureType_HEIGHT, TextureType::NORMAL},
-		{aiTextureType_SPECULAR, TextureType::SPECULAR}
-	};
+		for (auto i = 0; i < assimpMaterial.GetTextureCount(texturePair.first); i++)
+		{
+			TextureData textureData = { 0 };
+			aiString str;
+			assimpMaterial.GetTexture(texturePair.first, i, &str);
 
+			auto textureFilePath = materialTextureDirectoryPath + str.C_Str();
+			textureData.Data = stbi_load(textureFilePath.c_str(), &textureData.Width, &textureData.Height, &textureData.Channels, 0);
 
-	// TODO: Improve the speed of this, it's ~250ms
-	//Yep threading this will massively improve load times.
-	for (auto texTypePair : textureTypes)
-	{
-		auto loadTextureAsync = [](Material* material, const aiScene* scene, const char* meshDirectory, const aiMaterial* aiMat, aiTextureType aiTexType, TextureType engineTexType) {
-			std::vector<MaterialTexture*> textureList = LoadMaterialTextures(scene, meshDirectory, aiMat, aiTexType, engineTexType);
-			material->Textures.insert(material->Textures.end(), textureList.begin(), textureList.end());
-		};
+			// Get the info about the texture, upload data, assign ID to tex and return it:
+			unsigned int textureId = 0;
+			graphicsApi->UploadTexture2D(&textureId, textureData);
 
-		loadTextureAsync(material, scene, meshDirectory, aiMat, texTypePair.first, texTypePair.second);
+			auto matTex = MaterialTexture();
+			matTex.texture = std::shared_ptr<Texture>(new Texture(textureId, texturePair.second, glm::vec2(textureData.Width, textureData.Height)));
+			material->Textures.push_back(matTex);
+
+			stbi_image_free(textureData.Data);
+		}
 	}
+
 
 	return material;
 }
 
-GibEngine::Mesh::Flags GibEngine::MeshService::ParseFlagsJson(const std::vector<json11::Json>& renderFlagsJsonArray)
+std::shared_ptr<GibEngine::Texture> GibEngine::MeshService::LoadCubemap(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const std::string& skyboxAbsolutePathWithName, const std::string& extension)
+{
+	const std::vector<std::string> cubeSides = { "left", "right", "bottom", "top", "front", "back" };
+
+	std::vector<TextureData> textureDataVec;
+	auto textureData = TextureData();
+	unsigned int textureId = 0;
+
+	for (int i = 0; i < 6; i++)
+	{
+		textureData = TextureData();
+		auto sideFilePath = skyboxAbsolutePathWithName + "/" + cubeSides[i] + "." + extension;
+
+		textureData.Data = stbi_load(sideFilePath.c_str(), &textureData.Width, &textureData.Height, &textureData.Channels, 0);
+		textureDataVec.push_back(textureData);
+	}
+	
+	graphicsApi->UploadTextureCubemap(&textureId, textureDataVec);
+
+	for (auto texData : textureDataVec)
+	{
+		free(texData.Data);
+	}
+
+	auto cubemapTexture = std::shared_ptr<Texture>(new Texture(textureId, TextureType::DIFFUSE, glm::vec2(0, 0)));
+
+	return cubemapTexture;
+}
+
+GibEngine::Mesh::Flags GibEngine::MeshService::ParseFlagsJson(const std::vector<json11::Json> renderFlagsJsonArray)
 {
 	Mesh::Flags flags = Mesh::Flags::RENDER_ENABLED;
 
@@ -144,74 +240,26 @@ GibEngine::Mesh::Flags GibEngine::MeshService::ParseFlagsJson(const std::vector<
 		auto flagStrValue = renderFlagStr.string_value();
 		if (flagStrValue.compare("RENDER_WIREFRAME") == 0)
 		{
-			flags ^= Mesh::Flags::RENDER_WIREFRAME;
+			flags |= Mesh::Flags::RENDER_WIREFRAME;
 		}
 		else if (flagStrValue.compare("RENDER_DEFERRED") == 0)
 		{
-			flags ^= Mesh::Flags::RENDER_DEFERRED;
+			flags |= Mesh::Flags::RENDER_DEFERRED;
 		}
 		else if (flagStrValue.compare("RENDER_FORWARD") == 0)
 		{
-			flags ^= Mesh::Flags::RENDER_FORWARD;
+			flags |= Mesh::Flags::RENDER_FORWARD;
+		}
+		else if (flagStrValue.compare("RENDER_ARRAYS") == 0)
+		{
+			flags |= Mesh::Flags::RENDER_ARRAYS;
 		}
 	}
 
 	return flags;
 }
 
-std::vector<GibEngine::MaterialTexture*> GibEngine::MeshService::LoadMaterialTextures(const aiScene* scene, const char* meshDirectory, const aiMaterial* material, aiTextureType type, GibEngine::TextureType textureType)
-{
-	MaterialTexture* matTex = nullptr;
-	Texture* texture = nullptr;
-	std::vector<MaterialTexture*> textures;
-
-	for (unsigned int i = 0; i < material->GetTextureCount(type); i++) 
-	{
-		aiString str;
-		material->GetTexture(type, i, &str);
-
-		if (str.C_Str()[0] == '*')
-		{
-			// Go get the embedded texture for the index in `str`
-			int sceneTextureIndex = atoi(&str.C_Str()[1]);
-
-			const aiTexture* sceneTexture = scene->mTextures[sceneTextureIndex];
-
-			// Deal with the hints revealed by aiTexture:
-			bool isCompressedTexture = false;
-			if (sceneTexture->mHeight == 0)
-			{
-				// This texture is a compressed texture
-				isCompressedTexture = true;
-			}
-
-			if (isCompressedTexture)
-			{
-				unsigned char* compressedTextureData = reinterpret_cast<unsigned char*>(sceneTexture->pcData);
-				std::string* textureName = new std::string(str.C_Str());
-				texture = Texture::LoadFromMemory(textureType, textureName, compressedTextureData, sceneTexture->mWidth);
-				delete compressedTextureData;
-			}
-		}
-		else
-		{
-			std::string* texturePath = new std::string(meshDirectory);
-			texturePath->append("//");
-			texturePath->append(str.C_Str());
-
-			texture = Texture::Load(textureType, texturePath);
-		}
-
-		matTex = new MaterialTexture();
-		matTex->texture = texture;
-		
-		textures.push_back(matTex);
-	}
-
-	return textures;
-}
-
-GibEngine::Scene::Node* GibEngine::MeshService::Load(File* file, json11::Json* generationData)
+GibEngine::Scene::Node* GibEngine::MeshService::Load(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const std::string meshFileRelativePath, const json11::Json generationData)
 {
 	Mesh::Flags genDataMeshFlags = Mesh::Flags::RENDER_ENABLED;
 
@@ -220,10 +268,11 @@ GibEngine::Scene::Node* GibEngine::MeshService::Load(File* file, json11::Json* g
 	
 	if (generationData != nullptr)
 	{
-		genDataMeshFlags = ParseFlagsJson(generationData[0]["MeshFlags"].array_items());
+		auto meshFlagsJson = generationData["MeshFlags"].array_items();
+		genDataMeshFlags = ParseFlagsJson(meshFlagsJson);
 	}
 
-	const aiScene* scene = importer.ReadFile(file->GetPath(), importerFlags);
+	const aiScene* scene = importer.ReadFile(meshFileRelativePath, importerFlags);
 
 	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -232,45 +281,65 @@ GibEngine::Scene::Node* GibEngine::MeshService::Load(File* file, json11::Json* g
 	}
 
 	Scene::Node* rootNode = new Scene::Node("Mesh Root");
-	rootNode->SetFlags(rootNode->GetFlags() ^ Scene::Node::Flags::MESH_ROOT);
-	ProcessNode(file, rootNode, scene, genDataMeshFlags, scene->mRootNode);
-	rootNode->GetDatabaseRecord()->SetState(World::DatabaseRecord::State::CLEAN);
-	importer.FreeScene();
+	rootNode->SetFlags(rootNode->GetFlags() | Scene::Node::Flags::MESH_ROOT);
+	
+	// This call needs fixing
+	ProcessNode(graphicsApi, rootNode, meshFileRelativePath, *scene, genDataMeshFlags, *scene->mRootNode);
+
+	auto nodeChildFirst = *rootNode->GetChildNodesBegin();
+	auto nodeMesh = reinterpret_cast<Mesh*>(nodeChildFirst->GetEntity());
+	nodeMesh->SetGenerationData(generationData);
+
+	rootNode->SetNodeState(World::DatabaseRecord::State::CLEAN);
 
 	return rootNode;
 }
 
-GibEngine::Scene::Node* GibEngine::MeshService::Generate(json11::Json* generationData)
+GibEngine::Mesh* GibEngine::MeshService::Generate(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const json11::Json generationData)
 {
-	std::string meshType = generationData[0]["MeshType"].string_value();
+	std::string meshType = generationData["MeshType"].string_value();
+
+	auto meshFlagsJson = generationData["MeshFlags"].array_items();
+	Mesh::Flags genDataMeshFlags = ParseFlagsJson(meshFlagsJson);
+	genDataMeshFlags |= Mesh::Flags::RENDER_ENABLED;
+
 	if (meshType.compare("Plane") == 0)
 	{
-		int length = generationData[0]["Length"].int_value();
-		int width = generationData[0]["Width"].int_value();
-		int intervalSize = generationData[0]["IntervalSize"].int_value();
+		Mesh::Flags planeFlagDefaults = Mesh::Flags::RENDER_ARRAYS | Mesh::Flags::RENDER_FORWARD | Mesh::Flags::RENDER_WIREFRAME;
 
-		Scene::Node* generatedPlaneNode = GeneratePlane(length, width, intervalSize, Mesh::Flags::RENDER_ENABLED);
-		Mesh* planeMesh = reinterpret_cast<Mesh*>(generatedPlaneNode->GetEntity());
-		planeMesh->SetGenerationData(generationData);
+		int length = generationData["Length"].int_value();
+		int width = generationData["Width"].int_value();
+		int intervalSize = generationData["IntervalSize"].int_value();
 
-		return generatedPlaneNode;
+		std::vector<Vertex> planeVertices = GeneratePlane(length, width, intervalSize);
+		auto meshUploadTicket = graphicsApi->UploadMesh(planeVertices, {});
+		auto mesh = new Mesh("PlaneMesh", meshUploadTicket, nullptr);
+		mesh->SetGenerationData(generationData);
+		mesh->SetFlags(planeFlagDefaults | genDataMeshFlags);
+
+		return mesh;
+	}
+	else if (meshType.compare("Cube") == 0)
+	{
+		//TODO: Build Cube Mesh. Change this method to return mesh, not a scene node
+		std::vector<Vertex> vertices;
+		for (unsigned int i = 0; i < CUBE_VERTEX_DATA_SIZE; i += 3)
+		{
+			GibEngine::Vertex vertex = {};
+			vertex.Position = glm::vec3(CUBE_VERTEX_DATA[i], CUBE_VERTEX_DATA[i + 1], CUBE_VERTEX_DATA[i + 2]);
+			vertices.push_back(vertex);
+		}
+
+		auto uploadTicket = graphicsApi->UploadMesh(vertices, {});
+		auto mesh = new Mesh("CubeMesh", uploadTicket, nullptr);
+
+		return mesh;
 	}
 
 	return nullptr;
 }
 
-void GibEngine::MeshService::AttachVisibleSphere(GibEngine::Scene::Node* parentNode)
-{
-	json11::Json sphereMeshGenData = json11::Json::object
-	{
-		{ "MeshFlags", json11::Json::array { "RENDER_WIREFRAME", "RENDER_FORWARD"} }
-	};
-
-	auto visibleMeshNode = GibEngine::MeshService::Load(GibEngine::File::GetModelFile("default/sphere/sphere.obj"), &sphereMeshGenData);
-	parentNode->AddChildNode(visibleMeshNode);
-}
-
-GibEngine::Scene::Node* GibEngine::MeshService::GeneratePlane(unsigned int length, unsigned int width, int intervalSize, Mesh::Flags flags)
+std::vector<GibEngine::Vertex> GibEngine::MeshService::GeneratePlane(unsigned int length, unsigned int width, int intervalSize)
 {
 	assert(intervalSize > 0);
 
@@ -308,16 +377,5 @@ GibEngine::Scene::Node* GibEngine::MeshService::GeneratePlane(unsigned int lengt
 		vertices.push_back(v);
 	}
 
-	Mesh* planeMesh = new Mesh("Plane", nullptr, vertices);
-
-	// Just gotta make sure you've explicitly set the right flags here:
-	flags ^= (Mesh::Flags::RENDER_ARRAYS ^ Mesh::Flags::RENDER_FORWARD ^ Mesh::Flags::RENDER_WIREFRAME);
-	flags &= ~Mesh::Flags::RENDER_DEFERRED;
-
-	planeMesh->SetFlags(flags);
-
-	Scene::Node* planeNode = new Scene::Node("Plane");
-	planeNode->SetEntity(planeMesh);
-
-	return planeNode;
+	return vertices;
 }

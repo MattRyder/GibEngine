@@ -1,6 +1,6 @@
 #include "components/Menubar.h"
 
-GibEditor::Components::Menubar::Menubar(GibEngine::Scene::Node* node) : rootSceneNode(node) { }
+GibEditor::Components::Menubar::Menubar(std::shared_ptr<GibEngine::Scene::Node> node) : rootSceneNode(node) { }
 
 void GibEditor::Components::Menubar::Render()
 {
@@ -10,7 +10,7 @@ void GibEditor::Components::Menubar::Render()
 		{
 			if (ImGui::MenuItem("New World", "CTRL + N")) { this->newWorldCallbackFunc(); }
 			if (ImGui::MenuItem("Open World", "CTRL + O")) { this->openFileDialogCallbackFunc(); }
-			if (ImGui::MenuItem("Save World", "CTRL + S")) { this->saveFileDialogCallbackFunc(rootSceneNode); }
+			if (ImGui::MenuItem("Save World", "CTRL + S")) { this->saveFileDialogCallbackFunc(); }
 			if (ImGui::MenuItem("Exit GibEditor", "ALT + F4")) { this->exitCallback(); }
 			ImGui::EndMenu();
 		}
@@ -25,7 +25,7 @@ void GibEditor::Components::Menubar::Render()
 	}
 }
 
-void GibEditor::Components::Menubar::SetSceneNode(GibEngine::Scene::Node* node)
+void GibEditor::Components::Menubar::SetSceneNode(std::shared_ptr<GibEngine::Scene::Node> node)
 {
 	rootSceneNode = node;
 }
@@ -45,7 +45,7 @@ void GibEditor::Components::Menubar::SetOnOpenFileDialogCallback(const std::func
 	this->openFileDialogCallbackFunc = openFileDialogCallbackFunc;
 }
 
-void GibEditor::Components::Menubar::SetOnSaveFileDialogCallback(const std::function<void(GibEngine::Scene::Node*)>& saveFileDialogCallbackFunc)
+void GibEditor::Components::Menubar::SetOnSaveFileDialogCallback(const std::function<void()>& saveFileDialogCallbackFunc)
 {
 	this->saveFileDialogCallbackFunc = saveFileDialogCallbackFunc;
 }

@@ -1,67 +1,56 @@
 #pragma once
 
 #include <string>
-#include <sstream>
 
 #include "glm/vec3.hpp"
 
-#include "Logger.h"
-
 namespace GibEngine
 {
-	enum class EntityType
-	{
-		ENTITY,
-		MESH,
-		LIGHT,
-		POINT_LIGHT,
-		DIRECTIONAL_LIGHT,
-		CAMERA,
-		PLAYER,
-		SKYBOX,
-		ENTITY_TYPE_END
-	};
-
-	static const char* EntityTypeStrings[static_cast<int>(EntityType::ENTITY_TYPE_END) + 1]
-	{
-	  "Entity",
-	  "Mesh",
-	  "Light",
-	  "Point Light",
-	  "Directional Light",
-	  "Camera",
-	  "Player",
-	  "Skybox",
-	  "Unknown"
-	};
-
 	class Entity
 	{
-		static int Id;
-		const int entityId;
-
-	protected:
-		glm::vec3 entityPosition;
-		const char* entityName;
-		EntityType entityType;
-
 	public:
-		Entity(EntityType entityType);
-		Entity(EntityType entityType, const char* name);
-		virtual ~Entity();
+		enum class Type : char
+		{
+			ENTITY,
+			MESH,
+			LIGHT,
+			POINT_LIGHT,
+			DIRECTIONAL_LIGHT,
+			CAMERA,
+			PLAYER,
+			SKYBOX,
+			ENTITY_TYPE_END
+		};
+
+		Entity(Type type);
+		Entity(Type type, std::string name);
+		Entity(Type type, std::string name, glm::vec3 position);
+		virtual ~Entity() = default;
 
 		virtual void Update(double deltaTime) = 0;
 
 		virtual int GetID() const;
 		virtual glm::vec3 GetPosition() const;
-		virtual const char* GetName() const;
+		virtual std::string GetName() const;
 
-		virtual void SetPosition(glm::vec3 entityPosition);
-		void SetName(const char* entityName);
+		virtual void SetPosition(const glm::vec3 entityPosition);
+		virtual void SetName(const std::string entityName);
 
-		EntityType GetType() const;
-		const char* GetTypeName() const;
+		Type GetType() const;
+		const std::string& GetTypeName() const;
 
-		static const char* GetTypeString(EntityType type);
+		static const std::string GetTypeString(Type type);
+
+	protected:
+		glm::vec3 position;
+		std::string name;
+		Entity::Type type;
+
+		const int id;
+
+		static const std::string TypeStrings[static_cast<int>(Entity::Type::ENTITY_TYPE_END) + 1];
+	
+	private:
+		static int _Id;
 	};
 }

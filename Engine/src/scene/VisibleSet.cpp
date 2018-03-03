@@ -1,88 +1,87 @@
 #include "scene/VisibleSet.h"
 
-GibEngine::Scene::VisibleSet::VisibleSet(CameraBase* camera, Node* rootSceneNode)
+GibEngine::Scene::VisibleSet::VisibleSet(const std::shared_ptr<CameraBase> camera, const std::shared_ptr<GibEngine::Scene::Node> rootSceneNode)
 	: camera(camera),
 	rootSceneNode(rootSceneNode),
-	skyboxNode(nullptr),
-	lights(new std::vector<const Scene::Node*>()),
-	meshInstances(new std::map<Mesh*, std::vector<glm::mat4>>())
+	skyboxNode(),
+	meshInstances(std::shared_ptr<MeshInstanceMap>(new MeshInstanceMap())) { }
+
+void GibEngine::Scene::VisibleSet::AddLight(const Scene::Node& lightNode)
 {
-	ParseNode(rootSceneNode);
+	lights.push_back(lightNode);
 }
 
-GibEngine::Scene::VisibleSet::~VisibleSet()
+void GibEngine::Scene::VisibleSet::AddMeshInstance(const Scene::Node& meshNode)
 {
-	delete meshInstances;
-	delete lights;
-}
-
-void GibEngine::Scene::VisibleSet::AddLight(const Scene::Node* lightNode)
-{
-	lights->push_back(lightNode);
-}
-
-void GibEngine::Scene::VisibleSet::AddMeshInstance(const Scene::Node* meshNode)
-{
-	auto mesh = reinterpret_cast<Mesh*>(meshNode->GetEntity());
+	auto mesh = reinterpret_cast<Mesh*>(meshNode.GetEntity());
 	
 	auto meshIter = meshInstances->find(mesh);
 	if (meshIter != meshInstances->end())
 	{
-		meshInstances->at(mesh).push_back(meshNode->GetWorldTransform());
+		meshInstances->at(mesh).push_back(meshNode.GetWorldTransform());
 	}
 	else
 	{
-		meshInstances->insert(std::pair<Mesh*, std::vector<glm::mat4>>(mesh, std::vector<glm::mat4>()));
-		AddMeshInstance(meshNode);
+		meshInstances->insert(std::pair<const Mesh*, std::vector<glm::mat4>>(mesh, { meshNode.GetWorldTransform() }));
 	}
 }
 
-void GibEngine::Scene::VisibleSet::ParseNode(const Scene::Node* node)
+void GibEngine::Scene::VisibleSet::ParseNode(const Scene::Node node)
 {
-	if (node != nullptr)
-	{
-		// Sort this entity into it's appropriate set/object:
-		if (node->GetEntity() != nullptr)
-		{
-			switch (node->GetEntity()->GetType())
-			{
-			case EntityType::SKYBOX:
-				skyboxNode = node;
-				break;
-			case EntityType::MESH:
-				AddMeshInstance(node);
-				break;
-			case EntityType::POINT_LIGHT:
-				AddLight(node);
-				break;
-			default:
-				break;
-			}
-		}
 
-		for (auto iter = node->GetChildNodesBegin(); iter != node->GetChildNodesEnd(); ++iter)
+	// Sort this entity into it's appropriate set/object:
+	if (node.GetEntity() != nullptr)
+	{
+		switch (node.GetEntity()->GetType())
 		{
-			ParseNode(*iter);
+		case Entity::Type::SKYBOX:
+			skyboxNode = node;
+			break;
+		case Entity::Type::MESH:
+			AddMeshInstance(node);
+			break;
+		case Entity::Type::POINT_LIGHT:
+			AddLight(node);
+			break;
+		default:
+			break;
 		}
+	}
+
+	for (auto iter = node.GetChildNodesBegin(); iter != node.GetChildNodesEnd(); ++iter)
+	{
+		ParseNode(**iter);
 	}
 }
 
-GibEngine::CameraBase* GibEngine::Scene::VisibleSet::GetCamera() const
+std::shared_ptr<GibEngine::CameraBase> GibEngine::Scene::VisibleSet::GetCamera() const
 {
 	return camera;
 }
 
-const GibEngine::Scene::Node* GibEngine::Scene::VisibleSet::GetSkyboxNode() const
+const GibEngine::Scene::Node GibEngine::Scene::VisibleSet::GetSkyboxNode() const
 {
 	return skyboxNode;
 }
 
-std::vector<const GibEngine::Scene::Node*>* GibEngine::Scene::VisibleSet::GetLights() const
+std::vector<GibEngine::Scene::Node> GibEngine::Scene::VisibleSet::GetLights() const
 {
 	return lights;
 }
 
-std::map<GibEngine::Mesh*, std::vector<glm::mat4>>* GibEngine::Scene::VisibleSet::GetMeshInstanceMap() const
+void GibEngine::Scene::VisibleSet::SetRootSceneNode(const std::shared_ptr<Scene::Node> rootSceneNode)
+{
+	this->rootSceneNode = rootSceneNode;
+}
+
+std::shared_ptr<GibEngine::Scene::VisibleSet::MeshInstanceMap> GibEngine::Scene::VisibleSet::GetMeshInstanceMap() const
 {
 	return meshInstances;
+}
+
+void GibEngine::Scene::VisibleSet::Parse()
+{
+	meshInstances->clear();
+	lights.clear();
+	ParseNode(*rootSceneNode);
 }

@@ -22,7 +22,7 @@ namespace GibEngine
 		glm::vec3 GetSize() const;
 		glm::vec3 GetMaxBounds() const;
 
-		void SetPosition(const glm::vec3 position);
-		void SetSize(const glm::vec3 size);
+		void SetPosition(const glm::vec3& position);
+		void SetSize(const glm::vec3& size);
 	};
 }

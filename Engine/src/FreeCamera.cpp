@@ -3,7 +3,7 @@
 unsigned int GibEngine::FreeCamera::BUFFER_OBJECT_SIZE = sizeof(float) * 36;
 
 GibEngine::FreeCamera::FreeCamera(int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees)
-    : CameraBase(EntityType::CAMERA, cameraWidth, cameraHeight, nearPlane, farPlane, fieldOfViewDegrees)
+    : CameraBase(Entity::Type::CAMERA, cameraWidth, cameraHeight, nearPlane, farPlane, fieldOfViewDegrees), cameraMovementSpeed(1.0)
 {
 	this->cameraYaw = -90.0f;
 
@@ -20,7 +20,7 @@ void GibEngine::FreeCamera::Render() { }
 
 void GibEngine::FreeCamera::Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState)
 {
-	bool mouseMovementDetected = mouseState.x != lastMouseX || mouseState.y != lastMouseY;
+	bool mouseMovementDetected = mouseState.x != lastMouseDelta.x || mouseState.y != lastMouseDelta.y;
 	glm::vec3 position = GetPosition();
 
     UpdateDirection(deltaTime, mouseState.x, mouseState.y);
@@ -52,10 +52,9 @@ void GibEngine::FreeCamera::UpdatePosition(double deltaTime, int *keyState)
 
 void GibEngine::FreeCamera::UpdateDirection(double deltaTime, double mouseDeltaX, double mouseDeltaY) 
 {
-    double offsetX = (mouseDeltaX - lastMouseX);
-    double offsetY = lastMouseY - mouseDeltaY;
-    lastMouseX = mouseDeltaX;
-    lastMouseY = mouseDeltaY;
+    double offsetX = (mouseDeltaX - lastMouseDelta.x);
+    double offsetY = lastMouseDelta.y - mouseDeltaY;
+	lastMouseDelta = glm::vec2(mouseDeltaX, mouseDeltaY);
 
 	float sensitivity = 0.45f;
     offsetX *= sensitivity;

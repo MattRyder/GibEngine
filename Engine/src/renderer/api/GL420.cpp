@@ -2,7 +2,7 @@
 
 
 GibEngine::Renderer::API::GL420::GL420() 
-	: uniformBufferManager(new UniformBufferManager()), shaderCacheMap()
+	: uniformBufferManager(new UniformBufferManager())
 {
 	currentShaderID = 0;
 
@@ -28,33 +28,17 @@ void GibEngine::Renderer::API::GL420::BlitFramebuffer(unsigned int framebufferSo
 	UnbindFramebuffer();
 }
 
-void GibEngine::Renderer::API::GL420::BindCamera(GibEngine::CameraBase *camera)
+// RegisterCamera/UpdateCamera supercede BindCamera for GL 4
+void GibEngine::Renderer::API::GL420::BindCamera(GibEngine::CameraBase *camera) { }
+
+void GibEngine::Renderer::API::GL420::BindFramebuffer(const GibEngine::Renderer::Framebuffer& framebuffer)
 {
-	const char* CAMERA_BUFFER_NAME = "cameraUBO";
-
-	UniformBuffer* cameraUBO = uniformBufferManager->Find(CAMERA_BUFFER_NAME);
-
-	if (cameraUBO == nullptr)
-	{
-		Logger::Instance->error("[{}] Failed to find buffer: {}", __FUNCTION__, CAMERA_BUFFER_NAME);
-		return;
-	}
-
-	GLuint cameraUBOIndex = glGetUniformBlockIndex(currentShaderID, CAMERA_BUFFER_NAME);
-	glUniformBlockBinding(currentShaderID, cameraUBOIndex, cameraUBO->GetBufferBindingIndex());
-}
-
-void GibEngine::Renderer::API::GL420::BindFramebuffer(GibEngine::Renderer::Framebuffer *framebuffer)
-{
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->GetBuffer().framebufferId);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.GetBuffer().framebufferId);
 }
 
 void GibEngine::Renderer::API::GL420::BindMaterial(GibEngine::Material* material)
 {
-	std::map<TextureType, int> textureLocIndex =
-	{
-		{ TextureType::DIFFUSE, 0 },{ TextureType::NORMAL, 0 },{ TextureType::SPECULAR, 0 }
-	};
+	int textureLocIndex[TextureType::TEXTURETYPE_LAST] = { 0 };
 
 	//glUniform3fv(
 	//	GetUniformLocation("material.ambientColor"),
@@ -77,30 +61,25 @@ void GibEngine::Renderer::API::GL420::BindMaterial(GibEngine::Material* material
 	for (unsigned int i = 0; i < material->Textures.size(); i++)
 	{
 		GLint textureLocation = -1;
-		MaterialTexture* matTex = material->Textures[i];
+		MaterialTexture* matTex = &material->Textures[i];
 
-		if (!matTex->texture->IsUploaded())
+		if (matTex->textureUniformName.length() == 0)
 		{
-			UploadTexture2D(matTex->texture);
-		}
-
-		if (matTex->textureUniformName == nullptr)
-		{
-			int locationIndex = textureLocIndex.at(matTex->texture->GetTextureType());
-			const char *textureTypeStr = matTex->texture->GetTextureTypeString();
+			int locationIndex = textureLocIndex[matTex->texture->GetTextureType()];
 
 			std::string textureUniformName = std::string("texture_" +
-				std::string(textureTypeStr) + std::to_string(locationIndex));
+				matTex->texture->GetTextureTypeString() + std::to_string(locationIndex));
 
-			matTex->textureUniformName = strdup(textureUniformName.c_str());
-			textureLocIndex.at(matTex->texture->GetTextureType())++;
+			matTex->textureUniformName = textureUniformName;
+			textureLocIndex[matTex->texture->GetTextureType()]++;
 		}
 
-		textureLocation = GetUniformLocation(matTex->textureUniformName);
+		textureLocation = GetUniformLocation(matTex->textureUniformName.c_str());
 
 		if (textureLocation == -1)
 		{
 			Logger::Instance->error("Cannot find texture2D sampler: {}", matTex->textureUniformName);
+			return;
 		}
 
 		glUniform1i(textureLocation, static_cast<float>(i));
@@ -221,24 +200,24 @@ void GibEngine::Renderer::API::GL420::ClearFramebuffer()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void GibEngine::Renderer::API::GL420::DrawPrimitive(MeshUploadTicket* meshUploadTicket)
+void GibEngine::Renderer::API::GL420::DrawPrimitive(const MeshUploadTicket& meshUploadTicket)
 {
 	const unsigned int FIRST_INDEX = 0;
 
-	glBindVertexArray(meshUploadTicket->vertexArrayObject);
-	glDrawArrays(GL_TRIANGLE_STRIP, FIRST_INDEX, meshUploadTicket->totalVertices);
+	glBindVertexArray(meshUploadTicket.vertexArrayObject);
+	glDrawArrays(GL_TRIANGLE_STRIP, FIRST_INDEX, meshUploadTicket.totalVertices);
 	glBindVertexArray(0);
 }
 
-void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh, size_t instanceCount)
+void GibEngine::Renderer::API::GL420::DrawMesh(const GibEngine::Mesh& mesh, size_t instanceCount)
 {
-	Mesh::Flags flags = mesh->GetFlags();
+	Mesh::Flags flags = mesh.GetFlags();
 	if (!Mesh::FlagMask(flags & Mesh::Flags::RENDER_ENABLED))
 	{
 		return;
 	}
 
-	MeshUploadTicket* meshUploadTicket = mesh->GetMeshUploadTicket();
+	const std::shared_ptr<MeshUploadTicket>& meshUploadTicket = mesh.GetMeshUploadTicket();
 
 	glBindVertexArray(meshUploadTicket->vertexArrayObject);
 
@@ -257,40 +236,36 @@ void GibEngine::Renderer::API::GL420::DrawMesh(GibEngine::Mesh *mesh, size_t ins
 	glBindVertexArray(0);
 }
 
-void GibEngine::Renderer::API::GL420::DrawSkybox(GibEngine::Skybox *skybox)
+void GibEngine::Renderer::API::GL420::DrawSkybox(const GibEngine::MeshUploadTicket& skyboxMeshTicket)
 {
 	glDepthRange(0.999999f, 1.0f);
 	glDepthFunc(GL_LEQUAL);
 
-	MeshUploadTicket* meshUploadTicket = skybox->GetMeshUploadTicket();
-
-	glBindVertexArray(meshUploadTicket->vertexArrayObject);
-	glDrawArrays(GL_TRIANGLES, 0, meshUploadTicket->totalVertices);
+	glBindVertexArray(skyboxMeshTicket.vertexArrayObject);
+	glDrawArrays(GL_TRIANGLES, 0, skyboxMeshTicket.totalVertices);
 	glBindVertexArray(0);
 
 	glDepthFunc(GL_LESS);
 	glDepthRange(0.0f, 1.0f);
-
-	glBindVertexArray(0);
 }
 
 int GibEngine::Renderer::API::GL420::GetUniformLocation(const char* uniformName)
 {
-	//auto shaderCache = shaderCacheMap[currentShaderID];
-	//auto cachedUniformLocation = shaderCache.uniformLocations.find(uniformName);
+	//ShaderCache shaderCache = shaderCaches[currentShaderID];
+	const auto cachedUniformLocation = shaderCaches[currentShaderID].uniformLocations.find(uniformName);
 
-	//if (cachedUniformLocation != shaderCache.uniformLocations.end())
-	//{
-	//	//Logger::Instance->info("CACHE HIT: {}", uniformName);
-	//	return cachedUniformLocation->second;
-	//}
+	if (cachedUniformLocation != shaderCaches[currentShaderID].uniformLocations.end())
+	{
+		//Logger::Instance->info("CACHE HIT: {}", uniformName);
+		return cachedUniformLocation->second;
+	}
 
 	// Cache miss, perform a lookup via OpenGL:
 	int uniformLocation = glGetUniformLocation(currentShaderID, uniformName);
 
-	//shaderCache.uniformLocations[uniformName] = uniformLocation;
-	//shaderCacheMap[currentShaderID] = shaderCache;
-	//Logger::Instance->info("CACHE MISS: {}", uniformName);
+	shaderCaches[currentShaderID].uniformLocations[uniformName] = uniformLocation;
+	//[currentShaderID] = shaderCache;
+	Logger::Instance->info("CACHE MISS: {}", uniformName);
 
 
 	return uniformLocation;
@@ -298,7 +273,7 @@ int GibEngine::Renderer::API::GL420::GetUniformLocation(const char* uniformName)
 
 unsigned char* GibEngine::Renderer::API::GL420::ReadFramebuffer(GibEngine::Renderer::Framebuffer * framebuffer)
 {
-	BindFramebuffer(framebuffer);
+	BindFramebuffer(*framebuffer);
 
 	unsigned int pixelBufferSize = framebuffer->GetBufferWidth() * framebuffer->GetBufferHeight() * 3;
 	unsigned char* buffer = new unsigned char[pixelBufferSize];
@@ -316,6 +291,33 @@ unsigned char* GibEngine::Renderer::API::GL420::ReadFramebufferTexture(GibEngine
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
 
 	return textureData;
+}
+
+void GibEngine::Renderer::API::GL420::RegisterCamera(std::shared_ptr<CameraBase> camera)
+{
+	const unsigned int BUFFER_OBJECT_SIZE = sizeof(float) * 36;
+	const unsigned int PROJECTION_MATRIX_INDEX = 0;
+	const unsigned int VIEW_MATRIX_INDEX = 16;
+	const unsigned int POSITION_INDEX = 32;
+
+	UniformBuffer* cameraUBO = uniformBufferManager->FindOrCreate(camera->GetAllocatedBufferName().c_str(), BUFFER_OBJECT_SIZE);
+
+	if (cameraUBO == nullptr)
+	{
+		Logger::Instance->info("[{}] Failed to find or create UBO: {}", __FUNCTION__, camera->GetAllocatedBufferName().c_str());
+		return;
+	}
+
+	float cameraData[BUFFER_OBJECT_SIZE]{ 0 };
+
+	memcpy(&cameraData[PROJECTION_MATRIX_INDEX], glm::value_ptr(camera->GetProjectionMatrix()), sizeof(float) * 16);
+	memcpy(&cameraData[VIEW_MATRIX_INDEX], glm::value_ptr(camera->GetViewMatrix()), sizeof(float) * 16);
+	memcpy(&cameraData[POSITION_INDEX], glm::value_ptr(camera->GetPosition()), sizeof(float) * 3);
+
+	cameraUBO->Update(cameraData);
+
+	GLuint cameraUBOIndex = glGetUniformBlockIndex(currentShaderID, camera->GetAllocatedBufferName().c_str());
+	glUniformBlockBinding(currentShaderID, cameraUBOIndex, cameraUBO->GetBufferBindingIndex());
 }
 
 void GibEngine::Renderer::API::GL420::UnbindFramebuffer()
@@ -346,12 +348,12 @@ void GibEngine::Renderer::API::GL420::UnbindShader()
 	this->currentShaderID = 0;
 }
 
-bool GibEngine::Renderer::API::GL420::UpdateMeshInstances(MeshUploadTicket *meshUploadTicket, std::vector<glm::mat4> instanceMatrixList)
+bool GibEngine::Renderer::API::GL420::UpdateMeshInstances(const MeshUploadTicket& meshUploadTicket, const std::vector<glm::mat4>& instanceMatrixList)
 {
 	const int VEC4_SIZE = sizeof(glm::vec4);
 
-	glBindVertexArray(meshUploadTicket->vertexArrayObject);
-	glBindBuffer(GL_ARRAY_BUFFER, meshUploadTicket->buffers.at(BufferIndex::INSTANCE_MATRIX));
+	glBindVertexArray(meshUploadTicket.vertexArrayObject);
+	glBindBuffer(GL_ARRAY_BUFFER, meshUploadTicket.buffers.at(BufferIndex::INSTANCE_MATRIX));
 	glBufferData(GL_ARRAY_BUFFER, instanceMatrixList.size() * sizeof(glm::mat4), &instanceMatrixList[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(5);
@@ -373,21 +375,20 @@ bool GibEngine::Renderer::API::GL420::UpdateMeshInstances(MeshUploadTicket *mesh
 
 bool GibEngine::Renderer::API::GL420::UpdateCamera(CameraBase *camera)
 {
-	const char* CAMERA_BUFFER_NAME = "cameraUBO";
 	const unsigned int BUFFER_OBJECT_SIZE = sizeof(float) * 36;
 	const unsigned int PROJECTION_MATRIX_INDEX = 0;
 	const unsigned int VIEW_MATRIX_INDEX = 16;
 	const unsigned int POSITION_INDEX = 32;
 
-	UniformBuffer* cameraUBO = uniformBufferManager->FindOrCreate(CAMERA_BUFFER_NAME, BUFFER_OBJECT_SIZE);
+	UniformBuffer* cameraUBO = uniformBufferManager->Find(camera->GetAllocatedBufferName().c_str());
 
 	if (cameraUBO == nullptr)
 	{
-		Logger::Instance->info("[{}] Failed to find or create UBO: {}", __FUNCTION__, CAMERA_BUFFER_NAME);
+		Logger::Instance->info("[{}] Failed to find or create UBO: {}", __FUNCTION__, camera->GetAllocatedBufferName().c_str());
 		return false;
 	}
 
-	float *cameraData = new float[BUFFER_OBJECT_SIZE] { 0 };
+	float cameraData[BUFFER_OBJECT_SIZE] { 0 };
 
 	memcpy(&cameraData[PROJECTION_MATRIX_INDEX], glm::value_ptr(camera->GetProjectionMatrix()), sizeof(float) * 16);
 	memcpy(&cameraData[VIEW_MATRIX_INDEX], glm::value_ptr(camera->GetViewMatrix()), sizeof(float) * 16);
@@ -395,14 +396,12 @@ bool GibEngine::Renderer::API::GL420::UpdateCamera(CameraBase *camera)
 
 	cameraUBO->Update(cameraData);
 
-	delete[] cameraData;
-
 	return true;
 }
 
-GibEngine::MeshUploadTicket* GibEngine::Renderer::API::GL420::UploadMesh(std::vector<Vertex> vertexList, std::vector<unsigned int> indexList)
+std::shared_ptr<GibEngine::MeshUploadTicket> GibEngine::Renderer::API::GL420::UploadMesh(const std::vector<GibEngine::Vertex>& vertexList, const std::vector<unsigned int>& indexList)
 {
-	MeshUploadTicket* ticket = new MeshUploadTicket();
+	auto ticket = std::shared_ptr<MeshUploadTicket>(new MeshUploadTicket());
 
 	ticket->totalVertices = static_cast<int>(vertexList.size());
 	ticket->totalIndices = static_cast<int>(indexList.size());
@@ -451,23 +450,17 @@ GibEngine::MeshUploadTicket* GibEngine::Renderer::API::GL420::UploadMesh(std::ve
 	return ticket;
 }
 
-GibEngine::MeshUploadTicket* GibEngine::Renderer::API::GL420::UploadMesh(GibEngine::Mesh *mesh)
+void GibEngine::Renderer::API::GL420::UploadTexture2D(unsigned int* textureId, const TextureData& textureData)
 {
-	return UploadMesh(mesh->GetVertices(), mesh->GetIndices());
-}
+	//unsigned int textureId = 0;
+	//TextureData* texData = texture->GetTextureData();
 
-void GibEngine::Renderer::API::GL420::UploadTexture2D(GibEngine::Texture *texture)
-{
-	unsigned int textureId = 0;
-
-	TextureData* texData = texture->GetTextureData();
-
-	glGenTextures(1, &textureId);
-	glBindTexture(GL_TEXTURE_2D, textureId);
+	glGenTextures(1, textureId);
+	glBindTexture(GL_TEXTURE_2D, *textureId);
 
 	GLuint textureFormat = GL_RGB;
 	/*	and what type am I using as the internal texture format?	*/
-	switch (texData->Channels)
+	switch (textureData.Channels)
 	{
 	case 3:
 		textureFormat = GL_RGB;
@@ -477,24 +470,12 @@ void GibEngine::Renderer::API::GL420::UploadTexture2D(GibEngine::Texture *textur
 		break;
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, textureFormat, texData->Width, texData->Height, 0, textureFormat, GL_UNSIGNED_BYTE, texData->Data);
+	glTexImage2D(GL_TEXTURE_2D, 0, textureFormat, textureData.Width, textureData.Height, 0, textureFormat, GL_UNSIGNED_BYTE, textureData.Data);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	if (textureId == 0)
-	{
-		Logger::Instance->error("GL420::UploadTexture2D Failed!\nError: {}\nTexture: {}",
-			0, texture->GetFilename()->c_str());
-	}
-	else
-	{
-		texture->SetTextureId(textureId);
-	}
-
-	free(texData->Data);
 }
 
-void GibEngine::Renderer::API::GL420::UploadTextureCubemap(GibEngine::Texture *texture)
+void GibEngine::Renderer::API::GL420::UploadTextureCubemap(unsigned int* textureId, std::vector<GibEngine::TextureData>& cubemapSideData)
 {
 	const std::vector<GLuint> cubemapTargets = {
 		GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_TEXTURE_CUBE_MAP_POSITIVE_X,
@@ -502,19 +483,20 @@ void GibEngine::Renderer::API::GL420::UploadTextureCubemap(GibEngine::Texture *t
 		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 	};
 
-	unsigned int textureId = 0;
-	Cubemap* cubemap = texture->GetCubemap();
+	//unsigned int textureId = 0;
+	//Cubemap cubemap = texture->GetCubemap();
 
-	glGenTextures(1, &textureId);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
+	glGenTextures(1, textureId);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, *textureId);
 
 	for (unsigned int i = 0; i < 6; i++)
 	{
-		TextureData* imgData = cubemap->textures[i];
+		//TextureData* imgData = cubemap.textures[i];
+		auto cubemapSide = cubemapSideData.at(i);
 
 		GLuint textureFormat = GL_RGB;
 		/*	and what type am I using as the internal texture format?	*/
-		switch (imgData->Channels)
+		switch (cubemapSide.Channels)
 		{
 		case 3:
 			textureFormat = GL_RGB;
@@ -524,8 +506,7 @@ void GibEngine::Renderer::API::GL420::UploadTextureCubemap(GibEngine::Texture *t
 			break;
 		}
 
-		glTexImage2D(cubemapTargets[i], 0, textureFormat, imgData->Width, imgData->Height, 0, textureFormat, GL_UNSIGNED_BYTE, imgData->Data);
-		delete imgData->Data;
+		glTexImage2D(cubemapTargets[i], 0, textureFormat, cubemapSide.Width, cubemapSide.Height, 0, textureFormat, GL_UNSIGNED_BYTE, cubemapSide.Data);
 	}
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -534,9 +515,9 @@ void GibEngine::Renderer::API::GL420::UploadTextureCubemap(GibEngine::Texture *t
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 
 
-	if (textureId > 0)
-	{
-		texture->SetLoaded(true);
-		texture->SetTextureId(textureId);
-	}
+	//if (textureId > 0)
+	//{
+	//	texture->SetLoaded(true);
+	//	texture->SetTextureId(textureId);
+	//}
 }

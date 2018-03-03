@@ -1,19 +1,47 @@
 #include "scene/Node.h"
 
-GibEngine::Scene::Node::Node(const char* name)
-	: parentNode(nullptr), entity(nullptr), name(strdup(name)), flags(Flags::DEFAULT)
+GibEngine::Scene::Node::Node()
+	: parentNode(nullptr), 
+	childNodes(),
+	flags(Flags::DEFAULT),
+	entity(nullptr),
+	name(),
+	worldTransform(),
+	localTransform(),
+	rotationQuaternion()
 {
-	dbRecord = new World::DatabaseRecord();
 }
 
-GibEngine::Scene::Node::Node(const char* name, World::DatabaseRecord* dbRecord)
-	: name(name), parentNode(nullptr), entity(nullptr), dbRecord(dbRecord), flags(Flags::DEFAULT) { }
+GibEngine::Scene::Node::Node(const std::string name)
+	: Node()
+{
+	this->name = name; 
+}
+
+void GibEngine::Scene::Node::Update(const float deltaTime, const Input::InputManager& inputManager)
+{
+	if (entity != nullptr)
+	{
+		switch (GetEntity()->GetType())
+		{
+		case Entity::Type::SKYBOX:
+			RotateY(glm::radians((float)(1.0f * deltaTime)));
+			break;
+		}
+	}
+
+
+	for (auto childNode : childNodes)
+	{
+		childNode->Update(deltaTime, inputManager);
+	}
+}
 
 void GibEngine::Scene::Node::RecalculateWorldTransform()
 {
 	if (parentNode != nullptr)
 	{
-		worldTransform = parentNode->GetWorldTransform() * glm::toMat4(rotationQuaternion) * localTransform;
+		worldTransform = parentNode->GetWorldTransform() * localTransform * glm::toMat4(rotationQuaternion);
 	}
 	else
 	{
@@ -27,14 +55,6 @@ void GibEngine::Scene::Node::RecalculateWorldTransform()
 	}
 }
 
-void GibEngine::Scene::Node::SetEntityDirty()
-{
-	if (dbRecord != nullptr)
-	{
-		dbRecord->SetEntityState(World::DatabaseRecord::State::DIRTY);
-	}
-}
-
 void GibEngine::Scene::Node::Translate(const glm::vec3 & translation)
 {
 	glm::translate(localTransform, translation);
@@ -43,6 +63,7 @@ void GibEngine::Scene::Node::Translate(const glm::vec3 & translation)
 void GibEngine::Scene::Node::Rotate(const float angle, const glm::vec3& axis)
 {
 	rotationQuaternion = glm::rotate(rotationQuaternion, angle, axis);
+	RecalculateWorldTransform();
 }
 
 void GibEngine::Scene::Node::RotateX(const float angle)
@@ -65,20 +86,7 @@ void GibEngine::Scene::Node::Scale(const glm::vec3& scale)
 	glm::scale(localTransform, scale);
 }
 
-void GibEngine::Scene::Node::SetNodeDirty()
-{
-	if (dbRecord != nullptr)
-	{
-		dbRecord->SetState(World::DatabaseRecord::State::DIRTY);
-	}
-}
-
-bool GibEngine::Scene::Node::IsRootNode() const
-{
-	return parentNode == nullptr;
-}
-
-GibEngine::World::DatabaseRecord* GibEngine::Scene::Node::GetDatabaseRecord() const
+const GibEngine::World::DatabaseRecord GibEngine::Scene::Node::GetDatabaseRecord() const
 {
 	return dbRecord;
 }
@@ -98,7 +106,7 @@ glm::mat4 GibEngine::Scene::Node::GetLocalTransform() const
 	return localTransform;
 }
 
-const char* GibEngine::Scene::Node::GetName() const
+std::string GibEngine::Scene::Node::GetName() const
 {
 	return name;
 }
@@ -145,6 +153,26 @@ void GibEngine::Scene::Node::SetRotation(glm::quat rotationQuaternion)
 
 GibEngine::Entity* GibEngine::Scene::Node::ModifyEntity()
 {
-	GetDatabaseRecord()->SetEntityState(World::DatabaseRecord::State::DIRTY);
+	SetEntityState(World::DatabaseRecord::State::DIRTY);
 	return entity;
+}
+
+void GibEngine::Scene::Node::SetNodeState(const World::DatabaseRecord::State state)
+{
+	dbRecord.SetState(state);
+}
+
+void GibEngine::Scene::Node::SetEntityState(const World::DatabaseRecord::State state)
+{
+	dbRecord.SetEntityState(state);
+}
+
+void GibEngine::Scene::Node::SetNodeId(const int id)
+{
+	dbRecord.SetId(id);
+}
+
+void GibEngine::Scene::Node::SetEntityId(const int id)
+{
+	dbRecord.SetAttachedEntityId(id);
 }

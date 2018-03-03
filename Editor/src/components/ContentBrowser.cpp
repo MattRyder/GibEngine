@@ -1,26 +1,14 @@
 #include "components/ContentBrowser.h"
 
-GibEditor::Components::ContentBrowser::ContentBrowser(GibEngine::Scene::Node* rootSceneNode, GibEngine::Renderer::Pipeline* pipeline)
-	: rootSceneNode(rootSceneNode), pipeline(pipeline)
+GibEditor::Components::ContentBrowser::ContentBrowser(std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem, std::shared_ptr<GibEngine::Scene::Node> rootSceneNode, std::shared_ptr<GibEngine::Renderer::Pipeline> pipeline)
+	: rootSceneNode(rootSceneNode), pipeline(pipeline), fileSystem(fileSystem)
 {
-	defaultGenerationData = json11::Json(json11::Json::object{ { "MeshFlags", json11::Json::array{ "RENDER_DEFERRED" } } });
-
-	SetupAvailableContentMap();
+	defaultGenerationData = json11::Json::object { { "MeshFlags", json11::Json::array{ "RENDER_DEFERRED" } } };
 }
 
 GibEditor::Components::ContentBrowser::~ContentBrowser()
 {
 	delete contentDirectoryObserver;
-}
-
-void GibEditor::Components::ContentBrowser::SetupAvailableContentMap()
-{
-	availableContent.clear();
-
-	availableContent =
-	{
-		{ GibEngine::EntityType::MESH, std::vector<GibEngine::File*>() },
-	};
 }
 
 void GibEditor::Components::ContentBrowser::Render()
@@ -32,28 +20,14 @@ void GibEditor::Components::ContentBrowser::Render()
 			if (ImGui::MenuItem("Import Directory"))
 			{
 				nfdchar_t* importPath = nullptr;
-				nfdresult_t res = NFD_PickFolder(GibEngine::File::GetWorkingDirectory().c_str(), &importPath);
+				nfdresult_t res = NFD_PickFolder(fileSystem->GetWorkingDirectory().c_str(), &importPath);
 
 				if (res == NFD_OKAY)
 				{
-					std::vector<GibEngine::File*> files = GibEngine::File::GetDirectoryList(importPath);
-
-					for (auto file : files)
-					{
-						// filter out the files into entity types we can load:
-						const char* extension = file->GetExtension();
-
-						if (strcmp(extension, "obj") == 0 || strcmp(extension, "dae") == 0)
-						{
-							availableContent.at(GibEngine::EntityType::MESH).push_back(file);
-						}
-
-						delete extension;
-					}
-
-					free(importPath);
+					meshFileList = fileSystem->GetFileList(importPath, ".obj", true);
 				}
 
+				delete(importPath);
 			}
 
 			ImGui::EndMenu();
@@ -75,30 +49,34 @@ void GibEditor::Components::ContentBrowser::Render()
 	}
 
 	ImVec2 buttonSize = ImVec2(windowWidth / columns - 10.0f, 45.0f);
-	for (auto contentList : availableContent)
+	if (ImGui::TreeNode("Mesh"))
 	{
-		if (ImGui::TreeNode(GibEngine::Entity::GetTypeString(contentList.first)))
+		ImGui::Columns(columns, (const char*)0, false);
+		
+
+		for (auto meshFilePath : meshFileList)
 		{
-			ImGui::Columns(columns, (const char*)0, false);
-
-			for (unsigned int i = 0; i < contentList.second.size(); i++)
+			auto idx = meshFilePath.find_last_of("/");
+			if (idx != meshFilePath.npos)
 			{
-				auto contentFile = contentList.second[i];
+				auto displayName = meshFilePath.substr(idx + 1, meshFilePath.size() - idx);
 
-				if (ImGui::Button(contentFile->GetFilename(), buttonSize))
+				if (ImGui::Button(displayName.c_str(), buttonSize))
 				{
-					GibEngine::Scene::Node* meshNode = GibEngine::MeshService::Load(contentFile, &defaultGenerationData);
-					meshNode->GetDatabaseRecord()->SetState(GibEngine::World::DatabaseRecord::State::NEW);
-					rootSceneNode->AddChildNode(meshNode);
+					//GibEngine::Scene::Node* meshNode = GibEngine::MeshService::Load(meshFilePath, defaultGenerationData);
+					//meshNode->SetEntityState(GibEngine::World::DatabaseRecord::State::NEW);
+					//meshNode->SetNodeState(GibEngine::World::DatabaseRecord::State::NEW);
+					//rootSceneNode->AddChildNode(meshNode);
 				}
-
-				ImGui::NextColumn();
 			}
 
-			ImGui::TreePop();
 
-			ImGui::Columns(1);
+			ImGui::NextColumn();
 		}
+		
+
+		ImGui::Columns(1);
+		ImGui::TreePop();
 	}
 
 	if (ImGui::TreeNode("Lighting"))
@@ -110,9 +88,9 @@ void GibEditor::Components::ContentBrowser::Render()
 			GibEngine::PointLight* light = new GibEngine::PointLight();
 			GibEngine::Scene::Node* lightNode = new GibEngine::Scene::Node("New Point Light");
 			lightNode->SetEntity(light);
-			lightNode->GetDatabaseRecord()->SetEntityState(GibEngine::World::DatabaseRecord::State::NEW);
+			lightNode->SetEntityState(GibEngine::World::DatabaseRecord::State::NEW);
 
-			GibEngine::MeshService::AttachVisibleSphere(lightNode);
+			//GibEngine::MeshService::AttachVisibleSphere(lightNode);
 
 			rootSceneNode->AddChildNode(lightNode);
 		}

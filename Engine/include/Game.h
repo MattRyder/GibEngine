@@ -7,21 +7,25 @@
 
 #include "glfw/glfw_callback.h"
 
-#include "File.h"
 #include "Shader.h"
 #include "Skybox.h"
 #include "FreeCamera.h"
-#include "ChaseCamera.h"
 #include "PointLight.h"
 #include "renderer/Pipeline.h"
 #include "input/InputManager.h"
 #include "world/Database.h"
 
+#ifdef WIN32
+#include "filesystem/WindowsFileSystem.h"
+#elif UNIX
+#include "filesystem/UnixFileSystem.h"
+#endif
+
 #include "cxxopts.hpp"
 
 namespace GibEngine
 {
-	static const char* ENGINE_NAME = "GibEngine";
+	static const std::string ENGINE_NAME = "GibEngine";
 
 	class Game
 	{
@@ -30,9 +34,8 @@ namespace GibEngine
 			bool vsyncEnabled;
 		};
 
-		Config config;
 		GLFWwindow* window;
-		const char* windowTitle = ENGINE_NAME;
+		std::string windowTitle = ENGINE_NAME;
 
 		float fpsIntervalTimer;
 		float lastFrameTime;
@@ -44,20 +47,24 @@ namespace GibEngine
 
 		// TODO: MOVE THESE WHEN I CAN SCRIPT/REFACTOR THEM IN
 		FreeCamera* playerCamera = nullptr;
-		//ChaseCamera* chaseCamera = nullptr;
 
 		void ParseOptions(int argc, char** argv);
 
 	protected:
+		Config config;
 		Renderer::ShaderLanguage shaderLanguage = Renderer::ShaderLanguage::GLSL_420;
 		
-		Scene::Node* rootSceneNode = nullptr;
-		Scene::VisibleSet* visibleSet;
+		std::shared_ptr<Scene::Node> rootSceneNode;
+		std::shared_ptr<Scene::VisibleSet> vset;
 		
-		Renderer::Pipeline* renderPipeline = nullptr;
 		Input::InputManager* inputManager = nullptr;
 
-		Scene::Node* CreateWorld();
+		std::shared_ptr<Renderer::Pipeline> pipeline;
+		std::shared_ptr<CameraBase> playerCameraSP;
+		std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi;
+		std::shared_ptr<FileSystem::IFileSystem> fileSystem;
+
+		std::shared_ptr<Scene::Node> CreateWorld();
 
 	public:
 		Game(int argc, char** argv);
@@ -72,14 +79,21 @@ namespace GibEngine
 
 		void ToggleVsync();
 
-		void SetWindowTitle(const char* windowTitle);
+		void SetWindowTitle(const std::string windowTitle);
 		void SetWindowSize(int windowWidth, int windowHeight);
-		void SetSceneRoot(Scene::Node* rootSceneNode);
+		void SetSceneRoot(std::shared_ptr<Scene::Node> rootSceneNode);
 
 		GLFWwindow* GetWindow();
-		Renderer::Pipeline* GetRenderPipeline() const;
+		std::shared_ptr<GibEngine::Renderer::Pipeline> GetRenderPipeline() const;
 		Input::InputManager* GetInputManager() const;
+
+		std::shared_ptr<GibEngine::Renderer::API::IGraphicsApi> GetGraphicsApi() const;
+		std::shared_ptr<GibEngine::FileSystem::IFileSystem> GetFileSystem() const;
+		std::shared_ptr<Scene::Node> GetSceneNodeRoot() const;
+
 		float GetDeltaTime() const;
 		int GetFramesPerSecond() const;
+
+		bool IsMinimized() const;
 	};
 }

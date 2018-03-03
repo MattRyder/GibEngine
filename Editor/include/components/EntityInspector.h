@@ -33,38 +33,42 @@ namespace GibEditor
 					// Render the Database state of the scene node:
 					ImGui::Text("Database Record");
 
-					if (sceneNode->GetDatabaseRecord() != nullptr)
+					auto dbRec = sceneNode->GetDatabaseRecord();
+
+					switch (dbRec.GetState())
 					{
-						auto dbRec = sceneNode->GetDatabaseRecord();
-
-						switch (dbRec->GetState())
-						{
-						case GibEngine::World::DatabaseRecord::State::CLEAN:
-							ImGui::TextColored(colorSuccess, "Node CLEAN");
-							break;
-						case GibEngine::World::DatabaseRecord::State::DELETED:
-							ImGui::TextColored(colorDanger, "Node DELETED");
-							break;
-						case GibEngine::World::DatabaseRecord::State::DIRTY:
-							ImGui::TextColored(colorWarn, "Node DIRTY");
-							break;
-						}
-
-						switch (dbRec->GetEntityState())
-						{
-						case GibEngine::World::DatabaseRecord::State::CLEAN:
-							ImGui::TextColored(colorSuccess, "Entity CLEAN");
-							break; 
-						case GibEngine::World::DatabaseRecord::State::DELETED:
-							ImGui::TextColored(colorDanger, "Entity DELETED");
-							break;
-						case GibEngine::World::DatabaseRecord::State::DIRTY:
-							ImGui::TextColored(colorWarn, "Entity DIRTY");
-							break;
-						}
-
-						ImGui::Dummy(ImVec2(ImGui::GetWindowSize().x, 15));
+					case GibEngine::World::DatabaseRecord::State::NEW:
+						ImGui::TextColored(colorPrimary, "Node NEW");
+						break;
+					case GibEngine::World::DatabaseRecord::State::CLEAN:
+						ImGui::TextColored(colorSuccess, "Node CLEAN");
+						break;
+					case GibEngine::World::DatabaseRecord::State::DELETED:
+						ImGui::TextColored(colorDanger, "Node DELETED");
+						break;
+					case GibEngine::World::DatabaseRecord::State::DIRTY:
+						ImGui::TextColored(colorWarn, "Node DIRTY");
+						break;
 					}
+
+					switch (dbRec.GetEntityState())
+					{
+					case GibEngine::World::DatabaseRecord::State::NEW:
+						ImGui::TextColored(colorPrimary, "Entity NEW");
+						break;
+					case GibEngine::World::DatabaseRecord::State::CLEAN:
+						ImGui::TextColored(colorSuccess, "Entity CLEAN");
+						break; 
+					case GibEngine::World::DatabaseRecord::State::DELETED:
+						ImGui::TextColored(colorDanger, "Entity DELETED");
+						break;
+					case GibEngine::World::DatabaseRecord::State::DIRTY:
+						ImGui::TextColored(colorWarn, "Entity DIRTY");
+						break;
+					}
+
+					ImGui::Dummy(ImVec2(ImGui::GetWindowSize().x, 15));
+					
 
 					RenderTransformNode();
 					ImGui::Dummy(ImVec2(ImGui::GetWindowSize().x, 30));
@@ -74,13 +78,13 @@ namespace GibEditor
 					{
 						switch (sceneNode->GetEntity()->GetType())
 						{
-						case GibEngine::EntityType::MESH:
+						case GibEngine::Entity::Type::MESH:
 							RenderMesh();
 							break;
-						case GibEngine::EntityType::POINT_LIGHT:
+						case GibEngine::Entity::Type::POINT_LIGHT:
 							RenderLight();
 							break;
-						case GibEngine::EntityType::SKYBOX:
+						case GibEngine::Entity::Type::SKYBOX:
 							RenderSkybox();
 							break;
 						}
@@ -99,6 +103,7 @@ namespace GibEditor
 			const ImVec4 colorSuccess = ImVec4(0.439f, 0.972f, 0.227f, 1.0f);
 			const ImVec4 colorWarn = ImVec4(0.972f, 0.862f, 0.227f, 1.0f);
 			const ImVec4 colorDanger = ImVec4(0.972f, 0.227f, 0.227f, 1.0f);
+			const ImVec4 colorPrimary = ImVec4(0.509, 0.780, 0.972, 1.0f);
 
 			GibEngine::Scene::Node* sceneNode = nullptr;
 			bool sceneNodeIsDirty = false;
@@ -123,13 +128,13 @@ namespace GibEditor
 			{
 				matrix[3] = glm::vec4(pos[0], pos[1], pos[2], 1.0f);
 				sceneNode->SetLocalTransform(matrix);
-				sceneNode->SetNodeDirty();
+				sceneNode->SetNodeState(GibEngine::World::DatabaseRecord::State::DIRTY);
 			}
 
-			if (ImGui::DragFloat("Rotation Y", &rot.y, INCREMENT_MID, 0, 360))
+			if (ImGui::DragFloat("Rotation Y", &rot.y, INCREMENT_SLOWEST, 0, 0.1))
 			{
 				sceneNode->RotateY(rot.y);
-				sceneNode->SetNodeDirty();
+				sceneNode->SetNodeState(GibEngine::World::DatabaseRecord::State::DIRTY);
 			}
 
 			if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), INCREMENT_SLOW, -1000.0f, 1000.0f))
@@ -139,7 +144,7 @@ namespace GibEditor
 				matrix[2][2] = scale[2];
 
 				sceneNode->SetLocalTransform(matrix);
-				sceneNode->SetNodeDirty();
+				sceneNode->SetNodeState(GibEngine::World::DatabaseRecord::State::DIRTY);
 			}
 		}
 
@@ -214,8 +219,8 @@ namespace GibEditor
 			char skyboxNameBuf[SKYBOX_INPUT_LEN] = { 0 };
 			char skyboxTextureExt[SKYBOX_INPUT_LEN] = { 0 };
 
-			memcpy(skyboxNameBuf, skybox->GetName(), SKYBOX_INPUT_LEN);
-			memcpy(skyboxTextureExt, skybox->GetExtension(), SKYBOX_INPUT_LEN);
+			memcpy(skyboxNameBuf, skybox->GetName().c_str(), SKYBOX_INPUT_LEN);
+			//memcpy(skyboxTextureExt, skybox->GetExtension().c_str(), SKYBOX_INPUT_LEN);
 
 			if (ImGui::InputText("Skybox Name", skyboxNameBuf, SKYBOX_INPUT_LEN))
 			{
@@ -229,7 +234,7 @@ namespace GibEditor
 
 			if (ImGui::Button("Load Skybox"))
 			{
-				skybox->LoadCubemap();
+				//skybox->LoadCubemap();
 			}
 		}
 	}

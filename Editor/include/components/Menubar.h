@@ -9,20 +9,20 @@ namespace GibEditor
 	{
 		class Menubar : IComponent
 		{
-			GibEngine::Scene::Node* rootSceneNode;
+			std::shared_ptr<GibEngine::Scene::Node> rootSceneNode;
 			std::function<void()> exitCallback, newWorldCallbackFunc, openFileDialogCallbackFunc,  toggleUiRenderCallbackFunc;
-			std::function<void(GibEngine::Scene::Node*)> saveFileDialogCallbackFunc;
+			std::function<void()> saveFileDialogCallbackFunc;
 
 		public:
-			Menubar(GibEngine::Scene::Node*);
+			Menubar(std::shared_ptr<GibEngine::Scene::Node> node);
 			virtual void Render() override;
 
-			void SetSceneNode(GibEngine::Scene::Node* node);
+			void SetSceneNode(std::shared_ptr<GibEngine::Scene::Node> node);
 
 			void SetOnNewWorldCallback(const std::function<void()>& newWorldCallbackFunc);
 			void SetOnExitCallback(const std::function<void()>& exitCallbackFunc);
 			void SetOnOpenFileDialogCallback(const std::function<void()>& openFileDialogCallbackFunc);
-			void SetOnSaveFileDialogCallback(const std::function<void(GibEngine::Scene::Node*)>& saveFileDialogCallbackFunc);
+			void SetOnSaveFileDialogCallback(const std::function<void()>& saveFileDialogCallbackFunc);
 			void SetToggleUiRenderCallback(const std::function<void()>& toggleUiRenderCallbackFunc);
 		};
 	}

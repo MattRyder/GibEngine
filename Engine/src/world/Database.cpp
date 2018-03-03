@@ -1,21 +1,22 @@
 #include "world/Database.h"
 
-GibEngine::World::Database::Database(const char * databaseFilepath) : Database(databaseFilepath, false) { }
+GibEngine::World::Database::Database(const std::string& databaseFilepath, std::shared_ptr<FileSystem::IFileSystem> fs, std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi) : Database(databaseFilepath, fs, graphicsApi, false) { }
 
-GibEngine::World::Database::Database(const char* databaseFilepath, bool debugMode) : debugMode(debugMode)
+GibEngine::World::Database::Database(const std::string& databaseFilepath, std::shared_ptr<FileSystem::IFileSystem> fs, std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, bool debugMode)
+	: fs(fs), graphicsApi(graphicsApi), debugMode(debugMode)
 {
     std::ifstream dbFile(databaseFilepath);
     bool dbExists = dbFile.good();
 
-    db = new sqlite3pp::database(databaseFilepath);
+	db = std::shared_ptr<sqlite3pp::database>(new sqlite3pp::database(databaseFilepath.c_str()));
 
     if(!dbExists)
     {
-        int res = db->execute(CREATE_DATABASE_COMMAND);
+        int res = db->execute(DatabaseQuery::CREATE_DATABASE_COMMAND.c_str());
     
         if(res != SQLITE_OK)
         {
-            const char* errorMessage = db->error_msg();
+			const std::string errorMessage = db->error_msg();
             Logger::Instance->error("Failed to create WorldDb: {}", errorMessage);
         }
     }
@@ -24,7 +25,6 @@ GibEngine::World::Database::Database(const char* databaseFilepath, bool debugMod
 GibEngine::World::Database::~Database()
 {
 	Disconnect();
-	delete db;
 }
 
 void GibEngine::World::Database::Disconnect()
@@ -32,16 +32,16 @@ void GibEngine::World::Database::Disconnect()
 	db->disconnect();
 }
 
-bool GibEngine::World::Database::CreateLevel(int rootNodeId, const char* name)
+bool GibEngine::World::Database::CreateLevel(int rootNodeId, const std::string& name)
 {
-    sqlite3pp::command insertCmd(*db, CREATE_LEVEL_COMMAND);
+    sqlite3pp::command insertCmd(*db, DatabaseQuery::CREATE_LEVEL_COMMAND.c_str());
 	insertCmd.bind(":nodeId", rootNodeId);
 	insertCmd.bind(":name", name, sqlite3pp::nocopy);
     int res = insertCmd.execute();
 
     if(res != SQLITE_OK)
     {
-        const char* errorMessage = db->error_msg();
+		const std::string errorMessage = db->error_msg();
         Logger::Instance->error("Failed to create WorldDb Level! SQLite Error: {}", errorMessage);
 		return false;
     } 
@@ -51,26 +51,25 @@ bool GibEngine::World::Database::CreateLevel(int rootNodeId, const char* name)
 
 GibEngine::Skybox* GibEngine::World::Database::LoadSkybox(int skyboxId)
 {
-	sqlite3pp::query qry(*db, SELECT_SKYBOX_QUERY);
+	sqlite3pp::query qry(*db, DatabaseQuery::SELECT_SKYBOX_QUERY.c_str());
 	qry.bind(":id", skyboxId);
 
-	for (auto iter = qry.begin(); iter != qry.end(); ++iter)
-	{
-		const char* assetName;
-		const char* extension;
+	const char* assetName;
+	const char* extension;
 
-		std::tie(assetName, extension) = (*iter).get_columns<const char*, const char*>(0, 1);
+	auto queryIter = qry.begin();
+	std::tie(assetName, extension) = (*queryIter).get_columns<const char*, const char*>(0, 1);
 
-		Skybox* skybox = new Skybox(strdup(assetName), strdup(extension));
-		return skybox;
-	}
+	// TODO: Change to shared_ptr once refactor is mostly done:
+	auto cubeMesh = MeshService::Generate(graphicsApi, MeshService::CUBE_GENERATION_JSON);
+	auto cubeMap = MeshService::LoadCubemap(graphicsApi, fs->GetWorkingDirectory() + "/../../Assets/Skybox/" + assetName, extension);
 
-	return nullptr;
+	return new Skybox(cubeMesh, cubeMap);
 }
 
 GibEngine::PointLight* GibEngine::World::Database::LoadLight(int lightId)
 {
-	sqlite3pp::query qry(*db, SELECT_LIGHT_QUERY);
+	sqlite3pp::query qry(*db, DatabaseQuery::SELECT_LIGHT_QUERY.c_str());
 	qry.bind(":id", lightId);
 
 	for (auto iter = qry.begin(); iter != qry.end(); ++iter)
@@ -99,31 +98,30 @@ GibEngine::PointLight* GibEngine::World::Database::LoadLight(int lightId)
 
 GibEngine::Scene::Node* GibEngine::World::Database::LoadMesh(int meshId)
 {
-	sqlite3pp::query qry(*db, SELECT_MESH_QUERY);
+	sqlite3pp::query qry(*db, DatabaseQuery::SELECT_MESH_QUERY.c_str());
 	qry.bind(":id", meshId);
 
 	for (auto iter = qry.begin(); iter != qry.end(); ++iter)
 	{
-		const char* assetName = (*iter).get<const char*>(0);
+		const std::string assetName = (*iter).get<const char*>(0);
 		const char* genData = (*iter).get<const char*>(1);
 
 		std::string parseError;
 		json11::Json generationDataJson = json11::Json::parse(genData, parseError);
 
-
-		if (assetName != nullptr && strlen(assetName) > 0)
-		{
-			// Attempt to load the asset for `assetName`
-			File* meshAssetFile = File::GetModelFile(assetName);
-
-			json11::Json* generationDataJsonPtr = (generationDataJson != nullptr) ? new json11::Json(generationDataJson) : nullptr;
-			return MeshService::Load(meshAssetFile, generationDataJsonPtr);
+		if (!assetName.empty())
+		{ 
+			return MeshService::Load(graphicsApi, assetName, generationDataJson);
 		}
 		else if (generationDataJson != nullptr)
 		{
+			Scene::Node* node = new Scene::Node("Mesh Node");
+			node->SetNodeState(World::DatabaseRecord::State::NEW);
+			node->SetEntityState(World::DatabaseRecord::State::NEW);
 			// Attempt to use the generation data to build a Mesh internally:
-			json11::Json* generationDataJsonPtr = new json11::Json(generationDataJson);
-			return MeshService::Generate(generationDataJsonPtr);
+			node->SetEntity(MeshService::Generate(graphicsApi, generationDataJson));
+
+			return node;
 		}
 		else
 		{
@@ -155,31 +153,32 @@ bool GibEngine::World::Database::SaveMesh(Scene::Node* meshNode)
 
 	Mesh* mesh = reinterpret_cast<Mesh*>(meshNode->GetEntity());
 
-
-	switch (meshNode->GetDatabaseRecord()->GetEntityState())
+	switch (meshNode->GetDatabaseRecord().GetEntityState())
 	{
 	case DatabaseRecord::State::CLEAN:
 		return true;
 	case DatabaseRecord::State::DIRTY:
 		return false;
 	case DatabaseRecord::State::NEW:
-		sqlite3pp::command insertCmd(*db, CREATE_MESH_COMMAND);
-		insertCmd.bind(":assetName", mesh->GetOwnerAssetName(), sqlite3pp::nocopy);
+		sqlite3pp::command insertCmd(*db, DatabaseQuery::CREATE_MESH_COMMAND.c_str());
 
-		const json11::Json* generationDataJson = mesh->GetGenerationData();
-		const char* generationDataStr = generationDataJson != nullptr ? generationDataJson->dump().c_str() : "";
-		insertCmd.bind(":genData", generationDataStr, sqlite3pp::nocopy);
+		auto meshAssetName = ""; // (mesh->GetOwnerAssetName() != nullptr) ? mesh->GetOwnerAssetName() : "";
+		insertCmd.bind(":assetName", meshAssetName, sqlite3pp::nocopy);
+		
+		const json11::Json generationDataJson = mesh->GetGenerationData();
+		auto genInfo = generationDataJson.dump();
+		insertCmd.bind(":genInfo", genInfo.c_str(), sqlite3pp::nocopy);
 		int res = insertCmd.execute();
 
 		if (res != SQLITE_OK)
 		{
-			const char* errorMessage = db->error_msg();
+			const std::string errorMessage = db->error_msg();
 			Logger::Instance->error("Failed to create Mesh Scene Node: {}", errorMessage);
 			return false;
 		}
 
-		meshNode->GetDatabaseRecord()->SetAttachedEntityId(GetLastAutoincrementId());
-		meshNode->GetDatabaseRecord()->SetEntityState(DatabaseRecord::State::CLEAN);
+		meshNode->SetEntityId(GetLastAutoincrementId());
+		meshNode->SetEntityState(DatabaseRecord::State::CLEAN);
 		return true;
 	}
 
@@ -190,14 +189,14 @@ bool GibEngine::World::Database::SavePointLight(Scene::Node* lightSceneNode)
 {
 	PointLight* pl = reinterpret_cast<PointLight*>(lightSceneNode->GetEntity());
 
-	switch (lightSceneNode->GetDatabaseRecord()->GetEntityState())
+	switch (lightSceneNode->GetDatabaseRecord().GetEntityState())
 	{
 	case DatabaseRecord::State::CLEAN:
 		return true;
 	case DatabaseRecord::State::DIRTY:
 	{
-		sqlite3pp::command updateCmd(*db, UPDATE_LIGHT_COMMAND);
-		updateCmd.bind(":id", lightSceneNode->GetDatabaseRecord()->GetEntityId());
+		sqlite3pp::command updateCmd(*db, DatabaseQuery::UPDATE_LIGHT_COMMAND.c_str());
+		updateCmd.bind(":id", lightSceneNode->GetDatabaseRecord().GetEntityId());
 		updateCmd.bind(":lightType", "PointLight", sqlite3pp::nocopy);
 
 		const std::string ambient = ConvertVec3ToString(pl->GetAmbientColor());
@@ -215,17 +214,17 @@ bool GibEngine::World::Database::SavePointLight(Scene::Node* lightSceneNode)
 		int res = updateCmd.execute();
 		if (res != SQLITE_OK)
 		{
-			const char* errorMessage = db->error_msg();
+			const std::string errorMessage = db->error_msg();
 			Logger::Instance->error("Failed to update PointLight Scene Node: {}", errorMessage);
 			return false;
 		}
 
-		lightSceneNode->GetDatabaseRecord()->SetEntityState(DatabaseRecord::State::CLEAN);
+		lightSceneNode->SetEntityState(DatabaseRecord::State::CLEAN);
 		return true;
 	}
 	case DatabaseRecord::State::NEW:
 	{
-		sqlite3pp::command insertCmd(*db, CREATE_LIGHT_COMMAND);
+		sqlite3pp::command insertCmd(*db, DatabaseQuery::CREATE_LIGHT_COMMAND.c_str());
 		insertCmd.bind(":lightType", "PointLight", sqlite3pp::nocopy);
 
 		const std::string pos = ConvertVec3ToString(pl->GetPosition());
@@ -246,13 +245,13 @@ bool GibEngine::World::Database::SavePointLight(Scene::Node* lightSceneNode)
 		int res = insertCmd.execute();
 		if (res != SQLITE_OK)
 		{
-			const char* errorMessage = db->error_msg();
+			const std::string errorMessage = db->error_msg();
 			Logger::Instance->error("Failed to save PointLight Scene Node: {}", errorMessage);
 			return false;
 		}
 
-		lightSceneNode->GetDatabaseRecord()->SetAttachedEntityId(GetLastAutoincrementId());
-		lightSceneNode->GetDatabaseRecord()->SetEntityState(DatabaseRecord::State::CLEAN);
+		lightSceneNode->SetEntityId(GetLastAutoincrementId());
+		lightSceneNode->SetEntityState(DatabaseRecord::State::CLEAN);
 		return true;
 	}
 	}
@@ -262,48 +261,47 @@ bool GibEngine::World::Database::SavePointLight(Scene::Node* lightSceneNode)
 
 bool GibEngine::World::Database::SaveSkybox(Scene::Node* skyboxSceneNode)
 {
-	auto dbRecord = skyboxSceneNode->GetDatabaseRecord();
 	Skybox* skybox = reinterpret_cast<Skybox*>(skyboxSceneNode->GetEntity());
 	
-	switch (skyboxSceneNode->GetDatabaseRecord()->GetEntityState())
+	switch (skyboxSceneNode->GetDatabaseRecord().GetEntityState())
 	{
 	case DatabaseRecord::State::CLEAN:
 		return true;
 
 	case DatabaseRecord::State::DIRTY:
 	{
-		sqlite3pp::command updateCmd(*db, UPDATE_SKYBOX_COMMAND);
-		updateCmd.bind(":id", skyboxSceneNode->GetDatabaseRecord()->GetEntityId());
-		updateCmd.bind(":assetName", skybox->GetName(), sqlite3pp::nocopy);
-		updateCmd.bind(":extension", skybox->GetExtension(), sqlite3pp::nocopy);
+		sqlite3pp::command updateCmd(*db, DatabaseQuery::UPDATE_SKYBOX_COMMAND.c_str());
+		updateCmd.bind(":id", skyboxSceneNode->GetDatabaseRecord().GetEntityId());
+		updateCmd.bind(":assetName", skybox->GetName(), sqlite3pp::copy);
+		//updateCmd.bind(":extension", skybox->GetExtension(), sqlite3pp::copy);
 		int res = updateCmd.execute();
 
 		if (res != SQLITE_OK)
 		{
-			const char* errorMessage = db->error_msg();
+			const std::string errorMessage = db->error_msg();
 			Logger::Instance->error("Failed to update Skybox Scene Node: {}", errorMessage);
 			return false;
 		}
 
-		dbRecord->SetEntityState(DatabaseRecord::State::CLEAN);
+		skyboxSceneNode->SetEntityState(DatabaseRecord::State::CLEAN);
 		return true;
 	}
 	case DatabaseRecord::State::NEW:
 	{
-		sqlite3pp::command insertCmd(*db, CREATE_SKYBOX_COMMAND);
-		insertCmd.bind(":assetName", skybox->GetName(), sqlite3pp::nocopy);
-		insertCmd.bind(":extension", skybox->GetExtension(), sqlite3pp::nocopy);
+		sqlite3pp::command insertCmd(*db, DatabaseQuery::CREATE_SKYBOX_COMMAND.c_str());
+		insertCmd.bind(":assetName", skybox->GetName().c_str(), sqlite3pp::copy);
+		insertCmd.bind(":extension", ""/*skybox->GetExtension().c_str()*/, sqlite3pp::nocopy);
 		int res = insertCmd.execute();
 
 		if (res != SQLITE_OK)
 		{
-			const char* errorMessage = db->error_msg();
+			const std::string errorMessage = db->error_msg();
 			Logger::Instance->error("Failed to create Skybox Scene Node: {}", errorMessage);
 			return false;
 		}
 
-		dbRecord->SetAttachedEntityId(GetLastAutoincrementId());
-		dbRecord->SetEntityState(DatabaseRecord::State::CLEAN);
+		skyboxSceneNode->SetEntityId(GetLastAutoincrementId());
+		skyboxSceneNode->SetEntityState(DatabaseRecord::State::CLEAN);
 		return true;
 	}
 	}
@@ -324,8 +322,16 @@ bool GibEngine::World::Database::SaveSceneNode(int parentNodeId, Scene::Node* no
 			// Get the first child for the node, and extract the Entity
 			Scene::Node* meshEntityNode = *node->GetChildNodesBegin();
 
+			// Overwrite mesh flags with state from Entity State:
+			meshEntityNode->SetEntityState(node->GetDatabaseRecord().GetEntityState());
+
 			// Save the Entity
 			objectSaved = SaveEntity(meshEntityNode);
+
+			node->SetEntityId(meshEntityNode->GetDatabaseRecord().GetEntityId());
+			node->SetEntityState(World::DatabaseRecord::State::NEW);
+			
+			node->SetEntity(meshEntityNode->GetEntity());
 		}
 
 		SaveSceneNodeRecord(parentNodeId, node);
@@ -344,7 +350,7 @@ bool GibEngine::World::Database::SaveSceneNode(int parentNodeId, Scene::Node* no
 
 	for (std::vector<Scene::Node*>::const_iterator iter = node->GetChildNodesBegin(); iter != node->GetChildNodesEnd(); ++iter)
 	{
-		SaveSceneNode(node->GetDatabaseRecord()->GetId(), *iter);
+		SaveSceneNode(node->GetDatabaseRecord().GetId(), *iter);
 	}
 	
 	return true;
@@ -352,7 +358,7 @@ bool GibEngine::World::Database::SaveSceneNode(int parentNodeId, Scene::Node* no
 
 bool GibEngine::World::Database::SaveSceneNodeRecord(int parentId, Scene::Node* node)
 {
-	switch (node->GetDatabaseRecord()->GetState())
+	switch (node->GetDatabaseRecord().GetState())
 	{
 	case DatabaseRecord::State::CLEAN:
 		return true;
@@ -362,15 +368,15 @@ bool GibEngine::World::Database::SaveSceneNodeRecord(int parentId, Scene::Node* 
 		glm::vec3 pos = glm::vec3(localTrans[3][0], localTrans[3][1], localTrans[3][2]);
 		glm::vec3 scale = glm::vec3(localTrans[0][0], localTrans[1][1], localTrans[2][2]);
 
-		sqlite3pp::command cmd(*db, UPDATE_NODE_COMMAND);
-		cmd.bind(":id", node->GetDatabaseRecord()->GetId());
+		sqlite3pp::command cmd(*db, DatabaseQuery::UPDATE_NODE_COMMAND.c_str());
+		cmd.bind(":id", node->GetDatabaseRecord().GetId());
 		cmd.bind(":parentId", parentId);
 
-		cmd.bind(":entityId", node->GetDatabaseRecord()->GetEntityId());
+		cmd.bind(":entityId", node->GetDatabaseRecord().GetEntityId());
 		
 		if (node->GetEntity() != nullptr)
 		{
-			cmd.bind(":entityType", node->GetEntity()->GetTypeName(), sqlite3pp::nocopy);
+			cmd.bind(":entityType", node->GetEntity()->GetTypeName(), sqlite3pp::copy);
 		}
 		else if (node->GetChildNodeCount() > 0)
 		{
@@ -378,7 +384,7 @@ bool GibEngine::World::Database::SaveSceneNodeRecord(int parentId, Scene::Node* 
 			auto childNode = *node->GetChildNodesBegin();
 			if(childNode != nullptr)
 			{
-				cmd.bind(":entityType", childNode->GetEntity()->GetTypeName(), sqlite3pp::nocopy);
+				cmd.bind(":entityType", childNode->GetEntity()->GetTypeName(), sqlite3pp::copy);
 			}
 		}
 
@@ -397,19 +403,19 @@ bool GibEngine::World::Database::SaveSceneNodeRecord(int parentId, Scene::Node* 
 			return false;
 		}
 
-		node->GetDatabaseRecord()->SetState(DatabaseRecord::State::CLEAN);
+		node->SetNodeState(DatabaseRecord::State::CLEAN);
 		return true;
 	}
 	case DatabaseRecord::State::DELETED:
 	{
-		sqlite3pp::command cmd(*db, DELETE_NODE_COMMAND);
-		cmd.bind(":id", node->GetDatabaseRecord()->GetId());
+		sqlite3pp::command cmd(*db, DatabaseQuery::DELETE_NODE_COMMAND.c_str());
+		cmd.bind(":id", node->GetDatabaseRecord().GetId());
 
 		int res = cmd.execute();
 
 		if (res != SQLITE_OK)
 		{
-			const char* errorMessage = db->error_msg();
+			const std::string errorMessage = db->error_msg();
 			Logger::Instance->error("Failed to delete Scene Node Record: {}", errorMessage);
 			return false;
 		}
@@ -422,13 +428,13 @@ bool GibEngine::World::Database::SaveSceneNodeRecord(int parentId, Scene::Node* 
 		glm::vec3 pos = glm::vec3(localTrans[3][0], localTrans[3][1], localTrans[3][2]);
 		glm::vec3 scale = glm::vec3(localTrans[0][0], localTrans[1][1], localTrans[2][2]);
 
-		sqlite3pp::command cmd(*db, CREATE_NODE_COMMAND);
+		sqlite3pp::command cmd(*db, DatabaseQuery::CREATE_NODE_COMMAND.c_str());
 		cmd.bind(":parentId", parentId);
 
 		if (node->GetEntity() != nullptr)
 		{
-			cmd.bind(":entityType", node->GetEntity()->GetTypeName(), sqlite3pp::nocopy);
-			cmd.bind(":entityId", node->GetDatabaseRecord()->GetEntityId());
+			cmd.bind(":entityType", node->GetEntity()->GetTypeName(), sqlite3pp::copy);
+			cmd.bind(":entityId", node->GetDatabaseRecord().GetEntityId());
 		}
 
 		const std::string position = ConvertVec3ToString(pos);
@@ -446,8 +452,8 @@ bool GibEngine::World::Database::SaveSceneNodeRecord(int parentId, Scene::Node* 
 			return false;
 		}
 
-		node->GetDatabaseRecord()->SetId(GetLastAutoincrementId());
-		node->GetDatabaseRecord()->SetState(DatabaseRecord::State::CLEAN);
+		node->SetNodeId(GetLastAutoincrementId());
+		node->SetNodeState(DatabaseRecord::State::CLEAN);
 		return true;
 	}
 	}
@@ -460,11 +466,11 @@ bool GibEngine::World::Database::SaveEntity(GibEngine::Scene::Node* entityNode)
 
 	switch (entity->GetType())
 	{
-	case EntityType::SKYBOX:
+	case Entity::Type::SKYBOX:
 		return SaveSkybox(entityNode);
-	case EntityType::POINT_LIGHT:
+	case Entity::Type::POINT_LIGHT:
 		return SavePointLight(entityNode);
-	case EntityType::MESH:
+	case Entity::Type::MESH:
 		return SaveMesh(entityNode);
 	default:
 		return false;
@@ -473,7 +479,7 @@ bool GibEngine::World::Database::SaveEntity(GibEngine::Scene::Node* entityNode)
 
 int GibEngine::World::Database::GetLastAutoincrementId()
 {
-    sqlite3pp::query qry(*db, SELECT_LAST_AUTOINCREMENT_ID);
+    sqlite3pp::query qry(*db, DatabaseQuery::SELECT_LAST_AUTOINCREMENT_ID.c_str());
 
     sqlite3pp::query::iterator iter = qry.begin();
     int id = (*iter).get<int>(0);
@@ -483,7 +489,7 @@ int GibEngine::World::Database::GetLastAutoincrementId()
 
 GibEngine::Scene::Node* GibEngine::World::Database::FindNode(int nodeId)
 {
-	sqlite3pp::query qry(*db, SELECT_NODE_QUERY);
+	sqlite3pp::query qry(*db, DatabaseQuery::SELECT_NODE_QUERY.c_str());
 	qry.bind(":id", nodeId);
 
 	for (auto iter = qry.begin(); iter != qry.end(); ++iter)
@@ -503,26 +509,29 @@ GibEngine::Scene::Node* GibEngine::World::Database::FindNode(int nodeId)
 
 		if (entityType != nullptr)
 		{
-			if (strcmp(entityType, "Skybox") == 0)
+			if (strcmp(entityType, Entity::GetTypeString(Entity::Type::SKYBOX).c_str()) == 0)
 			{
-				node = new Scene::Node("Skybox");
+				node = new Scene::Node(Entity::GetTypeString(Entity::Type::SKYBOX));
 				node->SetEntity(LoadSkybox(entityId));
-				node->GetDatabaseRecord()->SetAttachedEntityId(entityId);
+				node->SetEntityId(entityId);
 			}
 			else if (strcmp(entityType, "Mesh") == 0)
 			{				
 				node = LoadMesh(entityId);
-				node->GetDatabaseRecord()->SetAttachedEntityId(entityId);
+				node->SetEntityId(entityId);
 			}
 			else if (strcmp(entityType, "Point Light") == 0)
 			{
 				node = new Scene::Node("Point Light");
 				node->SetEntity(LoadLight(entityId));
-				node->GetDatabaseRecord()->SetAttachedEntityId(entityId);
+				node->SetEntityId(entityId);
 
 				if (debugMode)
 				{
-					MeshService::AttachVisibleSphere(node);
+					// Attach the sphere mesh 
+
+		/*			auto sphereNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/default/sphere/sphere.obj", forwardGenerationData);
+					pointLightNode->AddChildNode(sphereNode);*/
 				}
 			}
 			else
@@ -536,13 +545,13 @@ GibEngine::Scene::Node* GibEngine::World::Database::FindNode(int nodeId)
 			node = new Scene::Node("Transform Node");
 		}
 		
-		node->GetDatabaseRecord()->SetId(nodeId);
-		node->GetDatabaseRecord()->SetState(DatabaseRecord::State::CLEAN);
+		node->SetNodeId(nodeId);
+		node->SetNodeState(DatabaseRecord::State::CLEAN);
 
 		node->SetLocalTransform(nodeTransform);
 
 		// Load all child nodes:
-		sqlite3pp::query childNodeQry(*db, SELECT_CHILD_NODES_QUERY);
+		sqlite3pp::query childNodeQry(*db, DatabaseQuery::SELECT_CHILD_NODES_QUERY.c_str());
 		childNodeQry.bind(":parentId", nodeId);
 
 		for (auto childIter = childNodeQry.begin(); childIter != childNodeQry.end(); ++childIter)
@@ -557,7 +566,7 @@ GibEngine::Scene::Node* GibEngine::World::Database::FindNode(int nodeId)
 	return nullptr;
 }
 
-std::string GibEngine::World::Database::ConvertVec3ToString(glm::vec3 vec)
+std::string GibEngine::World::Database::ConvertVec3ToString(const glm::vec3& vec)
 {
 	std::string str;
 	for (int i = 0; i < 3; i++)
@@ -568,24 +577,27 @@ std::string GibEngine::World::Database::ConvertVec3ToString(glm::vec3 vec)
 	return str;
 }
 
-glm::vec3 GibEngine::World::Database::ReadVec3(const char* vec3String)
+glm::vec3 GibEngine::World::Database::ReadVec3(std::string vec3String)
 {
-	if (std::string(vec3String).size() == 0)
+	if (vec3String.length() == 0)
 	{
 		return glm::vec3();
 	}
 
-    char* mutVec3Str = strdup(vec3String);                
-    char* value = std::strtok(mutVec3Str, ",");
-
+	size_t pos = 0;
+	int idx = 0;
     glm::vec3 vec = glm::vec3();
-    for(int i = 0; i < 3; i++)
-    {                   
-        vec[i] = std::stof(std::string(value));
-        value = std::strtok(NULL, ",");
-    }
+	while ((pos = vec3String.find(',')) != vec3String.npos)
+	{
+		if (idx >= 3)
+		{
+			break;
+		}
 
-	delete mutVec3Str;
+		vec[idx++] = std::stof(vec3String.substr(0, pos));
+		vec3String.erase(0, pos+1);
+
+	}
 
     return vec;
 }

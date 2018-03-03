@@ -1,12 +1,12 @@
 #include "renderer/RenderToTexturePass.h"
 
-GibEngine::Renderer::RenderToTexturePass::RenderToTexturePass(API::IGraphicsApi * graphicsApi, Shader * shader, Framebuffer* framebuffer)
+GibEngine::Renderer::RenderToTexturePass::RenderToTexturePass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader * shader, Framebuffer* framebuffer)
 	: RenderPass(graphicsApi, shader, framebuffer)
 {
 	LoadQuadData();
 }
 
-void GibEngine::Renderer::RenderToTexturePass::Render(const GibEngine::Scene::VisibleSet* visibleSet)
+void GibEngine::Renderer::RenderToTexturePass::Render(const GibEngine::Scene::VisibleSet& visibleSet)
 {
 	const int TEXTURE_SLOT_ZERO = 0;
 	const char* TEXTURE_SLOT_NAME = "renderedTexture";
@@ -24,7 +24,7 @@ void GibEngine::Renderer::RenderToTexturePass::Render(const GibEngine::Scene::Vi
 
 	graphicsApi->BindTexture2D(TEXTURE_SLOT_ZERO, framebuffer->GetBuffer().framebufferId);
 
-	graphicsApi->DrawPrimitive(quadMesh->GetMeshUploadTicket());
+	graphicsApi->DrawPrimitive(*quadMesh->GetMeshUploadTicket());
 
 	graphicsApi->UnbindShader();
 }

@@ -10,6 +10,8 @@
 #include "DeferredLightingPass.h"
 #include "RenderToTexturePass.h"
 
+#include "filesystem/IFileSystem.h"
+
 #include "UniformBufferManager.h"
 #include "Framebuffer.h"
 
@@ -34,33 +36,29 @@ namespace GibEngine
 
 		class Pipeline
 		{
-			static const char* ShaderLanguageStrings[];
 			bool renderingPaused = false;
 
 			Framebuffer* framebuffer;
-			CameraBase* camera;
 
-			API::IGraphicsApi *graphicsApi = nullptr;
-			ShaderLanguage shaderLanguage;
-			std::map<RenderPassType, RenderPass*> passes;
+			RenderPass* passes[static_cast<int>(RenderPassType::RENDERPASSTYPE_LAST)] = {};
 
-			const char* GetShaderLanguageString(ShaderLanguage language);
-			void SelectGraphicsApi(ShaderLanguage shaderLanguage);
+			std::vector<std::shared_ptr<CameraBase>> cameras;
+			std::shared_ptr<FileSystem::IFileSystem> fileSystem;
+			std::shared_ptr<API::IGraphicsApi> graphicsApi;
 
 		public:
-			Pipeline(int framebufferWidth, int framebufferHeight, ShaderLanguage supportedShaderLanguage);
+			Pipeline(int framebufferWidth, int framebufferHeight, std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem, std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi);
 			~Pipeline();
 
+			void AddCamera(std::shared_ptr<CameraBase> camera);
 			void AddPass(RenderPassType type);
 
-			void Render(const Scene::VisibleSet* visibleSet, const float deltaTime);
-			void Update(float deltaTime);
+			void Render(const Scene::VisibleSet& visibleSet, const float deltaTime);
 
 			bool IsRenderPaused();
 			RenderPass* GetRenderPass(RenderPassType type);
 			Framebuffer* GetFramebuffer();
 
-			void SetCameraBase(CameraBase *camera);
 			void SetRenderPaused(bool renderingPaused);
 
 			void ResizeFramebuffer(int width, int height);

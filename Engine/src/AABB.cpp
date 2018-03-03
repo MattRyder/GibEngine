@@ -47,12 +47,12 @@ glm::vec3 GibEngine::AABB::GetMaxBounds() const
 	return position + size;
 }
 
-void GibEngine::AABB::SetPosition(const glm::vec3 position)
+void GibEngine::AABB::SetPosition(const glm::vec3& position)
 {
 	this->position = position;
 }
 
-void GibEngine::AABB::SetSize(const glm::vec3 size)
+void GibEngine::AABB::SetSize(const glm::vec3& size)
 {
 	this->size = size;
 }

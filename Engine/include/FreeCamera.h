@@ -9,8 +9,8 @@ namespace GibEngine
 {
     class FreeCamera : public CameraBase
     {
-        float cameraMovementSpeed = 1.0f;
-		double lastMouseX = 0.0f, lastMouseY = 0.0f;
+        const float cameraMovementSpeed;
+		glm::vec2 lastMouseDelta;
 
         FreeCamera();
 
@@ -24,7 +24,6 @@ namespace GibEngine
         FreeCamera(int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees);
         ~FreeCamera();
 
-        // Inherited via CameraBase
         virtual void Render();
 
 		virtual void Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState) override;

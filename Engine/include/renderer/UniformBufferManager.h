@@ -1,8 +1,5 @@
 #pragma once
 
-#include <GL/gl3w.h>
-#include <GLFW/glfw3.h>
-
 #include "Entity.h"
 #include "Shader.h"
 #include "RenderPassType.h"
@@ -14,24 +11,21 @@ namespace GibEngine
 		class UniformBuffer
 		{
 			// Where OpenGL has stored the buffer:
-			GLuint bufferId = 0;
+			GLuint bufferId;
 
 			// Which UBO index the buffer is bound to:
 			GLuint bufferBindingIndex;
 
 			// Name of the block in GLSL:
-			const char* uniformBlockName;
+			const std::string uniformBlockName;
 
 			// Size of the UBO:
 			size_t size;
 
 		public:
-			UniformBuffer(const char* bufferName, GLuint bufferIndex, size_t bufferSize)
+			UniformBuffer(const std::string bufferName, GLuint bufferIndex, size_t bufferSize)
+				: bufferId(0), uniformBlockName(bufferName), bufferBindingIndex(bufferIndex), size(bufferSize)
 			{
-				this->uniformBlockName = bufferName;
-				this->bufferBindingIndex = bufferIndex;
-				this->size = bufferSize;
-
 				glGenBuffers(1, &bufferId);
 				glBindBuffer(GL_UNIFORM_BUFFER, bufferId);
 				glBufferData(GL_UNIFORM_BUFFER, bufferSize, nullptr, GL_STATIC_DRAW);
@@ -63,7 +57,7 @@ namespace GibEngine
 				return this->bufferBindingIndex;
 			}
 
-			const char* GetBufferName()
+			const std::string GetBufferName()
 			{
 				return uniformBlockName;
 			}
@@ -80,16 +74,14 @@ namespace GibEngine
 			// Find and return a suitable uniform binding index
 			unsigned int GetAvailableBufferIndex();
 		public:
-			UniformBufferManager();
+			UniformBufferManager() = default;
 			~UniformBufferManager();
 
-			UniformBuffer* Create(const char* bufferName, size_t bufferSize);
-			UniformBuffer* Create(const char* bufferName, size_t bufferSize, GLvoid *bufferData);
+			UniformBuffer* Create(const std::string bufferName, size_t bufferSize);
+			UniformBuffer* Create(const std::string bufferName, size_t bufferSize, GLvoid *bufferData);
 
-			UniformBuffer* Find(const char* bufferName);
-			UniformBuffer* FindOrCreate(const char* bufferName, size_t bufferSize);
-
-			void Bind(Shader* shader);
+			UniformBuffer* Find(const std::string bufferName);
+			UniformBuffer* FindOrCreate(const std::string bufferName, size_t bufferSize);
 
 			void Update(UniformBuffer* uniformBuffer, GLvoid* newData);
 
