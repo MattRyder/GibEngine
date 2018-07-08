@@ -5,7 +5,6 @@
 #include "EntityInspector.h"
 #include "ContentBrowser.h"
 
-#include "scene/Node.h"
 #include "renderer/Pipeline.h"
 
 namespace GibEditor
@@ -29,22 +28,27 @@ namespace GibEditor
 				POINT_LIGHT,
 			};
 
-			Dock(std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem, std::shared_ptr<GibEngine::Scene::Node> rootSceneNode, std::shared_ptr<GibEngine::Renderer::Pipeline> pipeline);
-			virtual void Render() override;
+			Dock(std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem,
+				std::shared_ptr<GibEngine::Renderer::API::IGraphicsApi> graphicsApi,
+				std::shared_ptr<GibEngine::BaseEntity> rootEntity);
+
+			virtual void Render(unsigned int gameWorldTextureId);
 
 			Dock::Type GetSelectedDock() const;
 
 		private:
-			std::shared_ptr<GibEngine::Scene::Node> rootSceneNode;
-			std::shared_ptr<GibEngine::Renderer::Pipeline> pipeline;
-			
-			Components::ContentBrowser* cbrowser = nullptr;
-			Components::EntityInspector* entityInspector = nullptr;
+			std::shared_ptr<GibEngine::BaseEntity> rootEntity;
+			std::shared_ptr<GibEngine::Renderer::API::IGraphicsApi> graphicsApi;
 
+			Components::ContentBrowser cbrowser;
+			std::shared_ptr<Components::EntityInspector> entityInspector;
+
+			std::string selectedSceneOutlineItem;
 			Dock::Type selectedDock = Dock::Type::GAME;
 			ActiveEntityInspector activeInspector = ActiveEntityInspector::NONE;
 			
-			void RenderSceneTreeNode(GibEngine::Scene::Node* node);
+			void Render() override {}
+			void RenderSceneTree(const std::shared_ptr<GibEngine::BaseEntity>& node);
 		};
 	}
 }

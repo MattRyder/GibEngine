@@ -9,7 +9,7 @@ namespace GibEngine
 			POSITION,
 			ALBEDO,
 			NORMAL,
-			RENDER_TO_TEXTURE,
+			AMBIENT_OCCLUSION,
 			FRAMEBUFFERTYPE_LAST
 		};
 
@@ -29,7 +29,6 @@ namespace GibEngine
 
 		public:
 			Framebuffer(int bufferWidth, int bufferHeight);
-			~Framebuffer();
 
 			buffer_t GetBuffer() const;
 			int GetBufferWidth() const;

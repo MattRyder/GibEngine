@@ -36,14 +36,14 @@ void main() {
 	for(int i = 0; i < LIGHT_COUNT; i++) {
 	    float distanceToLight = length(pointLights[i].position - fragmentPosition);
 
-		if(distanceToLight > pointLights[i].volumeRadius * 10.0)
+		if(distanceToLight > pointLights[i].volumeRadius * 100)
 		 	continue;
 
 		vec3 lightDirection = normalize(pointLights[i].position - fragmentPosition);
 		vec3 diffuseColor = max(dot(fragmentNormal, lightDirection), 0.0) * fragmentDiffuse * pointLights[i].diffuseColor;
 
 		vec3 halfwayDirection = normalize(lightDirection + viewDirection);
-		float specularComponent = pow(max(dot(fragmentNormal, halfwayDirection), 0.0), 2.0);
+		float specularComponent = pow(max(dot(fragmentNormal, halfwayDirection), 0.0), 16.0);
 		vec3 specularColor = pointLights[i].specularColor * specularComponent * fragmentSpecular;
         
 		float attenuation = 1.0 / (1.0 + pointLights[i].linearAttenuation * distanceToLight + pointLights[i].quadraticAttenuation * pow(distanceToLight, 2.0));

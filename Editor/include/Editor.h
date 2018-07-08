@@ -16,7 +16,6 @@ namespace GibEditor
     {
 	public:
 		Editor(int argc, char** argv);
-		~Editor();
 
 		enum Flags
 		{
@@ -27,15 +26,15 @@ namespace GibEditor
 		virtual void Render() override;
 		virtual void Update() override;
 
-		Components::Dock* GetDock() const;
+		std::shared_ptr<Components::Dock> GetDock() const;
 
 		static bool FlagMask(Flags x) { return static_cast<char>(x) != 0; };
 
 	private:
 		Flags flags = Flags::DEFAULT;
-		Components::Menubar* menubar;
-		Components::Dock* dock;
-		Components::StatusBar* statusBar;
+		std::shared_ptr<Components::Menubar> menubar;
+		std::shared_ptr<Components::StatusBar> statusBar;
+		std::shared_ptr<Components::Dock> dock;
 
 		float keydownInterval = 0;
 		float deltaDisplayIntervalTimer;

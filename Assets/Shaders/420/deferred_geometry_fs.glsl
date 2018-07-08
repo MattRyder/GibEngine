@@ -36,7 +36,7 @@ uniform sampler2D texture_depth0;
 uniform Material material;
 
 const float Z_NEAR = 1.0;
-const float Z_FAR = 2500.0;
+const float Z_FAR = 2000.0;
 
 float linearDepth(float depthValue) {
   // translate to normalized device coordinate space:
@@ -46,8 +46,8 @@ float linearDepth(float depthValue) {
 
 void main() {
   g_Position = vec4(VS.FragmentPosition, 1.0);
-  g_Position.a = linearDepth(gl_FragCoord.z),
+  g_Position.a = linearDepth(gl_FragCoord.z);
   g_Normal = normalize(texture(texture_normal0, VS.TexCoords).rgb);
-  g_Albedo.rgb = material.diffuseColor + texture(texture_diffuse0, VS.TexCoords).rgb;
+  g_Albedo.rgb = /*material.diffuseColor +*/ texture(texture_diffuse0, VS.TexCoords).rgb;
   g_Albedo.a = texture(texture_specular0, VS.TexCoords).r;
 }

@@ -1,14 +1,12 @@
 #include "components/ContentBrowser.h"
 
-GibEditor::Components::ContentBrowser::ContentBrowser(std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem, std::shared_ptr<GibEngine::Scene::Node> rootSceneNode, std::shared_ptr<GibEngine::Renderer::Pipeline> pipeline)
-	: rootSceneNode(rootSceneNode), pipeline(pipeline), fileSystem(fileSystem)
+GibEditor::Components::ContentBrowser::ContentBrowser(
+	std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem, 
+	std::shared_ptr<GibEngine::Renderer::API::IGraphicsApi> graphicsApi,
+	std::shared_ptr<GibEngine::BaseEntity> rootEntity)
+	: fileSystem(fileSystem), graphicsApi(graphicsApi), rootEntity(rootEntity)
 {
 	defaultGenerationData = json11::Json::object { { "MeshFlags", json11::Json::array{ "RENDER_DEFERRED" } } };
-}
-
-GibEditor::Components::ContentBrowser::~ContentBrowser()
-{
-	delete contentDirectoryObserver;
 }
 
 void GibEditor::Components::ContentBrowser::Render()
@@ -63,10 +61,8 @@ void GibEditor::Components::ContentBrowser::Render()
 
 				if (ImGui::Button(displayName.c_str(), buttonSize))
 				{
-					//GibEngine::Scene::Node* meshNode = GibEngine::MeshService::Load(meshFilePath, defaultGenerationData);
-					//meshNode->SetEntityState(GibEngine::World::DatabaseRecord::State::NEW);
-					//meshNode->SetNodeState(GibEngine::World::DatabaseRecord::State::NEW);
-					//rootSceneNode->AddChildNode(meshNode);
+					auto mesh = GibEngine::MeshService::Load(graphicsApi, meshFilePath, defaultGenerationData);
+					rootEntity->AddChild(mesh);
 				}
 			}
 
@@ -85,14 +81,8 @@ void GibEditor::Components::ContentBrowser::Render()
 
 		if (ImGui::Button("Point Light", buttonSize))
 		{
-			GibEngine::PointLight* light = new GibEngine::PointLight();
-			GibEngine::Scene::Node* lightNode = new GibEngine::Scene::Node("New Point Light");
-			lightNode->SetEntity(light);
-			lightNode->SetEntityState(GibEngine::World::DatabaseRecord::State::NEW);
-
-			//GibEngine::MeshService::AttachVisibleSphere(lightNode);
-
-			rootSceneNode->AddChildNode(lightNode);
+			auto light = std::shared_ptr<GibEngine::PointLight>(new GibEngine::PointLight());
+			rootEntity->AddChild(light);
 		}
 
 		ImGui::TreePop();
@@ -100,10 +90,4 @@ void GibEditor::Components::ContentBrowser::Render()
 
 	ImGui::Columns(1);
 
-}
-
-void GibEditor::Components::ContentBrowser::SetObserver(Observer* observer)
-{
-	delete this->contentDirectoryObserver;
-	this->contentDirectoryObserver = observer;
 }

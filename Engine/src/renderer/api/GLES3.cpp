@@ -93,6 +93,10 @@ void GibEngine::Renderer::API::GLES3::BindUniform3fv(unsigned int uniformLocatio
 	glUniform3fv(uniformLocation, count, uniformValue);
 }
 
+void GibEngine::Renderer::API::GLES3::BindUniform4fv(unsigned int uniformLocation, unsigned int count, const float * uniformValue)
+{
+}
+
 bool GibEngine::Renderer::API::GLES3::CreateFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer, int framebufferWidth, int framebufferHeight)
 {
 	GLuint bufferAttachments[FRAMEBUFFERTYPE_LAST];
@@ -264,6 +268,7 @@ unsigned char * GibEngine::Renderer::API::GLES3::ReadFramebufferTexture(GibEngin
 	return textureData;
 }
 
+
 void GibEngine::Renderer::API::GLES3::UnbindFramebuffer()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -318,9 +323,9 @@ bool GibEngine::Renderer::API::GLES3::UpdateMeshInstances(const MeshUploadTicket
 	return true;
 }
 
-bool GibEngine::Renderer::API::GLES3::UpdateCamera(CameraBase* camera)
+bool GibEngine::Renderer::API::GLES3::UpdateCamera(const CameraBase& camera)
 {
-	BindCamera(camera);
+	//BindCamera(camera);
 	return true;
 }
 
@@ -377,7 +382,7 @@ std::shared_ptr<GibEngine::MeshUploadTicket> GibEngine::Renderer::API::GLES3::Up
 	//return ticket;
 }
 
-void GibEngine::Renderer::API::GLES3::UploadTexture2D(unsigned int* textureId, const TextureData& textureData)
+void GibEngine::Renderer::API::GLES3::UploadTexture2D(unsigned int* textureId, const TextureData& textureData, SamplerFiltering filtering, SamplerEdgeClamping edgeClamping)
 {
 	//unsigned int textureId = 0;
 

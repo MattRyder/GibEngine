@@ -28,6 +28,7 @@ namespace GibEngine
 
 				virtual void BindUniform1f(unsigned int uniformLocation, unsigned int uniformValue) override;
 				virtual void BindUniform3fv(unsigned int uniformLocation, unsigned int count, const float *uniformValue) override;
+				virtual void BindUniform4fv(unsigned int uniformLocation, unsigned int count, const float * uniformValue) override;
 
                 virtual bool CreateFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer, int framebufferWidth, int framebufferHeight) override;
 				virtual void DeleteFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer) override;
@@ -44,10 +45,10 @@ namespace GibEngine
 				virtual void RegisterCamera(std::shared_ptr<CameraBase> camera) override;
 
 				virtual bool UpdateMeshInstances(const MeshUploadTicket& meshUploadTicket, const std::vector<glm::mat4>& instanceMatrixList) override;
-				virtual bool UpdateCamera(CameraBase *camera) override;
+				virtual bool UpdateCamera(const CameraBase& camera) override;
 
 				virtual std::shared_ptr<MeshUploadTicket> UploadMesh(const std::vector<GibEngine::Vertex>& vertexList, const std::vector<unsigned int>& indexList) override;
-                virtual void UploadTexture2D(unsigned int* textureId, const TextureData& textureData) override;
+                virtual void UploadTexture2D(unsigned int* textureId, const TextureData& textureData, SamplerFiltering filtering, SamplerEdgeClamping edgeClamping) override;
 				virtual void UploadTextureCubemap(unsigned int* textureId, std::vector<TextureData>& cubemapSideData) override;
 
                 virtual void UnbindFramebuffer() override;
@@ -55,6 +56,7 @@ namespace GibEngine
 
 				virtual unsigned char * ReadFramebuffer(GibEngine::Renderer::Framebuffer * framebuffer) override;
 				virtual unsigned char* ReadFramebufferTexture(GibEngine::Renderer::Framebuffer *framebuffer, GibEngine::Renderer::FramebufferType framebufferTextureType) override;
+
 			};
         }
     }

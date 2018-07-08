@@ -62,7 +62,13 @@ const json11::Json GibEngine::MeshService::CUBE_GENERATION_JSON = json11::Json::
 	{ "MeshFlags", json11::Json::array{ "RENDER_ENABLED" } }
 };
 
-void GibEngine::MeshService::ProcessNode(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, Scene::Node* parentNode, const std::string& meshFilePath, const aiScene& scene, Mesh::Flags flags, aiNode& node)
+void GibEngine::MeshService::ProcessNode(
+	const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, 
+	const std::string& meshFilePath, 
+	std::shared_ptr<BaseEntity> parent, 
+	const aiScene& scene, 
+	Mesh::Flags flags, 
+	aiNode& node)
 {
 	// Load each mesh for this node:
 	for (unsigned int i = 0; i < node.mNumMeshes; i++)
@@ -128,22 +134,15 @@ void GibEngine::MeshService::ProcessNode(const std::shared_ptr<Renderer::API::IG
 		vertices.clear();
 		indices.clear();
 
-		Mesh* processedMesh = new Mesh(name, meshUploadTicket, mat);
-		processedMesh->SetFlags(flags);
+		auto meshEntity = std::shared_ptr<Mesh>(new Mesh(name, meshUploadTicket, mat));
+		meshEntity->SetFlags(flags);
 
-		Scene::Node* childMeshNode = new Scene::Node(name);
-		childMeshNode->SetEntity(processedMesh);
-		childMeshNode->SetLocalTransform(meshTransform);
-
-		// Set the database record up:
-		childMeshNode->SetNodeState(World::DatabaseRecord::State::CLEAN);
-
-		parentNode->AddChildNode(childMeshNode);
+		parent->AddChild(meshEntity);
 	}
 
 	for (unsigned int i = 0; i < node.mNumChildren; i++)
 	{
-		ProcessNode(graphicsApi, parentNode, meshFilePath, scene, flags, *node.mChildren[i]);
+		ProcessNode(graphicsApi, meshFilePath, parent, scene, flags, *node.mChildren[i]);
 	}
 }
 
@@ -153,6 +152,7 @@ std::shared_ptr<GibEngine::Material> GibEngine::MeshService::LoadMaterial(const 
 	{
 		{ aiTextureType_DIFFUSE, TextureType::DIFFUSE },
 		{ aiTextureType_HEIGHT, TextureType::NORMAL },
+		{ aiTextureType_NORMALS, TextureType::NORMAL },
 		{ aiTextureType_SPECULAR, TextureType::SPECULAR }
 	};
 
@@ -174,30 +174,46 @@ std::shared_ptr<GibEngine::Material> GibEngine::MeshService::LoadMaterial(const 
 	material->Opacity = opacity;
 	material->Shininess = shine;
 
-	// Load Textures
-	for (auto texturePair : textureTypeMap)
+	std::vector<std::future<std::shared_ptr<TextureData>>> textureLoadOperations;
+
+	auto loadTextureAsync = [](const TextureType type, const std::string& textureFilePath)
 	{
-		for (auto i = 0; i < assimpMaterial.GetTextureCount(texturePair.first); i++)
+		auto textureData = std::shared_ptr<TextureData>(new TextureData);
+		textureData->Type = type;
+		textureData->DataType = StorageType::UNSIGNED_CHAR; // I've invented a meta type-system, remove ASAP.
+		textureData->Data = stbi_load(textureFilePath.c_str(), &textureData->Width, &textureData->Height, &textureData->Channels, 0);
+		return textureData;
+	};
+
+	 //Load Textures
+	for (const auto& texturePair : textureTypeMap)
+	{
+		for (auto i = 0U; i < assimpMaterial.GetTextureCount(texturePair.first); i++)
 		{
-			TextureData textureData = { 0 };
 			aiString str;
 			assimpMaterial.GetTexture(texturePair.first, i, &str);
 
 			auto textureFilePath = materialTextureDirectoryPath + str.C_Str();
-			textureData.Data = stbi_load(textureFilePath.c_str(), &textureData.Width, &textureData.Height, &textureData.Channels, 0);
-
-			// Get the info about the texture, upload data, assign ID to tex and return it:
-			unsigned int textureId = 0;
-			graphicsApi->UploadTexture2D(&textureId, textureData);
-
-			auto matTex = MaterialTexture();
-			matTex.texture = std::shared_ptr<Texture>(new Texture(textureId, texturePair.second, glm::vec2(textureData.Width, textureData.Height)));
-			material->Textures.push_back(matTex);
-
-			stbi_image_free(textureData.Data);
+			textureLoadOperations.push_back(std::async(loadTextureAsync, texturePair.second, textureFilePath));
 		}
 	}
 
+	for (auto& texFuture : textureLoadOperations)
+	{
+		unsigned int textureId = 0;
+		auto textureData = texFuture.get();
+
+		graphicsApi->UploadTexture2D(&textureId, *textureData, Renderer::API::SamplerFiltering::NEAREST, Renderer::API::SamplerEdgeClamping::REPEAT);
+
+		free(textureData->Data);
+		//stbi_image_free(textureData->Data);
+		textureData->Data = nullptr;
+
+		auto matTex = MaterialTexture();
+		matTex.texture = std::shared_ptr<Texture>(new Texture(textureId, textureData->Type, glm::vec2(textureData->Width, textureData->Height)));
+
+		material->Textures.push_back(matTex);
+	}
 
 	return material;
 }
@@ -259,7 +275,7 @@ GibEngine::Mesh::Flags GibEngine::MeshService::ParseFlagsJson(const std::vector<
 	return flags;
 }
 
-GibEngine::Scene::Node* GibEngine::MeshService::Load(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const std::string meshFileRelativePath, const json11::Json generationData)
+std::shared_ptr<GibEngine::Mesh> GibEngine::MeshService::Load(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const std::string meshFileRelativePath, const json11::Json generationData)
 {
 	Mesh::Flags genDataMeshFlags = Mesh::Flags::RENDER_ENABLED;
 
@@ -280,22 +296,17 @@ GibEngine::Scene::Node* GibEngine::MeshService::Load(const std::shared_ptr<Rende
 		return nullptr;
 	}
 
-	Scene::Node* rootNode = new Scene::Node("Mesh Root");
-	rootNode->SetFlags(rootNode->GetFlags() | Scene::Node::Flags::MESH_ROOT);
+	auto meshFileName = meshFileRelativePath.substr(meshFileRelativePath.find_last_of("/") + 1, meshFileRelativePath.size());
+	auto meshRoot = std::shared_ptr<Mesh>(new Mesh("Mesh Root [" + meshFileName + "]"));
 	
 	// This call needs fixing
-	ProcessNode(graphicsApi, rootNode, meshFileRelativePath, *scene, genDataMeshFlags, *scene->mRootNode);
+	ProcessNode(graphicsApi, meshFileRelativePath, meshRoot, *scene, genDataMeshFlags, *scene->mRootNode);
+	meshRoot->SetGenerationData(generationData);
 
-	auto nodeChildFirst = *rootNode->GetChildNodesBegin();
-	auto nodeMesh = reinterpret_cast<Mesh*>(nodeChildFirst->GetEntity());
-	nodeMesh->SetGenerationData(generationData);
-
-	rootNode->SetNodeState(World::DatabaseRecord::State::CLEAN);
-
-	return rootNode;
+	return meshRoot;
 }
 
-GibEngine::Mesh* GibEngine::MeshService::Generate(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const json11::Json generationData)
+std::shared_ptr<GibEngine::Mesh> GibEngine::MeshService::Generate(const std::shared_ptr<Renderer::API::IGraphicsApi>& graphicsApi, const json11::Json generationData)
 {
 	std::string meshType = generationData["MeshType"].string_value();
 
@@ -313,7 +324,8 @@ GibEngine::Mesh* GibEngine::MeshService::Generate(const std::shared_ptr<Renderer
 
 		std::vector<Vertex> planeVertices = GeneratePlane(length, width, intervalSize);
 		auto meshUploadTicket = graphicsApi->UploadMesh(planeVertices, {});
-		auto mesh = new Mesh("PlaneMesh", meshUploadTicket, nullptr);
+
+		auto mesh = std::shared_ptr<Mesh>(new Mesh("PlaneMesh", meshUploadTicket, nullptr));
 		mesh->SetGenerationData(generationData);
 		mesh->SetFlags(planeFlagDefaults | genDataMeshFlags);
 
@@ -321,7 +333,6 @@ GibEngine::Mesh* GibEngine::MeshService::Generate(const std::shared_ptr<Renderer
 	}
 	else if (meshType.compare("Cube") == 0)
 	{
-		//TODO: Build Cube Mesh. Change this method to return mesh, not a scene node
 		std::vector<Vertex> vertices;
 		for (unsigned int i = 0; i < CUBE_VERTEX_DATA_SIZE; i += 3)
 		{
@@ -331,9 +342,7 @@ GibEngine::Mesh* GibEngine::MeshService::Generate(const std::shared_ptr<Renderer
 		}
 
 		auto uploadTicket = graphicsApi->UploadMesh(vertices, {});
-		auto mesh = new Mesh("CubeMesh", uploadTicket, nullptr);
-
-		return mesh;
+		return std::shared_ptr<Mesh>(new Mesh("CubeMesh", uploadTicket, nullptr));
 	}
 
 	return nullptr;

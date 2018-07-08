@@ -1,7 +1,12 @@
 #include "../include/Mesh.h"
 
+GibEngine::Mesh::Mesh(std::string name)
+	: BaseEntity(BaseEntity::Type::MESH, name)
+{
+}
+
 GibEngine::Mesh::Mesh(std::string name, std::shared_ptr<MeshUploadTicket> uploadTicket, std::shared_ptr<Material> material)
-	: Entity(Entity::Type::MESH, name), uploadTicket(uploadTicket), material(material), flags(Flags::RENDER_ENABLED) { }
+	: BaseEntity(BaseEntity::Type::MESH, name), uploadTicket(uploadTicket), material(material), flags(Flags::RENDER_ENABLED) { }
 
 const json11::Json& GibEngine::Mesh::GetGenerationData() const
 {
@@ -24,8 +29,6 @@ GibEngine::Mesh::Flags GibEngine::Mesh::GetFlags() const
 	return flags;
 }
 
-void GibEngine::Mesh::Update(double deltaTime) { }
-
 bool GibEngine::Mesh::IsUploaded()
 {
 	return this->uploadTicket != nullptr;
@@ -40,3 +43,5 @@ void GibEngine::Mesh::SetGenerationData(json11::Json generationData)
 {
 	this->generationData = generationData;
 }
+
+

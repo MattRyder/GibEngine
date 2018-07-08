@@ -1,6 +1,5 @@
 #include "Editor.h"
 
-
 GibEditor::Editor::Editor(int argc, char** argv) 
 	: GibEngine::Game(argc, argv), deltaDisplayIntervalTimer(0), lastReadDeltaTime(0)
 {
@@ -13,14 +12,11 @@ GibEditor::Editor::Editor(int argc, char** argv)
 		if (res == NFD_OKAY)
 		{
 			GibEngine::Logger::Instance->info("Loading World: {}", outPath);
-			GibEngine::World::Database* db = new GibEngine::World::Database(outPath, fileSystem, GetGraphicsApi(), true);
+			GibEngine::World::Database db(outPath, GetFileSystem(), GetGraphicsApi(), true);
 
-			this->rootSceneNode = std::shared_ptr<GibEngine::Scene::Node>(db->LoadLevel(1));
+			//this->SetSceneRoot(db.LoadLevel(1));
 
-			dock = new Components::Dock(this->GetFileSystem(), this->rootSceneNode, this->GetRenderPipeline());
-
-			db->Disconnect();
-			delete db;
+			dock = std::shared_ptr<Components::Dock>(new Components::Dock(GetFileSystem(), GetGraphicsApi(), GetRootEntity()));
 		}
 		else if(res != NFD_CANCEL)
 		{
@@ -30,7 +26,7 @@ GibEditor::Editor::Editor(int argc, char** argv)
 
 	auto newWorldCallback = [&]() -> void
 	{
-		std::shared_ptr<GibEngine::Scene::Node> rootNode = CreateWorld();
+		std::shared_ptr<GibEngine::BaseEntity> rootEntity = CreateWorld();
 
 		// Generate a plane for the Editor:
 		json11::Json planeGenerationData = json11::Json::object
@@ -42,19 +38,13 @@ GibEditor::Editor::Editor(int argc, char** argv)
 			{ "MeshFlags", json11::Json::array{ "RENDER_ENABLED", "RENDER_FORWARD", "RENDER_WIREFRAME", "RENDER_ARRAYS" } }
 		};
 
+		//auto plane = std::shared_ptr<GibEngine::Mesh>(GibEngine::MeshService::Generate(graphicsApi, planeGenerationData));
+		//rootEntity->AddChild(plane);
 
-		auto node = new GibEngine::Scene::Node("Plane");
-		node->SetEntity(GibEngine::MeshService::Generate(graphicsApi, planeGenerationData));
-
-		node->SetNodeState(GibEngine::World::DatabaseRecord::State::NEW);
-		node->SetEntityState(GibEngine::World::DatabaseRecord::State::NEW);
-		rootNode->AddChildNode(node);
-
-		SetSceneRoot(rootNode);
-		menubar->SetSceneNode(rootNode);
+		SetSceneRoot(rootEntity);
+		menubar->SetRootEntity(rootEntity);
 		
-		delete dock;
-		dock = new Components::Dock(this->GetFileSystem(), rootNode, this->GetRenderPipeline());
+		dock = std::shared_ptr<Components::Dock>(new Components::Dock(GetFileSystem(), GetGraphicsApi(), GetRootEntity())); 
 	};
 
 	auto toggleUiRenderCallback = [&]() -> void 
@@ -72,10 +62,10 @@ GibEditor::Editor::Editor(int argc, char** argv)
 			GibEngine::Logger::Instance->info("Saving World: {}", outPath);
 			GibEngine::World::Database* db = new GibEngine::World::Database(outPath, this->GetFileSystem(), this->GetGraphicsApi());
 
-			if (db->SaveLevel(this->GetSceneNodeRoot().get()))
-			{
-				GibEngine::Logger::Instance->info("Saved!");
-			}
+			//if (db->SaveLevel(this->GetSceneNodeRoot().get()))
+			//{
+			//	GibEngine::Logger::Instance->info("Saved!");
+			//}
 
 			db->Disconnect();
 			delete outPath;
@@ -83,23 +73,17 @@ GibEditor::Editor::Editor(int argc, char** argv)
 		}
 	};
 
-	menubar = new Components::Menubar(rootSceneNode);
+	menubar = std::shared_ptr<Components::Menubar>(new Components::Menubar());
 	menubar->SetOnExitCallback(exitCallback);
 	menubar->SetOnNewWorldCallback(newWorldCallback);
 	menubar->SetOnOpenFileDialogCallback(openWorldFileCallback);
 	menubar->SetOnSaveFileDialogCallback(saveWorldCallback);
 	menubar->SetToggleUiRenderCallback(toggleUiRenderCallback);
 
-	dock = new Components::Dock(this->GetFileSystem(), rootSceneNode, GetRenderPipeline());
+	dock = std::shared_ptr<Components::Dock>(new Components::Dock(GetFileSystem(), GetGraphicsApi(), GetRootEntity()));
+	statusBar = std::shared_ptr<Components::StatusBar>(new Components::StatusBar());
 
-	statusBar = new Components::StatusBar();
-}
-
-GibEditor::Editor::~Editor()
-{
-	delete statusBar;
-	delete menubar;
-	delete dock;
+	newWorldCallback();
 }
 
 void GibEditor::Editor::Render()
@@ -111,18 +95,26 @@ void GibEditor::Editor::Render()
 		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Always);
 
 		auto framebuffer = GetRenderPipeline()->GetFramebuffer();
-		ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight() - ImGui::GetFontSize() * 2), ImGuiSetCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight() - ImGui::GetFontSize() * 2 + 5), ImGuiSetCond_Always);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
 		if (ImGui::Begin("MainMenuWindow", (bool*)0, ROOT_PANEL_FLAGS))
 		{
 			menubar->Render();
-			dock->Render();
+
+			auto textureId = 0U;
+			if (GetRenderPipeline() && GetRenderPipeline()->GetFramebuffer() != nullptr)
+			{
+				//auto ssaoPass = dynamic_cast<GibEngine::Renderer::SsaoPass*>(GetRenderPipeline()->GetRenderPass(GibEngine::Renderer::RenderPass::Type::AMBIENT_OCCLUSION));
+				//textureId = ssaoPass->GetFramebuffer()->GetBuffer().textures[0];
+				textureId = GetRenderPipeline()->GetFramebuffer()->GetBuffer().textures[GibEngine::Renderer::FramebufferType::NORMAL];
+			}
+			dock->Render(textureId);
 
 			ImGui::End();
 		}
 
-		auto padding = ImGui::GetStyle().WindowPadding;
-		ImGui::SetNextWindowPos(ImVec2(0, framebuffer->GetBufferHeight() - ImGui::GetFontSize() * 2));
+		ImGui::SetNextWindowPos(ImVec2(0, framebuffer->GetBufferHeight() - ImGui::GetFontSize() * 2 + 5));
 		ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), ImGui::GetFontSize() * 2));
 		if (ImGui::Begin("StatusBarWindow", 0, ROOT_PANEL_FLAGS))
 		{
@@ -149,45 +141,13 @@ void GibEditor::Editor::Render()
 			ImGui::End();
 
 		}
-
-		//if (ImGui::Begin("Style Editor"))
-		//{
-		//	ImGui::ShowStyleEditor(&ImGui::GetStyle());
-		//	ImGui::End();
-		//}
-
+		ImGui::PopStyleVar();
 	}
-
-	ImGui::Render();
 }
 
 void GibEditor::Editor::Update()
 {
    Game::Update();
-
-   bool isGameConsumingMouseInput = inputManager->GetMouseButtonState()[GLFW_MOUSE_BUTTON_1]
-	   && dock->GetSelectedDock() == Components::Dock::Type::GAME;
-
-   inputManager->SetUpdatingMouseState(isGameConsumingMouseInput);
-
-   if (keydownInterval > 0.5f)
-   {
-	   if (inputManager->GetKeyboardState()[GLFW_KEY_TAB])
-	   {
-		   flags = static_cast<Flags>(flags ^ Flags::DISABLE_UI_RENDER);
-		   keydownInterval = 0;
-	   }
-
-	   if (inputManager->GetKeyboardState()[GLFW_KEY_V])
-	   {
-		   ToggleVsync();
-		   keydownInterval = 0;
-	   }
-   }
-   else
-   {
-	   keydownInterval += GetDeltaTime();
-   }
 }
 
 void GibEditor::Editor::SetWindowShouldClose(bool value)
@@ -195,7 +155,7 @@ void GibEditor::Editor::SetWindowShouldClose(bool value)
 	glfwSetWindowShouldClose(GetWindow(), value);
 }
 
-GibEditor::Components::Dock* GibEditor::Editor::GetDock() const
+std::shared_ptr<GibEditor::Components::Dock> GibEditor::Editor::GetDock() const
 {
 	return dock;
 }

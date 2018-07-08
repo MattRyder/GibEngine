@@ -7,11 +7,13 @@ TEST_F(EntityTest, GetID)
 
 TEST_F(EntityTest, AssertIncrementalId)
 {
-	// the default one created for this test uses 1, so from:
-	for (int i = 2; i < 10; i++)
+	auto entity = MockEntity(ENTITY_NAME);
+	unsigned int lastId = entity.GetID();
+
+	for (int i = lastId; i < lastId + 5; i++)
 	{
 		auto entity = MockEntity(ENTITY_NAME);
-		ASSERT_EQ(entity.GetID(), i);
+		ASSERT_EQ(entity.GetID(), i+1);
 	}
 }
 
@@ -33,7 +35,7 @@ TEST_F(EntityTest, GetName)
 
 TEST_F(EntityTest, GetType)
 {
-	ASSERT_EQ(entity->GetType(), Entity::Type::ENTITY);
+	ASSERT_EQ(entity->GetType(), BaseEntity::Type::ENTITY);
 }
 
 TEST_F(EntityTest, GetTypeName)

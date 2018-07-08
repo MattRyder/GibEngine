@@ -18,25 +18,28 @@ GibEngine::Renderer::Pipeline::~Pipeline()
 	delete framebuffer;
 }
 
-void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
+void GibEngine::Renderer::Pipeline::AddPass(RenderPass::Type type)
 {
 	// Calculate the name of the shader to load for this RenderPass:
 	std::string shaderFileName;
 	switch (type)
 	{
-	case RenderPassType::FORWARD_RENDERING:
+	case RenderPass::Type::FORWARD_RENDERING:
 		shaderFileName = "color";
 		break;
-	case RenderPassType::SKYBOX:
+	case RenderPass::Type::SKYBOX:
 		shaderFileName = "skybox";
 		break;
-	case RenderPassType::DEFERRED_GEOMETRY:
+	case RenderPass::Type::DEFERRED_GEOMETRY:
 		shaderFileName = "deferred_geometry";
 		break;
-	case RenderPassType::DEFERRED_LIGHTING:
+	case RenderPass::Type::DEFERRED_LIGHTING:
 		shaderFileName = "deferred_lighting";
 		break;
-	case RenderPassType::RENDER_TO_TEXTURE:
+	case RenderPass::Type::AMBIENT_OCCLUSION:
+		shaderFileName = "ambient_occlusion";
+		break;
+	case RenderPass::Type::RENDER_TO_TEXTURE:
 		shaderFileName = "render_to_texture";
 		break;
 	default:
@@ -63,19 +66,27 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPassType type)
 
 	switch (type)
 	{
-	case RenderPassType::FORWARD_RENDERING:
+	case RenderPass::Type::FORWARD_RENDERING:
 		renderPass = new ForwardRenderPass(graphicsApi, shader);
 		break;
-	case RenderPassType::SKYBOX:
+	case RenderPass::Type::SKYBOX:
 		renderPass = new SkyboxRenderPass(graphicsApi, shader);
 		break;
-	case RenderPassType::DEFERRED_GEOMETRY:
+	case RenderPass::Type::DEFERRED_GEOMETRY:
 		renderPass = new DeferredGeometryPass(graphicsApi, shader);
 		break;
-	case RenderPassType::DEFERRED_LIGHTING:
-		renderPass = new DeferredLightingPass(graphicsApi, shader, framebuffer);
+	case RenderPass::Type::DEFERRED_LIGHTING:
+	{
+		auto deferredRenderPass = new DeferredLightingPass(graphicsApi, shader, framebuffer);
+		auto ssaoPass = dynamic_cast<SsaoPass*>(GetRenderPass(RenderPass::Type::AMBIENT_OCCLUSION));
+		deferredRenderPass->SetSsaoFramebuffer(ssaoPass->GetFramebuffer());
+		renderPass = deferredRenderPass;
 		break;
-	case RenderPassType::RENDER_TO_TEXTURE:
+	}
+	case RenderPass::Type::AMBIENT_OCCLUSION:
+		renderPass = new SsaoPass(graphicsApi, shader, framebuffer);
+		break;
+	case RenderPass::Type::RENDER_TO_TEXTURE:
 		renderPass = new RenderToTexturePass(graphicsApi, shader, framebuffer);
 		break;
 	default:
@@ -115,10 +126,16 @@ void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet& v
 
 	for (auto camera : cameras)
 	{
-		graphicsApi->UpdateCamera(camera.get());
+		graphicsApi->UpdateCamera(*camera);
 	}
 
-	RenderPass* pass = GetRenderPass(RenderPassType::DEFERRED_GEOMETRY);
+	RenderPass* pass = GetRenderPass(RenderPass::Type::DEFERRED_GEOMETRY);
+	if (pass->IsEnabled())
+	{
+		pass->Render(visibleSet);
+	}
+
+	pass = GetRenderPass(RenderPass::Type::AMBIENT_OCCLUSION);
 	if (pass->IsEnabled())
 	{
 		pass->Render(visibleSet);
@@ -128,7 +145,7 @@ void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet& v
 
 	graphicsApi->ClearFramebuffer();
 
-	pass = GetRenderPass(RenderPassType::DEFERRED_LIGHTING);
+	pass = GetRenderPass(RenderPass::Type::DEFERRED_LIGHTING);
 	if (pass->IsEnabled())
 	{
 		pass->Render(visibleSet);
@@ -138,19 +155,19 @@ void GibEngine::Renderer::Pipeline::Render(const GibEngine::Scene::VisibleSet& v
 
 
 	// Gotta do the skybox pass forward renderered:
-	pass = GetRenderPass(RenderPassType::SKYBOX);
+	pass = GetRenderPass(RenderPass::Type::SKYBOX);
 	if (pass->IsEnabled())
 	{
 		pass->Render(visibleSet);
 	}
 
-	pass = GetRenderPass(RenderPassType::FORWARD_RENDERING);
+	pass = GetRenderPass(RenderPass::Type::FORWARD_RENDERING);
 	if (pass->IsEnabled())
 	{
 		pass->Render(visibleSet);
 	}
 
-	pass = GetRenderPass(RenderPassType::RENDER_TO_TEXTURE);
+	pass = GetRenderPass(RenderPass::Type::RENDER_TO_TEXTURE);
 	if (pass->IsEnabled())
 	{
 		// Blit the Game framebuffer to the default framebuffer
@@ -163,7 +180,7 @@ bool GibEngine::Renderer::Pipeline::IsRenderPaused()
 	return renderingPaused;
 }
 
-GibEngine::Renderer::RenderPass* GibEngine::Renderer::Pipeline::GetRenderPass(RenderPassType type)
+GibEngine::Renderer::RenderPass* GibEngine::Renderer::Pipeline::GetRenderPass(RenderPass::Type type)
 {
 	auto val = static_cast<int>(type);
 	if (passes[val] == nullptr)

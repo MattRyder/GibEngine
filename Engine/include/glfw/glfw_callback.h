@@ -26,7 +26,6 @@ namespace GibEngine
 
 		static void ErrorCallback(int error, const char* description);
 		static void SetWindowSizeCallback(GLFWwindow* window, int width, int height);
+		static void APIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 	};
 }
-
-void APIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);

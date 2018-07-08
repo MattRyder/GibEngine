@@ -12,7 +12,7 @@
 #include <json11.hpp>
 
 #include "EnumFlags.h"
-#include "Entity.h"
+#include "BaseEntity.h"
 #include "Texture.h"
 
 namespace GibEngine
@@ -56,7 +56,7 @@ namespace GibEngine
 		std::vector<unsigned int> buffers;
 	};
 
-	class Mesh : public Entity
+	class Mesh : public BaseEntity
 	{
 	public:
 		enum class Flags : char
@@ -68,6 +68,7 @@ namespace GibEngine
 			RENDER_FORWARD = 1 << 5
 		};
 
+		Mesh(std::string name);
 		Mesh(std::string name, std::shared_ptr<MeshUploadTicket> uploadTicket, std::shared_ptr<Material> material);
 
 		Flags GetFlags() const;
@@ -80,8 +81,6 @@ namespace GibEngine
 		void SetFlags(Flags flags);
 		void SetGenerationData(json11::Json generationData);
 
-		virtual void Update(double deltaTime) override;
- 
 		static bool FlagMask(Flags x) { return static_cast<char>(x) != 0; };
 
 	private:

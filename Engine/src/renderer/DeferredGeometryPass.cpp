@@ -12,14 +12,13 @@ void GibEngine::Renderer::DeferredGeometryPass::Render(const GibEngine::Scene::V
 	auto instMap = visibleSet.GetMeshInstanceMap();
 	for (auto iter = instMap->begin(); iter != instMap->end(); ++iter)
 	{
-		/*auto mesh = iter->first;*/
 		const Mesh& mesh = *iter->first;
 		if (!Mesh::FlagMask(mesh.GetFlags() & Mesh::Flags::RENDER_DEFERRED))
 		{
 			continue;
 		}
 		
-		graphicsApi->UpdateMeshInstances(*mesh.GetMeshUploadTicket(), iter->second);
+		//graphicsApi->UpdateMeshInstances(*mesh.GetMeshUploadTicket(), iter->second);
 
 		graphicsApi->BindMaterial(mesh.GetMaterial().get());
 		graphicsApi->DrawMesh(mesh, iter->second.size());

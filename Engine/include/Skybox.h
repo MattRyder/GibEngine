@@ -9,18 +9,20 @@
 
 namespace GibEngine
 {
-	class Skybox : public Entity
+	class Skybox : public BaseEntity
 	{
-		const Mesh* cubeMesh;
+		std::shared_ptr<Mesh> cubeMesh;
 		std::shared_ptr<Texture> skyboxCubemap;
+		float angle;
 
 	public:
-		Skybox(const Mesh* cubeMesh, const std::shared_ptr<Texture> cubemap);
+		Skybox(const std::shared_ptr<Mesh> cubeMesh, const std::shared_ptr<Texture> cubemap);
 		~Skybox();
 
-		const MeshUploadTicket GetMeshUploadTicket() const;
+		std::shared_ptr<MeshUploadTicket> GetMeshUploadTicket() const;
 		std::shared_ptr<Texture> GetTexture() const;
 
-		virtual void Update(double deltaTime) override;
+		virtual void RegisterEvents(Event::EventManager* const eventManager) override;
+		virtual void OnTick(float deltaTime, Event::OnTickEvent& e);
 	};
 }

@@ -10,9 +10,13 @@ namespace GibEngine
 	{
 		class DeferredLightingPass : public RenderPass
 		{
+			std::shared_ptr<Framebuffer> ssaoFramebuffer;
+
 		public:
 			DeferredLightingPass(std::shared_ptr<Renderer::API::IGraphicsApi>, Shader *shader, Framebuffer* framebuffer);
 			void Render(const Scene::VisibleSet& visibleSet) override;
+
+			void SetSsaoFramebuffer(std::shared_ptr<Framebuffer> ssaoFramebuffer);
 		};
 	}
 }

@@ -1,17 +1,16 @@
 #pragma once
 
 #include <memory>
+#include <gtest/gtest.h>
 
-#include "gtest/gtest.h"
-
-#include "Entity.h"
+#include "BaseEntity.h"
 
 using namespace GibEngine;
 
-class MockEntity : public Entity
+class MockEntity : public BaseEntity
 {
 public:
-	MockEntity(std::string name) : Entity(Entity::Type::ENTITY, name) { }
+	MockEntity(std::string name) : BaseEntity(BaseEntity::Type::ENTITY, name) { }
 
 	virtual void Update(double deltaTime) { }
 };

@@ -11,9 +11,9 @@ TEST_F(MeshServiceTest, GeneratePlane)
 	};
 
 	GibEngine::Mesh::Flags expectedFlags =
-		GibEngine::Mesh::Flags::RENDER_ENABLED ^
-		GibEngine::Mesh::Flags::RENDER_ARRAYS ^
-		GibEngine::Mesh::Flags::RENDER_FORWARD ^
+		GibEngine::Mesh::Flags::RENDER_ENABLED |
+		GibEngine::Mesh::Flags::RENDER_ARRAYS |
+		GibEngine::Mesh::Flags::RENDER_FORWARD |
 		GibEngine::Mesh::Flags::RENDER_WIREFRAME;
 
 	auto ptr = std::shared_ptr<MeshUploadTicket>(new MeshUploadTicket());

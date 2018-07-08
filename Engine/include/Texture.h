@@ -15,12 +15,16 @@ namespace GibEngine
 		TEXTURETYPE_LAST
 	};
 
+	enum class StorageType { FLOAT, UNSIGNED_CHAR };
+
 	struct TextureData {
 		unsigned int Target;
+		TextureType Type;
 		int Width;
 		int Height;
 		int Channels;
-		unsigned char* Data;
+		void* Data;
+		StorageType DataType;
 
 		bool IsPowerOfTwo()
 		{

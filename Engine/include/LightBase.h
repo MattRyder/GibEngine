@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Entity.h"
+#include "BaseEntity.h"
 
 namespace GibEngine
 {
-	class LightBase : public Entity
+	class LightBase : public BaseEntity
 	{
 	protected:
 		glm::vec3 ambientColor, diffuseColor, specularColor;
 
 	public:
-		LightBase(Entity::Type lightType, glm::vec3 position, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specularColor);
+		LightBase(BaseEntity::Type lightType, glm::vec3 position, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specularColor);
 
 		glm::vec3 GetAmbientColor() const;
 		glm::vec3 GetDiffuseColor() const;
@@ -19,7 +19,5 @@ namespace GibEngine
 		void SetAmbientColor(glm::vec3 color);
 		void SetDiffuseColor(glm::vec3 color);
 		void SetSpecularColor(glm::vec3 color);
-
-		virtual void Update(double deltaTime) override;
 	};
 }

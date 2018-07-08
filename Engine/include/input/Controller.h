@@ -16,9 +16,6 @@ namespace GibEngine
 			int axisCount;
 			int buttonCount;
 
-			float* axis;
-			unsigned char* buttons;
-
 		public:
 			Controller(int controllerId);
 			Controller(int controllerId, bool connected);

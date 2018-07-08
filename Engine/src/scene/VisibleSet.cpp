@@ -1,56 +1,59 @@
 #include "scene/VisibleSet.h"
 
-GibEngine::Scene::VisibleSet::VisibleSet(const std::shared_ptr<CameraBase> camera, const std::shared_ptr<GibEngine::Scene::Node> rootSceneNode)
+GibEngine::Scene::VisibleSet::VisibleSet(const std::shared_ptr<CameraBase> camera, const std::shared_ptr<GibEngine::BaseEntity> rootEntity)
 	: camera(camera),
-	rootSceneNode(rootSceneNode),
+	rootEntity(rootEntity),
 	skyboxNode(),
 	meshInstances(std::shared_ptr<MeshInstanceMap>(new MeshInstanceMap())) { }
 
-void GibEngine::Scene::VisibleSet::AddLight(const Scene::Node& lightNode)
+void GibEngine::Scene::VisibleSet::AddLight(const std::shared_ptr<LightBase> lightNode)
 {
 	lights.push_back(lightNode);
 }
 
-void GibEngine::Scene::VisibleSet::AddMeshInstance(const Scene::Node& meshNode)
+void GibEngine::Scene::VisibleSet::AddMeshInstance(const std::shared_ptr<Mesh> meshNode)
 {
-	auto mesh = reinterpret_cast<Mesh*>(meshNode.GetEntity());
-	
-	auto meshIter = meshInstances->find(mesh);
+	auto meshIter = meshInstances->find(meshNode);
 	if (meshIter != meshInstances->end())
 	{
-		meshInstances->at(mesh).push_back(meshNode.GetWorldTransform());
+		meshInstances->at(meshNode).push_back(meshNode->GetWorldTransform());
 	}
 	else
 	{
-		meshInstances->insert(std::pair<const Mesh*, std::vector<glm::mat4>>(mesh, { meshNode.GetWorldTransform() }));
+		meshInstances->insert(std::pair<const std::shared_ptr<Mesh>, std::vector<glm::mat4>>(meshNode, { meshNode->GetWorldTransform() }));
 	}
 }
 
-void GibEngine::Scene::VisibleSet::ParseNode(const Scene::Node node)
+void GibEngine::Scene::VisibleSet::ParseNode(std::shared_ptr<BaseEntity> node)
 {
 
 	// Sort this entity into it's appropriate set/object:
-	if (node.GetEntity() != nullptr)
+	switch (node->GetType())
 	{
-		switch (node.GetEntity()->GetType())
-		{
-		case Entity::Type::SKYBOX:
-			skyboxNode = node;
-			break;
-		case Entity::Type::MESH:
-			AddMeshInstance(node);
-			break;
-		case Entity::Type::POINT_LIGHT:
-			AddLight(node);
-			break;
-		default:
-			break;
-		}
+	case BaseEntity::Type::SKYBOX:
+	{
+		auto skyboxEntity = std::dynamic_pointer_cast<Skybox>(node);
+		skyboxNode = skyboxEntity;
+		break;
+	}
+	case BaseEntity::Type::MESH:
+	{
+		auto meshEntity = std::dynamic_pointer_cast<Mesh>(node);
+		AddMeshInstance(meshEntity);
+		break;
+	}
+	case BaseEntity::Type::POINT_LIGHT:
+	{	auto lightEntity = std::dynamic_pointer_cast<PointLight>(node);
+		AddLight(lightEntity);
+		break;
+	}
+	default:
+		break;
 	}
 
-	for (auto iter = node.GetChildNodesBegin(); iter != node.GetChildNodesEnd(); ++iter)
+	for (auto iter = node->ChildrenBegin(); iter != node->ChildrenEnd(); ++iter)
 	{
-		ParseNode(**iter);
+		ParseNode(*iter);
 	}
 }
 
@@ -59,19 +62,19 @@ std::shared_ptr<GibEngine::CameraBase> GibEngine::Scene::VisibleSet::GetCamera()
 	return camera;
 }
 
-const GibEngine::Scene::Node GibEngine::Scene::VisibleSet::GetSkyboxNode() const
+const std::shared_ptr<GibEngine::Skybox> GibEngine::Scene::VisibleSet::GetSkyboxNode() const
 {
 	return skyboxNode;
 }
 
-std::vector<GibEngine::Scene::Node> GibEngine::Scene::VisibleSet::GetLights() const
+std::vector<std::shared_ptr<GibEngine::LightBase>> GibEngine::Scene::VisibleSet::GetLights() const
 {
 	return lights;
 }
 
-void GibEngine::Scene::VisibleSet::SetRootSceneNode(const std::shared_ptr<Scene::Node> rootSceneNode)
+void GibEngine::Scene::VisibleSet::SetRootEntity(const std::shared_ptr<GibEngine::BaseEntity> rootEntity)
 {
-	this->rootSceneNode = rootSceneNode;
+	this->rootEntity = rootEntity;
 }
 
 std::shared_ptr<GibEngine::Scene::VisibleSet::MeshInstanceMap> GibEngine::Scene::VisibleSet::GetMeshInstanceMap() const
@@ -79,9 +82,22 @@ std::shared_ptr<GibEngine::Scene::VisibleSet::MeshInstanceMap> GibEngine::Scene:
 	return meshInstances;
 }
 
-void GibEngine::Scene::VisibleSet::Parse()
+void GibEngine::Scene::VisibleSet::Parse(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi)
 {
 	meshInstances->clear();
 	lights.clear();
-	ParseNode(*rootSceneNode);
+
+	if (rootEntity)
+	{
+		ParseNode(rootEntity);
+	}
+
+	for (auto iter = meshInstances->begin(); iter != meshInstances->end(); ++iter)
+	{
+		const auto mesh = iter->first;
+		if (mesh->GetMeshUploadTicket())
+		{
+			graphicsApi->UpdateMeshInstances(*mesh->GetMeshUploadTicket(), iter->second);
+		}
+	}
 }

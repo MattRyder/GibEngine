@@ -1,6 +1,6 @@
 ﻿#include "glfw/glfw_callback.h"
 
-void APIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+void APIENTRY GibEngine::GLFW::GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 {
     std::string errString;
 
@@ -33,18 +33,9 @@ void APIENTRY GLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum seve
 
 	errString += " ";
 
-	GibEngine::Logger::Instance->info("GL API: {} [{}]", errString.c_str(), message);
+	if (type == GL_DEBUG_TYPE_OTHER) return;
 
-	//GibEngine::LogLevel level = GibEngine::LogLevel::INFO;
-	//switch (severity​) {
-	//case 0x9146: errString += "HIGH"; level = GibEngine::ERR; break;
-	//case 0x9147: errString += "MEDIUM"; level = GibEngine::WARN; break;
-	//case 0x9148: errString += "LOW"; break;
-	//case 0x826B: errString += "NOTIFICATION"; break;
-	//default: errString += "undefined"; level = GibEngine::ERR; break;
-	//}
-
-	//GibEngine::Logger::LogWrite(level, "%s: %s", errString.c_str(), message​);
+	GibEngine::Logger::Instance->info("OpenGL: {} [ID: {}] [{}]", errString.c_str(), id, message);
 }
 
 GibEngine::GLFW::_WindowResizeEvent GibEngine::GLFW::WindowResizeEvent = { 0 };

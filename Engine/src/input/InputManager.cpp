@@ -1,13 +1,11 @@
 #include "input/InputManager.h"
 
-int GibEngine::Input::InputManager::keyboardState[GLFW_KEY_LAST] = { 0 };
-int GibEngine::Input::InputManager::mouseButtonState[GLFW_MOUSE_BUTTON_LAST] = { 0 };
-GibEngine::Input::Controller* GibEngine::Input::InputManager::controllers[GLFW_JOYSTICK_LAST] = { 0 };
-glm::vec2 GibEngine::Input::InputManager::mouseState = glm::vec2();
-glm::vec2 GibEngine::Input::InputManager::scrollState = glm::vec2();
-bool GibEngine::Input::InputManager::isUpdatingMouseState = true;
-bool GibEngine::Input::InputManager::isUpdatingKeyboardState = true;
-bool GibEngine::Input::InputManager::isUpdatingScrollState = true;
+std::vector<std::shared_ptr<GibEngine::Input::Controller>> GibEngine::Input::InputManager::controllers;
+
+GibEngine::Event::EventManager* GibEngine::Input::InputManager::GetEventManager(GLFWwindow* window)
+{
+	return reinterpret_cast<Event::EventManager*>(glfwGetWindowUserPointer(window));
+}
 
 GibEngine::Input::InputManager::InputManager(GLFWwindow* window)
 {
@@ -16,10 +14,10 @@ GibEngine::Input::InputManager::InputManager(GLFWwindow* window)
 
 void GibEngine::Input::InputManager::ControllerConnectionCallback(int controllerId, int event)
 {
-	Controller *controller = controllers[controllerId];
-	if (controller == nullptr)
+	auto controller = controllers[controllerId];
+	if (!controller)
 	{
-		controllers[controllerId] = new Controller(controllerId, event == GLFW_CONNECTED);
+		controllers[controllerId] = std::make_shared<Controller>(controllerId, event == GLFW_CONNECTED);
 		controller = controllers[controllerId];
 	}
 
@@ -32,38 +30,51 @@ void GibEngine::Input::InputManager::ControllerConnectionCallback(int controller
 	}
 }
 
-void GibEngine::Input::InputManager::MouseCallback(GLFWwindow * window, double mouseX, double mouseY)
+void GibEngine::Input::InputManager::MouseCallback(GLFWwindow* window, double mouseX, double mouseY)
 {
-	if (isUpdatingMouseState)
-	{
-		mouseState.x = static_cast<float>(mouseX);
-		mouseState.y = static_cast<float>(mouseY);
-	}
+	auto mouseMoveEvent = std::make_shared<Event::MouseMoveEvent>(glm::vec2(mouseX, mouseY));
+	GetEventManager(window)->Raise(mouseMoveEvent);
 }
 
 void GibEngine::Input::InputManager::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	if (button >= 0 && button < GLFW_MOUSE_BUTTON_LAST)
+	std::shared_ptr<Event::IEvent> btnEvent;
+
+	switch (action)
 	{
-		mouseButtonState[button] = action;
+	case GLFW_PRESS:
+		btnEvent = std::make_shared<Event::MouseButtonDownEvent>(button);
+		break;
+	case GLFW_RELEASE:
+		btnEvent = std::make_shared<Event::MouseButtonUpEvent>(button);
+		break;
 	}
+
+	GetEventManager(window)->Raise(btnEvent);
 }
 
-void GibEngine::Input::InputManager::KeyCallback(GLFWwindow * window, int key, int scancode, int action, int mods)
+void GibEngine::Input::InputManager::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (isUpdatingKeyboardState && key >= 0 && key < GLFW_KEY_LAST)
+	std::shared_ptr<Event::IEvent> keyEvent;
+
+	switch (action)
 	{
-		keyboardState[key] = action;
+	case GLFW_PRESS:
+		keyEvent = std::make_shared<Event::KeyDownEvent>(key, scancode);
+		break;
+	case GLFW_RELEASE:
+		keyEvent = std::make_shared<Event::KeyUpEvent>(key, scancode);
+		break;
+	default:
+		return;
 	}
+
+	GetEventManager(window)->Raise(keyEvent);
 }
 
-void GibEngine::Input::InputManager::ScrollCallback(GLFWwindow * window, int offsetX, int offsetY)
+void GibEngine::Input::InputManager::ScrollCallback(GLFWwindow* window, double offsetX, double offsetY)
 {
-	if (isUpdatingScrollState)
-	{
-		scrollState.x = offsetX;
-		scrollState.y = offsetY;
-	}
+	GetEventManager(window)->Raise(std::make_shared<Event::ScrollEvent>(glm::vec2(offsetX, offsetY)));
 }
 
 void GibEngine::Input::InputManager::Install(GLFWwindow* window)
@@ -74,55 +85,6 @@ void GibEngine::Input::InputManager::Install(GLFWwindow* window)
 		glfwSetJoystickCallback(this->ControllerConnectionCallback);
 		glfwSetKeyCallback(window, this->KeyCallback);
 		glfwSetCursorPosCallback(window, this->MouseCallback);
+		glfwSetScrollCallback(window, this->ScrollCallback);
 	}
-}
-
-glm::vec2 GibEngine::Input::InputManager::GetMousePosition() const
-{
-	return this->mouseState;
-}
-
-glm::vec2 GibEngine::Input::InputManager::GetScrollState() const
-{
-	return this->scrollState;
-}
-
-int* GibEngine::Input::InputManager::GetKeyboardState()
-{
-	return this->keyboardState;
-}
-
-const int* GibEngine::Input::InputManager::GetMouseButtonState() const
-{
-	return mouseButtonState;
-}
-
-bool GibEngine::Input::InputManager::GetUpdatingMouseState() const
-{
-	return isUpdatingMouseState;
-}
-
-bool GibEngine::Input::InputManager::GetUpdatingKeyboardState() const
-{
-	return isUpdatingKeyboardState;
-}
-
-bool GibEngine::Input::InputManager::GetUpdatingScrollState() const
-{
-	return isUpdatingScrollState;
-}
-
-void GibEngine::Input::InputManager::SetUpdatingMouseState(bool isUpdatingMouseState)
-{
-	this->isUpdatingMouseState = isUpdatingMouseState;
-}
-
-void GibEngine::Input::InputManager::SetUpdatingScrollState(bool isUpdatingScrollState)
-{
-	this->isUpdatingScrollState = isUpdatingScrollState;
-}
-
-void GibEngine::Input::InputManager::SetUpdatingKeyboardState(bool isUpdatingKeyboardState)
-{
-	this->isUpdatingKeyboardState = isUpdatingKeyboardState;
 }

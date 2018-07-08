@@ -2,47 +2,43 @@
 
 TEST_F(AABBTest, ConstructorDefault)
 {
-	AABB* aabb = new AABB();
+	AABB aabb;
 
 	ASSERT_TRUE(
-		aabb->GetPosition().x == 0 &&
-		aabb->GetPosition().y == 0 &&
-		aabb->GetPosition().z == 0);
+		aabb.GetPosition().x == 0 &&
+		aabb.GetPosition().y == 0 &&
+		aabb.GetPosition().z == 0);
 
 	ASSERT_TRUE(
-		aabb->GetSize().x == 0 &&
-		aabb->GetSize().y == 0 &&
-		aabb->GetSize().z == 0);
-
-	delete aabb;
+		aabb.GetSize().x == 0 &&
+		aabb.GetSize().y == 0 &&
+		aabb.GetSize().z == 0);
 }
 
 TEST_F(AABBTest, ConstructorWithValues)
 {
-	AABB* aabb = new AABB(pos, size);
+	AABB aabb(pos, size);
 
 	ASSERT_TRUE(
-		aabb->GetPosition().x == 10 &&
-		aabb->GetPosition().y == 0  &&
-		aabb->GetPosition().z == 10);
+		aabb.GetPosition().x == 10 &&
+		aabb.GetPosition().y == 0  &&
+		aabb.GetPosition().z == 10);
 
 	ASSERT_TRUE(
-		aabb->GetSize().x == 10 &&
-		aabb->GetSize().y == 10 &&
-		aabb->GetSize().z == 10);
-
-	delete aabb;
+		aabb.GetSize().x == 10 &&
+		aabb.GetSize().y == 10 &&
+		aabb.GetSize().z == 10);
 }
 
 TEST_F(AABBTest, Contains)
 {
-	AABB* aabb = new AABB(pos, size);
+	AABB aabb(pos, size);
 
 	glm::vec3 othPos = glm::vec3(11, 1, 11);
 	glm::vec3 othSize = glm::vec3(5, 5, 5);
-	AABB* other = new AABB(othPos, othSize);
+	AABB other(othPos, othSize);
 
-	bool res = aabb->Contains(*other);
+	bool res = aabb.Contains(other);
 
 	ASSERT_TRUE(res);
 }

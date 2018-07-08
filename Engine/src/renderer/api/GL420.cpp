@@ -10,6 +10,11 @@ GibEngine::Renderer::API::GL420::GL420()
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glDepthFunc(GL_LEQUAL);
+
+	// Enable Debug Messages:
+	glEnable(GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(GLFW::GLDebugCallback, nullptr);
 }
 
 GibEngine::Renderer::API::GL420::~GL420()
@@ -40,23 +45,28 @@ void GibEngine::Renderer::API::GL420::BindMaterial(GibEngine::Material* material
 {
 	int textureLocIndex[TextureType::TEXTURETYPE_LAST] = { 0 };
 
-	//glUniform3fv(
-	//	GetUniformLocation("material.ambientColor"),
-	//	1,
-	//	glm::value_ptr(material->AmbientColor)
-	//);
+	glUniform3fv(
+		GetUniformLocation("material.ambientColor"),
+		1,
+		glm::value_ptr(material->AmbientColor)
+	);
 
-	//glUniform3fv(
-	//	GetUniformLocation("material.diffuseColor"),
-	//	1,
-	//	glm::value_ptr(material->DiffuseColor)
-	//);
+	glUniform3fv(
+		GetUniformLocation("material.diffuseColor"),
+		1,
+		glm::value_ptr(material->DiffuseColor)
+	);
 
-	//glUniform3fv(
-	//	GetUniformLocation("material.specularColor"),
-	//	1,
-	//	glm::value_ptr(material->SpecularColor)
-	//);
+	glUniform3fv(
+		GetUniformLocation("material.specularColor"),
+		1,
+		glm::value_ptr(material->SpecularColor)
+	);
+
+	for (int i = 0; i < TextureType::TEXTURETYPE_LAST; i++)
+	{
+		BindTexture2D(i, 0);
+	}
 
 	for (unsigned int i = 0; i < material->Textures.size(); i++)
 	{
@@ -110,6 +120,11 @@ void GibEngine::Renderer::API::GL420::BindUniform3fv(unsigned int uniformLocatio
 	glUniform3fv(uniformLocation, count, uniformValue);
 }
 
+void GibEngine::Renderer::API::GL420::BindUniform4fv(unsigned int uniformLocation, unsigned int count, const float * uniformValue)
+{
+	glUniformMatrix4fv(uniformLocation, count, false, &uniformValue[0]);
+}
+
 bool GibEngine::Renderer::API::GL420::CreateFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer, int framebufferWidth, int framebufferHeight)
 {
 	GLuint bufferAttachments[FRAMEBUFFERTYPE_LAST];
@@ -124,15 +139,21 @@ bool GibEngine::Renderer::API::GL420::CreateFramebuffer(GibEngine::Renderer::Fra
 		glGenTextures(1, &buffer.textures[i]);
 		glBindTexture(GL_TEXTURE_2D, buffer.textures[i]);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
-
+		// Per render target mutations:
 		switch (i)
 		{
+		case FramebufferType::AMBIENT_OCCLUSION:
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, framebufferWidth, framebufferHeight, 0, GL_RGB, GL_FLOAT, nullptr);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			break;
 		case FramebufferType::POSITION:
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			break;
 		default:
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, framebufferWidth, framebufferHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			break;
@@ -230,7 +251,7 @@ void GibEngine::Renderer::API::GL420::DrawMesh(const GibEngine::Mesh& mesh, size
 	else 
 	{
 		glDrawElementsInstanced(drawMode, meshUploadTicket->totalIndices, GL_UNSIGNED_INT,
-			0, instanceCount);
+			0, static_cast<GLsizei>(instanceCount));
 	}
 
 	glBindVertexArray(0);
@@ -252,20 +273,20 @@ void GibEngine::Renderer::API::GL420::DrawSkybox(const GibEngine::MeshUploadTick
 int GibEngine::Renderer::API::GL420::GetUniformLocation(const char* uniformName)
 {
 	//ShaderCache shaderCache = shaderCaches[currentShaderID];
-	const auto cachedUniformLocation = shaderCaches[currentShaderID].uniformLocations.find(uniformName);
+	//const auto cachedUniformLocation = shaderCaches[currentShaderID].uniformLocations.find(uniformName);
 
-	if (cachedUniformLocation != shaderCaches[currentShaderID].uniformLocations.end())
-	{
-		//Logger::Instance->info("CACHE HIT: {}", uniformName);
-		return cachedUniformLocation->second;
-	}
+	//if (cachedUniformLocation != shaderCaches[currentShaderID].uniformLocations.end())
+	//{
+	//	//Logger::Instance->info("CACHE HIT: {}", uniformName);
+	//	return cachedUniformLocation->second;
+	//}
 
 	// Cache miss, perform a lookup via OpenGL:
 	int uniformLocation = glGetUniformLocation(currentShaderID, uniformName);
 
-	shaderCaches[currentShaderID].uniformLocations[uniformName] = uniformLocation;
+	//shaderCaches[currentShaderID].uniformLocations[uniformName] = uniformLocation;
 	//[currentShaderID] = shaderCache;
-	Logger::Instance->info("CACHE MISS: {}", uniformName);
+	//Logger::Instance->info("CACHE MISS: {}", uniformName);
 
 
 	return uniformLocation;
@@ -300,11 +321,11 @@ void GibEngine::Renderer::API::GL420::RegisterCamera(std::shared_ptr<CameraBase>
 	const unsigned int VIEW_MATRIX_INDEX = 16;
 	const unsigned int POSITION_INDEX = 32;
 
-	UniformBuffer* cameraUBO = uniformBufferManager->FindOrCreate(camera->GetAllocatedBufferName().c_str(), BUFFER_OBJECT_SIZE);
+	UniformBuffer* cameraUBO = uniformBufferManager->FindOrCreate(camera->GetNameKey().c_str(), BUFFER_OBJECT_SIZE);
 
 	if (cameraUBO == nullptr)
 	{
-		Logger::Instance->info("[{}] Failed to find or create UBO: {}", __FUNCTION__, camera->GetAllocatedBufferName().c_str());
+		Logger::Instance->info("[{}] Failed to find or create UBO: {}", __FUNCTION__, camera->GetNameKey().c_str());
 		return;
 	}
 
@@ -316,8 +337,12 @@ void GibEngine::Renderer::API::GL420::RegisterCamera(std::shared_ptr<CameraBase>
 
 	cameraUBO->Update(cameraData);
 
-	GLuint cameraUBOIndex = glGetUniformBlockIndex(currentShaderID, camera->GetAllocatedBufferName().c_str());
-	glUniformBlockBinding(currentShaderID, cameraUBOIndex, cameraUBO->GetBufferBindingIndex());
+	auto cameraUBOIndex = 0U;
+	cameraUBOIndex = glGetUniformBlockIndex(currentShaderID, camera->GetNameKey().c_str());
+	if (cameraUBOIndex != GL_INVALID_INDEX)
+	{
+		glUniformBlockBinding(currentShaderID, cameraUBOIndex, cameraUBO->GetBufferBindingIndex());
+	}
 }
 
 void GibEngine::Renderer::API::GL420::UnbindFramebuffer()
@@ -348,6 +373,7 @@ void GibEngine::Renderer::API::GL420::UnbindShader()
 	this->currentShaderID = 0;
 }
 
+
 bool GibEngine::Renderer::API::GL420::UpdateMeshInstances(const MeshUploadTicket& meshUploadTicket, const std::vector<glm::mat4>& instanceMatrixList)
 {
 	const int VEC4_SIZE = sizeof(glm::vec4);
@@ -373,26 +399,26 @@ bool GibEngine::Renderer::API::GL420::UpdateMeshInstances(const MeshUploadTicket
 	return true;
 }
 
-bool GibEngine::Renderer::API::GL420::UpdateCamera(CameraBase *camera)
+bool GibEngine::Renderer::API::GL420::UpdateCamera(const CameraBase& camera)
 {
 	const unsigned int BUFFER_OBJECT_SIZE = sizeof(float) * 36;
 	const unsigned int PROJECTION_MATRIX_INDEX = 0;
 	const unsigned int VIEW_MATRIX_INDEX = 16;
 	const unsigned int POSITION_INDEX = 32;
 
-	UniformBuffer* cameraUBO = uniformBufferManager->Find(camera->GetAllocatedBufferName().c_str());
+	UniformBuffer* cameraUBO = uniformBufferManager->Find(camera.GetNameKey().c_str());
 
 	if (cameraUBO == nullptr)
 	{
-		Logger::Instance->info("[{}] Failed to find or create UBO: {}", __FUNCTION__, camera->GetAllocatedBufferName().c_str());
+		Logger::Instance->info("[{}] Failed to find or create UBO: {}", __FUNCTION__, camera.GetNameKey().c_str());
 		return false;
 	}
 
 	float cameraData[BUFFER_OBJECT_SIZE] { 0 };
 
-	memcpy(&cameraData[PROJECTION_MATRIX_INDEX], glm::value_ptr(camera->GetProjectionMatrix()), sizeof(float) * 16);
-	memcpy(&cameraData[VIEW_MATRIX_INDEX], glm::value_ptr(camera->GetViewMatrix()), sizeof(float) * 16);
-	memcpy(&cameraData[POSITION_INDEX], glm::value_ptr(camera->GetPosition()), sizeof(float) * 3);
+	memcpy(&cameraData[PROJECTION_MATRIX_INDEX], glm::value_ptr(camera.GetProjectionMatrix()), sizeof(float) * 16);
+	memcpy(&cameraData[VIEW_MATRIX_INDEX], glm::value_ptr(camera.GetViewMatrix()), sizeof(float) * 16);
+	memcpy(&cameraData[POSITION_INDEX], glm::value_ptr(camera.GetPosition()), sizeof(float) * 3);
 
 	cameraUBO->Update(cameraData);
 
@@ -450,15 +476,15 @@ std::shared_ptr<GibEngine::MeshUploadTicket> GibEngine::Renderer::API::GL420::Up
 	return ticket;
 }
 
-void GibEngine::Renderer::API::GL420::UploadTexture2D(unsigned int* textureId, const TextureData& textureData)
+void GibEngine::Renderer::API::GL420::UploadTexture2D(unsigned int* textureId, const TextureData& textureData, SamplerFiltering filtering, SamplerEdgeClamping edgeClamping)
 {
-	//unsigned int textureId = 0;
-	//TextureData* texData = texture->GetTextureData();
-
 	glGenTextures(1, textureId);
 	glBindTexture(GL_TEXTURE_2D, *textureId);
 
-	GLuint textureFormat = GL_RGB;
+	GLuint textureFormat = GL_RGB,
+		samplerFiltering = GL_LINEAR,
+		samplerEdgeClamp = GL_REPEAT;
+
 	/*	and what type am I using as the internal texture format?	*/
 	switch (textureData.Channels)
 	{
@@ -470,9 +496,54 @@ void GibEngine::Renderer::API::GL420::UploadTexture2D(unsigned int* textureId, c
 		break;
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, textureFormat, textureData.Width, textureData.Height, 0, textureFormat, GL_UNSIGNED_BYTE, textureData.Data);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	/* what type of filtering to apply to the sampler */
+	switch (filtering)
+	{
+	case SamplerFiltering::LINEAR:
+		samplerFiltering = GL_LINEAR;
+		break;
+	case SamplerFiltering::NEAREST:
+		samplerFiltering = GL_NEAREST;
+		break;
+	}
+
+	/* what's happening at the edges if we're over? */
+	switch (edgeClamping)
+	{
+	case SamplerEdgeClamping::CLAMP_TO_BORDER:
+		samplerEdgeClamp = GL_CLAMP_TO_BORDER;
+		break;
+	case SamplerEdgeClamping::CLAMP_TO_EDGE:
+		samplerEdgeClamp = GL_CLAMP_TO_EDGE;
+		break;
+	case SamplerEdgeClamping::MIRRORED_CLAMP_TO_EDGE:
+		samplerEdgeClamp = GL_MIRROR_CLAMP_TO_EDGE;
+		break;
+	case SamplerEdgeClamping::MIRRORED_REPEAT:
+		samplerEdgeClamp = GL_MIRROR_CLAMP_TO_EDGE;
+		break;
+	}
+
+	unsigned int glDataType;
+	switch (textureData.DataType)
+	{
+	case StorageType::FLOAT:
+		glDataType = GL_FLOAT;
+		break;
+	case StorageType::UNSIGNED_CHAR:
+	default:
+		glDataType = GL_UNSIGNED_BYTE;
+		break;
+	}
+
+	glTexImage2D(GL_TEXTURE_2D, 0, textureFormat, textureData.Width, textureData.Height, 0, textureFormat, glDataType, textureData.Data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, samplerFiltering);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, samplerFiltering);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, samplerEdgeClamp);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, samplerEdgeClamp);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, samplerEdgeClamp);
+
 }
 
 void GibEngine::Renderer::API::GL420::UploadTextureCubemap(unsigned int* textureId, std::vector<GibEngine::TextureData>& cubemapSideData)

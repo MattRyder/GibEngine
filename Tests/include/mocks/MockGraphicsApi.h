@@ -14,21 +14,23 @@ namespace GibEngine {
 				MOCK_METHOD5(BlitFramebuffer,
 					void(unsigned int framebufferSource, unsigned int framebufferDest, unsigned int framebufferWidth, unsigned int framebufferHeight, unsigned int framebufferFlags));
 				MOCK_METHOD1(BindCamera,
-					void(GibEngine::CameraBase *camera));
+					void(CameraBase *camera));
 				MOCK_METHOD1(BindFramebuffer,
 					void(const GibEngine::Renderer::Framebuffer& framebuffer));
 				MOCK_METHOD1(BindMaterial,
 					void(GibEngine::Material *material));
+				MOCK_METHOD1(BindShader,
+					void(unsigned int shaderId));
 				MOCK_METHOD2(BindTexture2D,
 					void(unsigned int textureSlot, unsigned int textureId));
 				MOCK_METHOD2(BindTextureCubemap,
 					void(unsigned int textureSlot, unsigned int cubemapTextureId));
-				MOCK_METHOD1(BindShader,
-					void(unsigned int shaderId));
 				MOCK_METHOD2(BindUniform1f,
 					void(unsigned int uniformLocation, unsigned int uniformValue));
 				MOCK_METHOD3(BindUniform3fv,
 					void(unsigned int uniformLocation, unsigned int count, const float *uniformValue));
+				MOCK_METHOD3(BindUniform4fv,
+					void(unsigned int uniformLocation, unsigned int count, const float * uniformValue));
 				MOCK_METHOD3(CreateFramebuffer,
 					bool(GibEngine::Renderer::Framebuffer* framebuffer, int framebufferWidth, int framebufferHeight));
 				MOCK_METHOD1(DeleteFramebuffer,
@@ -52,11 +54,11 @@ namespace GibEngine {
 				MOCK_METHOD2(UpdateMeshInstances,
 					bool(const MeshUploadTicket& meshUploadTicket, const std::vector<glm::mat4>& instanceMatrixList));
 				MOCK_METHOD1(UpdateCamera,
-					bool(CameraBase *camera));
+					bool(const CameraBase& camera));
 				MOCK_METHOD2(UploadMesh,
 					std::shared_ptr<MeshUploadTicket>(const std::vector<GibEngine::Vertex>& vertexList, const std::vector<unsigned int>& indexList));
-				MOCK_METHOD2(UploadTexture2D,
-					void(unsigned int* textureId, const TextureData& textureData));
+				MOCK_METHOD4(UploadTexture2D,
+					void(unsigned int* textureId, const TextureData& textureData, SamplerFiltering filtering, SamplerEdgeClamping edgeClamping));
 				MOCK_METHOD2(UploadTextureCubemap,
 					void(unsigned int* textureId, std::vector<TextureData>& cubemapSideData));
 				MOCK_METHOD0(UnbindFramebuffer,

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
 project(GibEngine C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
@@ -8,53 +8,49 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(GIBENGINE_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
 
-if(UNIX)
-  set(GIBENGINE_LIBRARIES pthread)
-endif()
-
 ####################################################
 #	PROJECT DEPENDENCIES
 ####################################################
 include(ExternalProject)
 
-find_package(Glfw REQUIRED)
-if(GLFW_FOUND)
-  list(APPEND GIBENGINE_INCLUDE_DIRS ${GLFW_INCLUDE_DIR})
-  list(APPEND GIBENGINE_LIBRARIES ${GLFW_LIBRARY})
+find_package(glfw3 CONFIG REQUIRED)
+find_package(Assimp CONFIG REQUIRED)
+
+if(UNIX)
+  string(REGEX REPLACE "assimp.lib" "libassimp.a" ASSIMP_LIBRARIES ${ASSIMP_LIBRARIES})
+endif(UNIX)
+
+find_package(Sqlite3 CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
+
+find_path(CXXOPTS_INCLUDE_DIR cxxopts.hpp)
+if(CXXOPTS_INCLUDE_DIR STREQUAL "CXXOPTS_INCLUDE_DIR-NOTFOUND")
+  message(FATAL_ERROR "Could not find cxxopts")
+endif()
+list(APPEND GIBENGINE_INCLUDE_DIRS ${CXXOPTS_INCLUDE_DIR})
+
+find_package(spdlog CONFIG REQUIRED)
+# find_path(SPDLOG_INCLUDE_DIR spdlog/spdlog.h)
+# if(SPDLOG_INCLUDE_DIR STREQUAL "SPDLOG_INCLUDE_DIR-NOTFOUND")
+#   message(FATAL_ERROR "Could not find spdlog")
+# endif()
+# list(APPEND GIBENGINE_INCLUDE_DIRS ${SPDLOG_INCLUDE_DIR})
+
+find_path(JSON11_INCLUDE_DIR json11.hpp)
+if(JSON11_INCLUDE_DIR STREQUAL "JSON11_INCLUDE_DIR-NOTFOUND")
+  message(FATAL_ERROR "Could not find json11")
+endif()
+list(APPEND GIBENGINE_INCLUDE_DIRS ${JSON11_INCLUDE_DIR})
+
+find_library(JSON11_LIBRARY json11)
+if(JSON11_LIBRARY STREQUAL "JSON11_LIBRARY-NOTFOUND")
+  message(FATAL_ERROR "Could not find json11 library")
 endif()
 
-find_package(Spdlog REQUIRED)
-if(SPDLOG_FOUND)
-  list(APPEND GIBENGINE_INCLUDE_DIRS ${SPDLOG_INCLUDE_DIRS})
+find_library(FMT_LIBRARY fmt)
+if(FMT_LIBRARY STREQUAL "FMT_LIBRARY-NOTFOUND")
+  message(FATAL_ERROR "Could not find fmt library")
 endif()
-
-find_package(Cxxopts REQUIRED)
-if(CXXOPTS_FOUND)
-  list(APPEND GIBENGINE_INCLUDE_DIRS ${CXXOPTS_INCLUDE_DIRS})
-endif()
-
-find_package(Glm REQUIRED)
-if(GLM_FOUND)
-  list(APPEND GIBENGINE_INCLUDE_DIRS ${GLM_INCLUDE_DIR})
-endif()
-
-find_package(Assimp REQUIRED)
-if(assimp_FOUND)
-  list(APPEND GIBENGINE_INCLUDE_DIRS ${assimp_INCLUDE_DIRS})
-  list(APPEND GIBENGINE_LIBRARIES ${assimp_LIBRARIES})
-endif()
-
-find_package(Json11 REQUIRED)
-if(JSON11_FOUND)
-  list(APPEND GIBENGINE_INCLUDE_DIRS ${JSON11_INCLUDE_DIRS})
-  list(APPEND GIBENGINE_LIBRARIES ${JSON11_LIBRARIES})
-endif()
-
-find_package(Sqlite3 REQUIRED)
-if(SQLITE3_FOUND)
-  list(APPEND GIBENGINE_INCLUDE_DIRS ${SQLITE3_INCLUDE_DIRS})
-  list(APPEND GIBENGINE_LIBRARIES ${SQLITE3_LIBRARIES})
-endif()  
 
 set(GibEngine_VERSION_MAJOR 1)
 set(GibEngine_VERSION_MINOR 0)
@@ -65,15 +61,11 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE)
 set(GIBENGINE_INCLUDE_DIRS ${GIBENGINE_INCLUDE_DIRS}
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
 
-include_directories(${GIBENGINE_INCLUDE_DIRS})
-
 set(SQLITE3PP_SRC
   include/sqlite3pp/sqlite3pp.h
   include/sqlite3pp/sqlite3ppext.h
   src/sqlite3pp/sqlite3pp.cpp
   src/sqlite3pp/sqlite3ppext.cpp)
-
-include_directories(include/sqlite3pp/)
 
 # Split the engine src into respective namespaces for `source_group`ing
 set(THIRDPARTY_INCLUDES
@@ -102,6 +94,17 @@ set(INPUT_SRC
   src/input/Controller.cpp
   src/input/InputManager.cpp)
 
+set(EVENT_INCLUDES
+	include/event/IEvent.h
+	include/event/BaseEvent.h
+	include/event/OnTickEvent.h
+	include/event/InputEvents.h
+	include/event/EventManager.h)
+
+set(EVENT_SRC
+	src/event/BaseEvent.cpp
+	src/event/EventManager.cpp)
+
 set(FILESYSTEM_INCLUDES include/filesystem/IFileSystem.h)
 
 if(WIN32)
@@ -117,7 +120,6 @@ set(RENDERER_INCLUDES
   include/renderer/api/GL420.h
   include/renderer/api/GLES3.h
   include/renderer/UniformBufferManager.h
-  include/renderer/RenderPassType.h
   include/renderer/RenderPass.h
   include/renderer/Pipeline.h
   include/renderer/ForwardRenderPass.h
@@ -125,6 +127,7 @@ set(RENDERER_INCLUDES
   include/renderer/DeferredGeometryPass.h
   include/renderer/DeferredLightingPass.h
   include/renderer/RenderToTexturePass.h
+  include/renderer/SsaoPass.h
   include/renderer/Framebuffer.h)
 
 set(RENDERER_SRC
@@ -138,21 +141,21 @@ set(RENDERER_SRC
   src/renderer/DeferredGeometryPass.cpp
   src/renderer/DeferredLightingPass.cpp
   src/renderer/RenderToTexturePass.cpp
+  src/renderer/SsaoPass.cpp
   src/renderer/Framebuffer.cpp)
 
 set(SCENE_INCLUDES
-	include/scene/VisibleSet.h
-	include/scene/Node.h)
+	include/scene/VisibleSet.h)
 
 set(SCENE_SRC
-	src/scene/VisibleSet.cpp
-	src/scene/Node.cpp)
+	src/scene/VisibleSet.cpp)
 
 set(ROOT_INCLUDES
   include/glfw/glfw_callback.h
   include/AABB.h
   include/CameraBase.h
-  include/Entity.h
+  include/BaseEntity.h
+  include/IEntity.h
   include/EnumFlags.h
   include/FreeCamera.h
   include/Game.h
@@ -168,7 +171,7 @@ set(ROOT_INCLUDES
 set(ROOT_SRC
   src/AABB.cpp
   src/CameraBase.cpp
-  src/Entity.cpp
+  src/BaseEntity.cpp
   src/FreeCamera.cpp
   src/Game.cpp
   src/Logger.cpp
@@ -180,11 +183,12 @@ set(ROOT_SRC
   src/LightBase.cpp
   src/PointLight.cpp)
 
-
 add_library(GibEngine
   ${SQLITE3PP_SRC}
   ${THIRDPARTY_INCLUDES}
   ${THIRDPARTY_SRC}
+  ${EVENT_INCLUDES}
+  ${EVENT_SRC}
   ${WORLD_INCLUDES}
   ${WORLD_SRC}
   ${FILESYSTEM_INCLUDES}
@@ -206,37 +210,27 @@ source_group("Header Files\\Input" FILES ${INPUT_INCLUDES})
 source_group("Header Files\\Renderer" FILES ${RENDERER_INCLUDES})
 source_group("Header Files\\FileSystem" FILES ${FILESYSTEM_INCLUDES})
 source_group("Header Files\\Scene" FILES ${SCENE_INCLUDES})
+source_group("Header Files\\Event" FILES ${EVENT_INCLUDES})
 source_group("Source Files" FILES ${ROOT_SRC})
 source_group("Source Files\\ThirdParty" FILES ${THIRDPARTY_SRC})
 source_group("Source Files\\ThirdParty\\SQLite3pp" FILES ${SQLITE3PP_SRC})
+source_group("Source Files\\Event" FILES ${EVENT_SRC})
 source_group("Source Files\\World" FILES ${WORLD_SRC})
 source_group("Source Files\\Input" FILES ${INPUT_SRC})
 source_group("Source Files\\Scene" FILES ${SCENE_SRC})
 source_group("Source Files\\Renderer" FILES ${RENDERER_SRC})
 source_group("Source Files\\FileSystem" FILES ${FILESYSTEM_SRC})
 
+target_include_directories(GibEngine PUBLIC ${GIBENGINE_INCLUDE_DIRS})
+
+set(GIBENGINE_LIBRARIES ${ASSIMP_LIBRARIES} glm glfw sqlite3 spdlog::spdlog ${FMT_LIBRARY} ${JSON11_LIBRARY})
+
 if(WIN32)
-  LIST(APPEND GIBENGINE_LIBRARIES opengl32)
+ set(APPEND GIBENGINE_LIBRARIES opengl32)
 elseif(UNIX)
-  LIST(APPEND GIBENGINE_LIBRARIES dl)
+ set(APPEND GIBENGINE_LIBRARIES dl pthread)
 endif()
 
-target_link_libraries(GibEngine ${GIBENGINE_LIBRARIES})
+target_link_libraries(GibEngine PRIVATE ${GIBENGINE_LIBRARIES})
 
-add_dependencies(GibEngine glm glfw assimp spdlog cxxopts json11 sqlite3)
-
-if(MSVC)
-  if(GLFW_FOUND)
-    add_custom_command(TARGET GibEngine POST_BUILD
-              COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              ${GLFW_DLL}
-              $<TARGET_FILE_DIR:GibEngine>)
-  endif()
-
-  if(assimp_FOUND)
-    add_custom_command(TARGET GibEngine POST_BUILD
-              COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              ${assimp_DLL}
-              $<TARGET_FILE_DIR:GibEngine>)
-  endif()
-endif()
+#add_dependencies(GibEngine glm glfw spdlog cxxopts json11 sqlite3)

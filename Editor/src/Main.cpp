@@ -4,6 +4,7 @@ int main(int argc, char** argv)
 {    
     GibEditor::Editor* editor = new GibEditor::Editor(argc, argv);
 
+	auto imguiCtx = ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(editor->GetWindow(), false);
 	SetupImGuiStyle();
 
@@ -14,6 +15,10 @@ int main(int argc, char** argv)
 		ImGui_ImplGlfwGL3_NewFrame();
 
 		editor->Render();
+
+		ImGui::Render();
+		ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
+
 
 		glfwSwapBuffers(editor->GetWindow());
 
@@ -42,6 +47,7 @@ int main(int argc, char** argv)
     }
 
 	ImGui_ImplGlfwGL3_Shutdown();
+	ImGui::DestroyContext(imguiCtx);
 
 	delete editor;
 }
@@ -49,12 +55,13 @@ int main(int argc, char** argv)
 void SetupImGuiStyle()
 {
 	ImGuiIO& io = ImGui::GetIO();
+
 	io.Fonts->AddFontFromFileTTF("../../Assets/Fonts/Arimo-Regular.ttf", 24.0f);
-	
+
 	ImGuiStyle& style = ImGui::GetStyle();
 
 	style.WindowPadding = ImVec2(0, 0);
-	style.WindowRounding = 10;
+	style.WindowRounding = 5;
 	style.ItemSpacing = ImVec2(10, 10);
 	style.ItemInnerSpacing = ImVec2(8, 4);
 	style.ScrollbarSize = 20;
@@ -75,21 +82,20 @@ void SetupImGuiStyle()
 	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.15f, 0.15f, 0.13f, 0.67f);
 	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.27f, 0.27f, 0.54f, 0.83f);
 	style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.40f, 0.40f, 0.80f, 0.20f);
-	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.19f, 0.48f, 0.75f, 1.00f);
-	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.25f, 0.25f, 0.25f, 0.70f);
+	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.165f, 0.396f, 0.750f, 1.00f);
+	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.2f, 0.2f, 0.180f, 1.00f);
 	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.07f, 0.07f, 0.08f, 0.40f);
 	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 0.80f);
 	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.80f);
 	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
-	style.Colors[ImGuiCol_ComboBg] = ImVec4(0.86f, 0.86f, 0.86f, 0.99f);
 	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
 	style.Colors[ImGuiCol_SliderGrab] = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
 	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
 	style.Colors[ImGuiCol_Button] = ImVec4(0.32f, 0.32f, 0.32f, 0.25f);
 	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.15f, 0.30f, 0.48f, 0.98f);
 	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.15f, 0.30f, 0.61f, 1.00f);
-	style.Colors[ImGuiCol_Header] = ImVec4(0.00f, 0.00f, 0.00f, 0.50f);
-	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+	style.Colors[ImGuiCol_Header] = ImVec4(0.48f, 0.48f, 0.55f, 1.0f);
+	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.48f, 0.48f, 0.55f, 1.00f);
 	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.19f, 0.48f, 0.75f, 1.00f);
 	style.Colors[ImGuiCol_Column] = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
 	style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.15f, 0.31f, 0.38f, 1.00f);

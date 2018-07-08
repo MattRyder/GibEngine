@@ -1,31 +1,26 @@
 #pragma once
 
-#include "GL/gl3w.h"
-#include "GLFW/glfw3.h"
-
 #include "CameraBase.h"
+#include "event/OnTickEvent.h"
 
-namespace GibEngine 
+namespace GibEngine
 {
-    class FreeCamera : public CameraBase
-    {
-        const float cameraMovementSpeed;
+	class FreeCamera : public CameraBase
+	{
+		const float MOVEMENT_SPEED = 1.0f;
+
 		glm::vec2 lastMouseDelta;
 
-        FreeCamera();
+		FreeCamera();
 
-	protected:
-		virtual void UpdatePosition(double deltaTime, int *keyState) override;
-		void UpdateDirection(double deltaTime, double mouseDeltaX, double mouseDeltaY) override;
-
-    public:
+	public:
 		static unsigned int BUFFER_OBJECT_SIZE;
 
-        FreeCamera(int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees);
-        ~FreeCamera();
+		FreeCamera(int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees);
 
-        virtual void Render();
+		virtual void RegisterEvents(Event::EventManager* const eventManager);
 
-		virtual void Update(double deltaTime, glm::vec2 mouseState, glm::vec2 scrollState, int *keyState) override;
-    };
+		void OnTick(float deltaTime, Event::OnTickEvent& e);
+		void OnMouseMove(float deltaTime, Event::MouseMoveEvent& e);
+	};
 }

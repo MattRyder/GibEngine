@@ -4,7 +4,7 @@ GibEngine::PointLight::PointLight()
 	: PointLight(glm::vec3(), glm::vec3(0.2f), glm::vec3(0.7f), glm::vec3(0.9f), 0.0f, 1.8f) { }
 
 GibEngine::PointLight::PointLight(glm::vec3 position, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specularColor, float linearAttenuation, float quadraticAttenuation)
-	: LightBase(Entity::Type::POINT_LIGHT, position, ambientColor, diffuseColor, specularColor)
+	: LightBase(BaseEntity::Type::POINT_LIGHT, position, ambientColor, diffuseColor, specularColor)
 {
 	this->linearAtten = linearAttenuation;
 	this->quadraticAtten = quadraticAttenuation;

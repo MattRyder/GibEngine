@@ -5,23 +5,25 @@ GibEngine::Game::Game(int argc, char** argv)
 {
 	this->ParseOptions(argc, argv);
 
-	if (!InitializeGL(shaderLanguage))
+	this->eventManager = std::make_shared<Event::EventManager>();
+
+	if (!InitializeGraphics(shaderLanguage))
 	{
-		Logger::Instance->error("Failed to initialize OpenGL!");
+		Logger::Instance->error("Failed to initialize graphics!");
 		return;
 	}
 
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-	this->playerCamera = new FreeCamera(requestedWindowSize.x, requestedWindowSize.y, 0.1f, 2500.0f, 45.0f);
-	this->playerCamera->SetPosition(glm::vec3(15, 15, 0));
-	this->playerCamera->LookAt(glm::vec3());
+	this->playerCamera = std::shared_ptr<FreeCamera>(new FreeCamera(requestedWindowSize.x, requestedWindowSize.y, 0.1f, 2000.0f, glm::radians(66.0f)));
+	this->playerCamera->SetPosition(glm::vec3(20, 15, 0));
+	this->playerCamera->RegisterEvents(eventManager.get());
 
-	playerCameraSP = std::shared_ptr<CameraBase>(playerCamera);
+	//eventManager->PauseListener(this->playerCamera.get(), Event::Type::MOUSE_MOVE);
 
-	this->inputManager = new Input::InputManager(window);
+	this->inputManager = std::make_shared<Input::InputManager>(window);
 
-	vset = std::shared_ptr<Scene::VisibleSet>(new Scene::VisibleSet(playerCameraSP, rootSceneNode));
+	vset = std::shared_ptr<Scene::VisibleSet>(new Scene::VisibleSet(playerCamera, rootEntity));
 
 #ifdef WIN32
 	this->fileSystem = std::shared_ptr<FileSystem::IFileSystem>(new FileSystem::WindowsFileSystem());
@@ -31,17 +33,16 @@ GibEngine::Game::Game(int argc, char** argv)
 
 	SetupPipeline();
 
-
 	if(!true)
 	{
 		GibEngine::World::Database* worldDb = new World::Database("demo_nodes.gwo", fileSystem, graphicsApi);
 
-		std::shared_ptr<Scene::Node> rootNode = CreateWorld();
+		std::shared_ptr<BaseEntity> rootNode = CreateWorld();
 
-		if (worldDb->SaveLevel(rootNode.get()))
-		{
-			// TODO: attach rootNode to new Level record
-		}
+		//if (worldDb->SaveLevel(rootNode.get()))
+		//{
+		//	// TODO: attach rootNode to new Level record
+		//}
 	}
 }
 
@@ -49,8 +50,6 @@ GibEngine::Game::~Game()
 {
 	glfwDestroyWindow(window);
 	glfwTerminate();
-
-	delete inputManager;
 }
 
 void GibEngine::Game::Render()
@@ -73,14 +72,15 @@ void GibEngine::Game::Render()
 		fpsIntervalTimer += deltaTime;
 	}
 
-	if (rootSceneNode == NULL)
+	if (!rootEntity)
 	{
 		return;
 	}
 
-	//auto visibleSet = Scene::VisibleSet(playerCameraSP, *rootSceneNode, graphicsApi);
+	auto visibleSet = Scene::VisibleSet(playerCamera, GetRootEntity());
+	visibleSet.Parse(graphicsApi);
 
-	this->pipeline->Render(*vset, GetDeltaTime());
+	this->pipeline->Render(visibleSet, GetDeltaTime());
 }
 
 void GibEngine::Game::Update()
@@ -94,18 +94,7 @@ void GibEngine::Game::Update()
 		GLFW::WindowResizeEvent.Raised = false;
 	}
 
-	this->playerCamera->Update(deltaTime, inputManager->GetMousePosition(), inputManager->GetScrollState(), inputManager->GetKeyboardState());
-
-	if (rootSceneNode != nullptr)
-	{
-		rootSceneNode->Update(deltaTime, *inputManager);
-	}
-
-	if (inputManager->GetKeyboardState()[GLFW_KEY_F11])
-	{
-		auto screenshotFilepath = fileSystem->GetWorkingDirectory() + "/GibEngine_" + std::to_string(rand()) + ".png";
-		this->pipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING)->TakeScreenshot(screenshotFilepath);
-	}
+	eventManager->Poll(deltaTime);
 
 	glfwPollEvents();
 }
@@ -114,41 +103,43 @@ void GibEngine::Game::SetupPipeline()
 {
 	this->pipeline = std::shared_ptr<Renderer::Pipeline>(new Renderer::Pipeline(requestedWindowSize.x, requestedWindowSize.y, fileSystem, graphicsApi));
 
-	Renderer::RenderPass* deferredGeoPass = this->pipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_GEOMETRY);
+	Renderer::RenderPass* deferredGeoPass = this->pipeline->GetRenderPass(Renderer::RenderPass::Type::DEFERRED_GEOMETRY);
 	deferredGeoPass->SetPassEnabled(true);
+
+	Renderer::RenderPass* ssaoPass = this->pipeline->GetRenderPass(Renderer::RenderPass::Type::AMBIENT_OCCLUSION);
+	ssaoPass->SetPassEnabled(true);
 	
-	Renderer::RenderPass* deferredLightingPass = this->pipeline->GetRenderPass(Renderer::RenderPassType::DEFERRED_LIGHTING);
+	Renderer::RenderPass* deferredLightingPass = this->pipeline->GetRenderPass(Renderer::RenderPass::Type::DEFERRED_LIGHTING);
 	deferredLightingPass->SetPassEnabled(true);
 
-	Renderer::RenderPass* renderPass = this->pipeline->GetRenderPass(Renderer::RenderPassType::SKYBOX);
+	Renderer::RenderPass* renderPass = this->pipeline->GetRenderPass(Renderer::RenderPass::Type::SKYBOX);
 	renderPass->SetPassEnabled(true);
 
-	Renderer::RenderPass* forwardPass = this->pipeline->GetRenderPass(Renderer::RenderPassType::FORWARD_RENDERING);
+	Renderer::RenderPass* forwardPass = this->pipeline->GetRenderPass(Renderer::RenderPass::Type::FORWARD_RENDERING);
 	forwardPass->SetPassEnabled(true);
 
-	Renderer::RenderPass* renderToTexturePass = this->pipeline->GetRenderPass(Renderer::RenderPassType::RENDER_TO_TEXTURE);
+	Renderer::RenderPass* renderToTexturePass = this->pipeline->GetRenderPass(Renderer::RenderPass::Type::RENDER_TO_TEXTURE);
 	renderToTexturePass->SetPassEnabled(true);
 
 	// Add Cameras
-	pipeline->AddCamera(playerCameraSP);
+	pipeline->AddCamera(playerCamera);
 }
 
-bool GibEngine::Game::InitializeGL(GibEngine::Renderer::ShaderLanguage shaderLanguage)
+bool GibEngine::Game::InitializeGraphics(GibEngine::Renderer::ShaderLanguage shaderLanguage)
 {
-	int glfwInitResult = glfwInit();
-	if (glfwInitResult != GL_TRUE)
+	if (!glfwInit())
 	{
 		return false;
 	}
 
 	switch(shaderLanguage)
 	{
-		case GibEngine::Renderer::ShaderLanguage::GLES_3:
+		case Renderer::ShaderLanguage::GLES_3:
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 			break;
-		case GibEngine::Renderer::ShaderLanguage::GLSL_420:
+		case Renderer::ShaderLanguage::GLSL_420:
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -158,11 +149,10 @@ bool GibEngine::Game::InitializeGL(GibEngine::Renderer::ShaderLanguage shaderLan
 	}
 
 	this->window = glfwCreateWindow(requestedWindowSize.x, requestedWindowSize.y, this->windowTitle.c_str(), nullptr, nullptr);
+	glfwSetWindowUserPointer(window, eventManager.get());
 
 	// Setup GLFW callbacks:
-	glfwSetErrorCallback(GLFW::ErrorCallback);
 	glfwSetFramebufferSizeCallback(window, GLFW::SetWindowSizeCallback);
-	//glfwSetWindowSizeCallback(window, GLFW::SetWindowSizeCallback);
 
 	if (!this->window)
 	{
@@ -179,10 +169,10 @@ bool GibEngine::Game::InitializeGL(GibEngine::Renderer::ShaderLanguage shaderLan
 
 	switch (shaderLanguage)
 	{
-	case GibEngine::Renderer::ShaderLanguage::GLES_3:
+	case Renderer::ShaderLanguage::GLES_3:
 		graphicsApi = std::shared_ptr<Renderer::API::IGraphicsApi>(new Renderer::API::GLES3());
 		break;
-	case GibEngine::Renderer::ShaderLanguage::GLSL_420:
+	case Renderer::ShaderLanguage::GLSL_420:
 		graphicsApi = std::shared_ptr<Renderer::API::IGraphicsApi>(new Renderer::API::GL420());
 		break;
 	}
@@ -256,9 +246,9 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 		unsigned int levelID = opts["levelID"].as<unsigned int>();
 		
 		GibEngine::World::Database* db = new World::Database(worldPath.c_str(), fileSystem, graphicsApi, true);
-		rootSceneNode.reset(db->LoadLevel(levelID));
-		vset->SetRootSceneNode(rootSceneNode);
-		vset->Parse();
+		//rootEntity = db->LoadLevel(levelID);
+		vset->SetRootEntity(rootEntity);
+		vset->Parse(graphicsApi);
 
 		Logger::Instance->info("Loaded Level from Scene Root: {}", levelID);
 
@@ -266,7 +256,7 @@ void GibEngine::Game::ParseOptions(int argc, char** argv)
 	}
 }
 
-std::shared_ptr<GibEngine::Scene::Node> GibEngine::Game::CreateWorld()
+std::shared_ptr<GibEngine::BaseEntity> GibEngine::Game::CreateWorld()
 {
 	const json11::Json deferredGenerationData = json11::Json::object
 	{
@@ -278,46 +268,40 @@ std::shared_ptr<GibEngine::Scene::Node> GibEngine::Game::CreateWorld()
 		{ "MeshFlags", json11::Json::array { "RENDER_WIREFRAME", "RENDER_FORWARD" } }
 	};
 
-	auto sceneNode = std::shared_ptr<Scene::Node>(new Scene::Node("Scene Root"));
+	auto sceneNode = std::make_shared<BaseEntity>(BaseEntity::Type::ENTITY, "Scene Root");
 
 	auto skyboxMesh = MeshService::Generate(graphicsApi, MeshService::CUBE_GENERATION_JSON);
-	auto cubemap = MeshService::LoadCubemap(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Skybox/default", "png");
-	auto skybox = new Skybox(skyboxMesh, cubemap);
-
-	PointLight* light = new PointLight(
+	auto cubemap = MeshService::LoadCubemap(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Skybox/stormy", "png");
+	auto skybox = std::shared_ptr<Skybox>(new Skybox(skyboxMesh, cubemap));
+	skybox->RegisterEvents(eventManager.get());
+	
+	auto light = std::make_shared<PointLight>(
 		glm::vec3(0, 1.65f, 0),
-		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.5f, 0.0f, 0.0f), glm::vec3(0.9f, 0.9f, 0.9f),
-		0.75f, // -1.0 -- 1.0
+		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.7f, 0.7f, 0.7f), glm::vec3(0.9f, 0.9f, 0.9f),
+		1.5f, // -1.0 -- 1.0
 		1.0f); // 0.0 -- 1.0
-
-	// Create the Scene graph for the demo world:
-	Scene::Node* skyboxNode = new Scene::Node(std::string("Skybox"));
-	skyboxNode->SetEntityState(World::DatabaseRecord::State::NEW);
-	skyboxNode->SetEntity(skybox);
-
-	// Create a Point Light node within the Scene:
-	Scene::Node* pointLightNode = new Scene::Node(std::string("Point Light"));
-	pointLightNode->SetEntity(light);
-	pointLightNode->SetEntityState(World::DatabaseRecord::State::NEW);
-	glm::mat4 lightPos = glm::mat4();
-	lightPos[3] = glm::vec4(0.0f, 1.65f, 2.0f, 1.0f);
-	pointLightNode->SetLocalTransform(lightPos);
 
 	// Attach the sphere mesh 
 	auto sphereNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/default/sphere/sphere.obj", forwardGenerationData);
-	pointLightNode->AddChildNode(sphereNode);
+	light->AddChild(sphereNode);
 
 	// Create a Model node:
-	//Scene::Node* meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/brickwall/brickwall.obj", deferredGenerationData);
-	Scene::Node* meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/sponzaObj/sponza.obj", deferredGenerationData);
-	//glm::mat4 meshPos = glm::scale(glm::mat4(), glm::vec3(2.0f));
-	meshNode->SetNodeState(World::DatabaseRecord::State::NEW);
-	meshNode->SetEntityState(World::DatabaseRecord::State::NEW);
-	//meshNode->SetLocalTransform(meshPos);
+	auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/brickwall/brickwall.obj", deferredGenerationData);
+	meshNode->RegisterEvents(eventManager.get());
+	//auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/sponza/sponza.fbx", deferredGenerationData);
+	//auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/default/box/box.obj", deferredGenerationData);
+	meshNode->Translate(glm::vec3(0, 0.5, -10));
+	meshNode->AddChild(playerCamera);
 
-	sceneNode->AddChildNode(pointLightNode);
-	sceneNode->AddChildNode(skyboxNode);
-	sceneNode->AddChildNode(meshNode);
+	auto floorNode =  MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/default/box/box.obj", deferredGenerationData);
+	floorNode->Translate(glm::vec3(-230.0f, 0, -425.0f));
+	floorNode->Scale(glm::vec3(75.0f, 0.0f, 75.0f));
+	sceneNode->AddChild(meshNode);
+
+	sceneNode->AddChild(skybox);
+	sceneNode->AddChild(light);
+
+	sceneNode->AddChild(floorNode);
 
 	return sceneNode;
 }
@@ -327,9 +311,9 @@ void GibEngine::Game::ToggleVsync()
 	glfwSwapInterval((config.vsyncEnabled = !config.vsyncEnabled) ? 1 : 0);
 }
 
-GLFWwindow* GibEngine::Game::GetWindow()
+GLFWwindow* GibEngine::Game::GetWindow() const
 {
-	return this->window;
+	return window;
 }
 
 std::shared_ptr<GibEngine::Renderer::Pipeline> GibEngine::Game::GetRenderPipeline() const
@@ -337,7 +321,7 @@ std::shared_ptr<GibEngine::Renderer::Pipeline> GibEngine::Game::GetRenderPipelin
 	return pipeline;
 }
 
-GibEngine::Input::InputManager* GibEngine::Game::GetInputManager() const
+std::shared_ptr<GibEngine::Input::InputManager> GibEngine::Game::GetInputManager() const
 {
 	return inputManager;
 }
@@ -352,9 +336,9 @@ std::shared_ptr<GibEngine::FileSystem::IFileSystem> GibEngine::Game::GetFileSyst
 	return fileSystem;
 }
 
-std::shared_ptr<GibEngine::Scene::Node> GibEngine::Game::GetSceneNodeRoot() const
+std::shared_ptr<GibEngine::BaseEntity> GibEngine::Game::GetRootEntity() const
 {
-	return rootSceneNode;
+	return rootEntity;
 }
 
 int GibEngine::Game::GetFramesPerSecond() const
@@ -375,19 +359,19 @@ float GibEngine::Game::GetDeltaTime() const
 void GibEngine::Game::SetWindowTitle(const std::string windowTitle)
 {
 	this->windowTitle = windowTitle;
-	glfwSetWindowTitle(this->window, this->windowTitle.c_str());
+	glfwSetWindowTitle(window, this->windowTitle.c_str());
 }
 
 void GibEngine::Game::SetWindowSize(int windowWidth, int windowHeight)
 {
 	windowWidth = windowWidth > 1 ? windowWidth : 1;
 	windowHeight = windowHeight > 1 ? windowHeight : 1;
-	glfwSetWindowSize(this->window, windowWidth, windowHeight);
+	glfwSetWindowSize(window, windowWidth, windowHeight);
 }
 
-void GibEngine::Game::SetSceneRoot(std::shared_ptr<Scene::Node> rootSceneNode)
+void GibEngine::Game::SetSceneRoot(std::shared_ptr<GibEngine::BaseEntity> rootEntity)
 {
-	this->rootSceneNode = rootSceneNode;
-	this->vset->SetRootSceneNode(rootSceneNode);
-	this->vset->Parse();
+	this->rootEntity = rootEntity;
+	this->vset->SetRootEntity(rootEntity);
+	this->vset->Parse(graphicsApi);
 }

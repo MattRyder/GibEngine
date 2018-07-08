@@ -1,16 +1,17 @@
 #pragma once
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include "LightBase.h"
 
+using namespace GibEngine;
 
 class LightBaseTest : public ::testing::Test
 {
 public:
 	virtual void SetUp()
 	{
-        lightBase = new GibEngine::LightBase(GibEngine::Entity::Type::LIGHT,
+        lightBase = new GibEngine::LightBase(BaseEntity::Type::LIGHT,
             position, ambientColor, diffuseColor, specularColor);
     }
 

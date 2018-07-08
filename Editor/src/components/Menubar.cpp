@@ -1,17 +1,20 @@
 #include "components/Menubar.h"
 
-GibEditor::Components::Menubar::Menubar(std::shared_ptr<GibEngine::Scene::Node> node) : rootSceneNode(node) { }
+GibEditor::Components::Menubar::Menubar() { }
 
 void GibEditor::Components::Menubar::Render()
 {
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(20, 20));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 20));
+
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("File"))
 		{
-			if (ImGui::MenuItem("New World", "CTRL + N")) { this->newWorldCallbackFunc(); }
-			if (ImGui::MenuItem("Open World", "CTRL + O")) { this->openFileDialogCallbackFunc(); }
-			if (ImGui::MenuItem("Save World", "CTRL + S")) { this->saveFileDialogCallbackFunc(); }
-			if (ImGui::MenuItem("Exit GibEditor", "ALT + F4")) { this->exitCallback(); }
+			if (ImGui::MenuItem(" New World")) { this->newWorldCallbackFunc(); }
+			if (ImGui::MenuItem(" Open World")) { this->openFileDialogCallbackFunc(); }
+			if (ImGui::MenuItem(" Save World")) { this->saveFileDialogCallbackFunc(); }
+			if (ImGui::MenuItem(" Exit GibEditor")) { this->exitCallback(); }
 			ImGui::EndMenu();
 		}
 
@@ -23,11 +26,14 @@ void GibEditor::Components::Menubar::Render()
 
 		ImGui::EndMenuBar();
 	}
+
+	ImGui::PopStyleVar();
+	ImGui::PopStyleVar();
 }
 
-void GibEditor::Components::Menubar::SetSceneNode(std::shared_ptr<GibEngine::Scene::Node> node)
+void GibEditor::Components::Menubar::SetRootEntity(std::shared_ptr<GibEngine::BaseEntity> rootEntity)
 {
-	rootSceneNode = node;
+	this->rootEntity = rootEntity;
 }
 
 void GibEditor::Components::Menubar::SetOnNewWorldCallback(const std::function<void()>& newWorldCallbackFunc)

@@ -30,7 +30,7 @@ uniform sampler2D texture_normal0;
 uniform sampler2D texture_depth0;
 
 const float Z_NEAR = 1.0;
-const float Z_FAR = 250.0;
+const float Z_FAR = 2000.0;
 
 float linearDepth(float depthValue) {
   // translate to normalized device coordinate space:

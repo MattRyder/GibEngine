@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Entity.h"
+#include "BaseEntity.h"
 #include "Shader.h"
-#include "RenderPassType.h"
 
 namespace GibEngine
 {
@@ -80,7 +79,7 @@ namespace GibEngine
 			UniformBuffer* Create(const std::string bufferName, size_t bufferSize);
 			UniformBuffer* Create(const std::string bufferName, size_t bufferSize, GLvoid *bufferData);
 
-			UniformBuffer* Find(const std::string bufferName);
+			UniformBuffer* Find(const std::string& bufferName);
 			UniformBuffer* FindOrCreate(const std::string bufferName, size_t bufferSize);
 
 			void Update(UniformBuffer* uniformBuffer, GLvoid* newData);

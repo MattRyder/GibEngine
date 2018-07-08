@@ -24,7 +24,7 @@
 
 #include <cstring>
 
-#include "sqlite3ppext.h"
+#include <sqlite3pp/sqlite3ppext.h>
 
 namespace sqlite3pp
 {

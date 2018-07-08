@@ -31,7 +31,7 @@ vt 0.0000 0.0000 0.0000
 vt 1.0000 0.0000 0.0000
 # 4 texture coords
 
-g Box01
+g Stock Cube
 usemtl 01___Default
 s 2
 f 1/1/1 2/2/1 3/3/1 4/4/1 

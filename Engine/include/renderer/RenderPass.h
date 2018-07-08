@@ -21,6 +21,7 @@ namespace GibEngine
 			bool lightingBindRequired;
 
 			void BindLightUniform3f(const char* lightUniformName, const glm::vec3 lightUniformValue);
+			void BindLightUniform4fv(const char* lightUniformName, const glm::mat4 lightUniformValue);
 
 		protected:
 			Shader* shader;
@@ -34,6 +35,17 @@ namespace GibEngine
 			void LoadQuadData();
 
 		public:
+			enum class Type
+			{
+				DEFERRED_GEOMETRY,
+				DEFERRED_LIGHTING,
+				FORWARD_RENDERING,
+				SKYBOX,
+				AMBIENT_OCCLUSION,
+				RENDER_TO_TEXTURE,
+				RENDERPASSTYPE_LAST,
+			};
+
 			RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader* shader);
 			RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader* shader, Framebuffer* framebuffer);
 

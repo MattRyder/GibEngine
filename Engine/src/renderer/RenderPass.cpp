@@ -61,24 +61,23 @@ bool GibEngine::Renderer::RenderPass::IsEnabled() const
 
 void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::VisibleSet& visibleSet)
 {
-	auto lightCount = visibleSet.GetLights().size();
+	auto lightCount = static_cast<unsigned int>(visibleSet.GetLights().size());
 	int pl = graphicsApi->GetUniformLocation("pointLightCount");
 	glUniform1i(pl, lightCount);
 
 	for (unsigned int i = 0; i < lightCount; i++)
 	{
-		const Scene::Node lightNode = visibleSet.GetLights().at(i);
-		PointLight* light = reinterpret_cast<PointLight*>(lightNode.GetEntity());
+		auto light = std::dynamic_pointer_cast<PointLight>(visibleSet.GetLights().at(i));
 
 		std::string lightId, position, ambient, diffuse, specular,
 			linearAttenuation, quadraticAttenuation, volumeRadius, direction;
 
 		switch (light->GetType())
 		{
-		case Entity::Type::DIRECTIONAL_LIGHT:
+		case BaseEntity::Type::DIRECTIONAL_LIGHT:
 			lightId = "directional";
 			break;
-		case Entity::Type::POINT_LIGHT:
+		case BaseEntity::Type::POINT_LIGHT:
 			lightId = "point";
 			break;
 		}
@@ -94,37 +93,31 @@ void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::Visible
 		volumeRadius = lightId + ".volumeRadius";
 		direction = lightId + ".direction";
 
-		if (light->GetType() != Entity::Type::DIRECTIONAL_LIGHT)
+		if (light->GetType() != BaseEntity::Type::DIRECTIONAL_LIGHT)
 		{
-			auto lightWorldTrans = lightNode.GetWorldTransform();
+			auto lightWorldTrans = light->GetWorldTransform();
 			auto lightPosition = glm::vec3(lightWorldTrans[3][0], lightWorldTrans[3][1], lightWorldTrans[3][2]);
 			BindLightUniform3f(position.c_str(), lightPosition);
 		}
 
-		// Currently unused by the deferred lighting shader:
-		//BindLightUniform3f(ambient.c_str(), light->GetAmbientColor());
-
 		BindLightUniform3f(diffuse.c_str(), light->GetDiffuseColor());
-
 		BindLightUniform3f(specular.c_str(), light->GetSpecularColor());
 
-		if (light->GetType() == Entity::Type::POINT_LIGHT)
+		if (light->GetType() == BaseEntity::Type::POINT_LIGHT)
 		{
-			PointLight *pointLight = reinterpret_cast<PointLight *>(light);
-
 			glUniform1f(
 				graphicsApi->GetUniformLocation(linearAttenuation.c_str()),
-				pointLight->GetLinearAttenuation()
+				light->GetLinearAttenuation()
 			);
 
 			glUniform1f(
 				graphicsApi->GetUniformLocation(quadraticAttenuation.c_str()),
-				pointLight->GetQuadraticAttenuation()
+				light->GetQuadraticAttenuation()
 			);
 
 			glUniform1f(
 				graphicsApi->GetUniformLocation(volumeRadius.c_str()),
-				pointLight->GetVolumeRadius()
+				light->GetVolumeRadius()
 			);
 		}
 	}
@@ -139,7 +132,7 @@ void GibEngine::Renderer::RenderPass::RenderPass::SetPassEnabled(bool value) { t
 
 void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot(const std::string& filePath)
 {
-	unsigned char *frameBuffer = graphicsApi->ReadFramebufferTexture(this->framebuffer, FramebufferType::RENDER_TO_TEXTURE);
+	unsigned char *frameBuffer = graphicsApi->ReadFramebufferTexture(this->framebuffer, FramebufferType::ALBEDO);
 	unsigned char *lastRow = frameBuffer + (framebuffer->GetBufferWidth() * 3 * (framebuffer->GetBufferHeight() - 1));
 
 	 if (!stbi_write_png(filePath.c_str(), framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 3, lastRow, -3 * framebuffer->GetBufferWidth()))
@@ -158,4 +151,10 @@ void GibEngine::Renderer::RenderPass::BindLightUniform3f(const char* lightUnifor
 {
 	unsigned int uniformLocation = graphicsApi->GetUniformLocation(lightUniformName);
 	graphicsApi->BindUniform3fv(uniformLocation, 1, glm::value_ptr(lightUniformValue));
+}
+
+void GibEngine::Renderer::RenderPass::BindLightUniform4fv(const char * lightUniformName, glm::mat4 lightUniformValue)
+{
+	unsigned int uniformLocation = graphicsApi->GetUniformLocation(lightUniformName);
+	graphicsApi->BindUniform4fv(uniformLocation, 1, glm::value_ptr(lightUniformValue));
 }

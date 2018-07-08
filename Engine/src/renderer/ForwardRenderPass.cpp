@@ -19,7 +19,7 @@ void GibEngine::Renderer::ForwardRenderPass::Render(const GibEngine::Scene::Visi
 			continue;
 		}
 
-		graphicsApi->UpdateMeshInstances(*mesh.GetMeshUploadTicket(), iter->second);
+		//graphicsApi->UpdateMeshInstances(*mesh.GetMeshUploadTicket(), iter->second);
 
 		//if (mesh->GetMaterials().size() > 0)
 		//{

@@ -9,7 +9,14 @@ namespace GibEngine
     namespace Renderer
     {
         namespace API
-        {
+		{
+            enum BufferIndex { VERTEX, INDEX, INSTANCE_MATRIX, BUFFERINDEX_LAST };
+
+			enum class SamplerFiltering { NEAREST, LINEAR };
+
+			enum class SamplerEdgeClamping { REPEAT, CLAMP_TO_EDGE, CLAMP_TO_BORDER, MIRRORED_REPEAT, MIRRORED_CLAMP_TO_EDGE };
+
+
             class IGraphicsApi
             {
 
@@ -17,8 +24,6 @@ namespace GibEngine
                 unsigned int currentShaderID;
                 
             public:
-                enum BufferIndex { VERTEX, INDEX, INSTANCE_MATRIX, BUFFERINDEX_LAST };
-
 				virtual ~IGraphicsApi() { }
 
 				// meta information
@@ -35,6 +40,7 @@ namespace GibEngine
 
 				virtual void BindUniform1f(unsigned int uniformLocation, unsigned int uniformValue) = 0;
 				virtual void BindUniform3fv(unsigned int uniformLocation, unsigned int count, const float *uniformValue) = 0;
+				virtual void BindUniform4fv(unsigned int uniformLocation, unsigned int count, const float *uniformValue) = 0;
 
                 virtual bool CreateFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer, int framebufferWidth, int framebufferHeight) = 0;
 				virtual void DeleteFramebuffer(GibEngine::Renderer::Framebuffer* framebuffer) = 0;
@@ -55,10 +61,10 @@ namespace GibEngine
 				virtual void RegisterCamera(std::shared_ptr<CameraBase> camera) = 0;
 
 				virtual bool UpdateMeshInstances(const MeshUploadTicket& meshUploadTicket, const std::vector<glm::mat4>& instanceMatrixList) = 0;
-				virtual bool UpdateCamera(CameraBase *camera) = 0;
+				virtual bool UpdateCamera(const CameraBase& camera) = 0;
 
 				virtual std::shared_ptr<MeshUploadTicket> UploadMesh(const std::vector<GibEngine::Vertex>& vertexList, const std::vector<unsigned int>& indexList) = 0;
-                virtual void UploadTexture2D(unsigned int* textureId, const TextureData& textureData) = 0;
+                virtual void UploadTexture2D(unsigned int* textureId, const TextureData& textureData, SamplerFiltering filtering, SamplerEdgeClamping edgeClamping) = 0;
 				virtual void UploadTextureCubemap(unsigned int* textureId, std::vector<TextureData>& cubemapSideData) = 0;
                 
                 virtual void UnbindFramebuffer() = 0;

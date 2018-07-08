@@ -58,7 +58,7 @@ void GibEngine::Renderer::UniformBufferManager::Destroy(UniformBuffer* uniformBu
 	delete uniformBuffer;
 }
 
-GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::Find(const std::string bufferName)
+GibEngine::Renderer::UniformBuffer* GibEngine::Renderer::UniformBufferManager::Find(const std::string& bufferName)
 {
 	for (unsigned int i = 0; i < MAX_UNIFORM_BUFFER_COUNT; i++)
 	{

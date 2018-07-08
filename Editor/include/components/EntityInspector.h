@@ -1,14 +1,14 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL 1
 #include <glm/gtx/string_cast.hpp>
 
 #include "imgui_dock.h"
 
 #include "IComponent.h"
-#include "Entity.h"
+#include "BaseEntity.h"
 #include "PointLight.h"
 #include "Skybox.h"
-#include "scene/Node.h"
 
 namespace GibEditor
 {
@@ -17,74 +17,36 @@ namespace GibEditor
 		class EntityInspector : public IComponent
 		{
 		public:
-			EntityInspector(GibEngine::Scene::Node* sceneNode)
-			{
-				this->sceneNode = sceneNode;
-			}
+			EntityInspector() { }
 
-			GibEngine::Scene::Node* GetNode() const { return sceneNode; }
+			void SetEntity(std::shared_ptr<GibEngine::BaseEntity> entity)
+			{
+				this->entity = entity;
+			}
 
 			void Render()
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(25, 25));
 
-				if (sceneNode != nullptr)
+				if (entity)
 				{
-					// Render the Database state of the scene node:
-					ImGui::Text("Database Record");
-
-					auto dbRec = sceneNode->GetDatabaseRecord();
-
-					switch (dbRec.GetState())
-					{
-					case GibEngine::World::DatabaseRecord::State::NEW:
-						ImGui::TextColored(colorPrimary, "Node NEW");
-						break;
-					case GibEngine::World::DatabaseRecord::State::CLEAN:
-						ImGui::TextColored(colorSuccess, "Node CLEAN");
-						break;
-					case GibEngine::World::DatabaseRecord::State::DELETED:
-						ImGui::TextColored(colorDanger, "Node DELETED");
-						break;
-					case GibEngine::World::DatabaseRecord::State::DIRTY:
-						ImGui::TextColored(colorWarn, "Node DIRTY");
-						break;
-					}
-
-					switch (dbRec.GetEntityState())
-					{
-					case GibEngine::World::DatabaseRecord::State::NEW:
-						ImGui::TextColored(colorPrimary, "Entity NEW");
-						break;
-					case GibEngine::World::DatabaseRecord::State::CLEAN:
-						ImGui::TextColored(colorSuccess, "Entity CLEAN");
-						break; 
-					case GibEngine::World::DatabaseRecord::State::DELETED:
-						ImGui::TextColored(colorDanger, "Entity DELETED");
-						break;
-					case GibEngine::World::DatabaseRecord::State::DIRTY:
-						ImGui::TextColored(colorWarn, "Entity DIRTY");
-						break;
-					}
-
-					ImGui::Dummy(ImVec2(ImGui::GetWindowSize().x, 15));
-					
-
+					ImGui::Text("Name: %s", entity->GetName().c_str());
+					ImGui::Text("Type: %s", entity->GetTypeName().c_str());
+					ImGui::Text("GibEngine Entity UID: %s", entity->GetNameKey().c_str());
 					RenderTransformNode();
-					ImGui::Dummy(ImVec2(ImGui::GetWindowSize().x, 30));
+					//ImGui::Dummy(ImVec2(ImGui::GetWindowSize().x, 30));
 
-
-					if (sceneNode->GetEntity() != nullptr)
+					if (entity)
 					{
-						switch (sceneNode->GetEntity()->GetType())
+						switch (entity->GetType())
 						{
-						case GibEngine::Entity::Type::MESH:
+						case GibEngine::BaseEntity::Type::MESH:
 							RenderMesh();
 							break;
-						case GibEngine::Entity::Type::POINT_LIGHT:
+						case GibEngine::BaseEntity::Type::POINT_LIGHT:
 							RenderLight();
 							break;
-						case GibEngine::Entity::Type::SKYBOX:
+						case GibEngine::BaseEntity::Type::SKYBOX:
 							RenderSkybox();
 							break;
 						}
@@ -105,7 +67,7 @@ namespace GibEditor
 			const ImVec4 colorDanger = ImVec4(0.972f, 0.227f, 0.227f, 1.0f);
 			const ImVec4 colorPrimary = ImVec4(0.509, 0.780, 0.972, 1.0f);
 
-			GibEngine::Scene::Node* sceneNode = nullptr;
+			std::shared_ptr<GibEngine::BaseEntity> entity;
 			bool sceneNodeIsDirty = false;
 			bool entityIsDirty = false;
 
@@ -119,22 +81,20 @@ namespace GibEditor
 		{
 			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
 
-			glm::mat4 matrix = sceneNode->GetLocalTransform();
+			glm::mat4 matrix = entity->GetLocalTransform();
 			glm::vec3 pos = glm::vec3(matrix[3][0], matrix[3][1], matrix[3][2]);
-			glm::quat rot = sceneNode->GetRotation();
+			glm::quat rot = glm::quat();//entity->GetRotation();
 			glm::vec3 scale = glm::vec3(matrix[0][0], matrix[1][1], matrix[2][2]);
 
 			if (ImGui::DragFloat3("Position", glm::value_ptr(pos), INCREMENT_SLOW, -1000.0f, 1000.0f))
 			{
 				matrix[3] = glm::vec4(pos[0], pos[1], pos[2], 1.0f);
-				sceneNode->SetLocalTransform(matrix);
-				sceneNode->SetNodeState(GibEngine::World::DatabaseRecord::State::DIRTY);
+				entity->SetLocalTransform(matrix);
 			}
 
 			if (ImGui::DragFloat("Rotation Y", &rot.y, INCREMENT_SLOWEST, 0, 0.1))
 			{
-				sceneNode->RotateY(rot.y);
-				sceneNode->SetNodeState(GibEngine::World::DatabaseRecord::State::DIRTY);
+				entity->RotateY(rot.y);
 			}
 
 			if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), INCREMENT_SLOW, -1000.0f, 1000.0f))
@@ -143,25 +103,18 @@ namespace GibEditor
 				matrix[1][1] = scale[1];
 				matrix[2][2] = scale[2];
 
-				sceneNode->SetLocalTransform(matrix);
-				sceneNode->SetNodeState(GibEngine::World::DatabaseRecord::State::DIRTY);
+				entity->SetLocalTransform(matrix);
 			}
 		}
 
 		inline void EntityInspector::RenderMesh()
 		{
-			GibEngine::Mesh* mesh = reinterpret_cast<GibEngine::Mesh*>(sceneNode->GetEntity());
-
-			ImGui::Text((std::string("Mesh ID: ") + std::to_string(mesh->GetID())).c_str());
-			ImGui::Text("Type: Mesh");
-
-			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
+			auto mesh = std::dynamic_pointer_cast<GibEngine::Mesh>(entity);
 		}
 
 		inline void EntityInspector::RenderLight()
 		{
-			bool setLightDirty = false;
-			GibEngine::PointLight* light = reinterpret_cast<GibEngine::PointLight*>(sceneNode->GetEntity());
+			auto light = std::dynamic_pointer_cast<GibEngine::PointLight>(entity);
 
 			ImGui::Text((std::string("Light ID: ") + std::to_string(light->GetID())).c_str());
 			ImGui::Text((std::string("Type: ") + light->GetTypeName()).c_str());
@@ -172,14 +125,12 @@ namespace GibEditor
 			if (ImGui::DragFloat("Linear Attenuation", &linearAttenuation, INCREMENT_SLOW, 0, 50.0f))
 			{
 				light->SetLinearAttenuation(linearAttenuation);
-				setLightDirty = true;
 			}
 
 			float quadAttenuation = light->GetQuadraticAttenuation();
 			if (ImGui::DragFloat("Quadratic Attenuation", &quadAttenuation, INCREMENT_SLOW, 0, 50.0f))
 			{
 				light->SetQuadraticAttenuation(quadAttenuation);
-				setLightDirty = true;
 			}
 
 			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
@@ -188,32 +139,24 @@ namespace GibEditor
 			if (ImGui::ColorEdit3("Ambient", glm::value_ptr(amb)))
 			{
 				light->SetAmbientColor(amb);
-				setLightDirty = true;
 			}
 
 			glm::vec3 diff = light->GetDiffuseColor();
 			if (ImGui::ColorEdit3("Diffuse", glm::value_ptr(diff)))
 			{
 				light->SetDiffuseColor(diff);
-				setLightDirty = true;
 			}
 
 			glm::vec3 spec = light->GetSpecularColor();
 			if (ImGui::ColorEdit3("Specular", glm::value_ptr(spec)))
 			{
 				light->SetSpecularColor(spec);
-				setLightDirty = true;
-			}
-
-			if (setLightDirty)
-			{
-				sceneNode->ModifyEntity();
 			}
 		}
 
 		inline void EntityInspector::RenderSkybox()
 		{
-			GibEngine::Skybox* skybox = reinterpret_cast<GibEngine::Skybox*>(sceneNode->GetEntity());
+			auto skybox = std::dynamic_pointer_cast<GibEngine::Skybox>(entity);
 
 			const size_t SKYBOX_INPUT_LEN = 128;
 			char skyboxNameBuf[SKYBOX_INPUT_LEN] = { 0 };
@@ -225,7 +168,7 @@ namespace GibEditor
 			if (ImGui::InputText("Skybox Name", skyboxNameBuf, SKYBOX_INPUT_LEN))
 			{
 				skybox->SetName(strdup(skyboxNameBuf));
-				sceneNode->ModifyEntity();
+				//sceneNode->ModifyEntity();
 			}
 
 			if (ImGui::InputText("Extension", skyboxTextureExt, SKYBOX_INPUT_LEN))

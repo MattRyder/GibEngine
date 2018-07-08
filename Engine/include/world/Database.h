@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/ext.hpp>
-#include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "sqlite3pp/sqlite3pp.h"
@@ -14,7 +13,6 @@
 #include "PointLight.h"
 #include "Logger.h"
 
-#include "scene/Node.h"
 #include "MeshService.h"
 #include "filesystem/IFileSystem.h"
 
@@ -35,11 +33,11 @@ namespace GibEngine
             glm::vec3 ReadVec3(std::string vec3String);
             int GetLastAutoincrementId();
 
-			Scene::Node* FindNode(int nodeId);
+			//Scene::Node* FindNode(int nodeId);
 
-			bool SaveSceneNode(int parentNodeId, Scene::Node* node);
-			bool SaveSceneNodeRecord(int parentId, Scene::Node* node);
-			bool SaveEntity(Scene::Node* entityNode);
+			//bool SaveSceneNode(int parentNodeId, Scene::Node* node);
+			//bool SaveSceneNodeRecord(int parentId, Scene::Node* node);
+			//bool SaveEntity(Scene::Node* entityNode);
 
         public:
 			Database(const std::string& databaseFilepath, std::shared_ptr<FileSystem::IFileSystem> fs, std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi);
@@ -52,13 +50,13 @@ namespace GibEngine
 
 			Skybox* LoadSkybox(int skyboxId);
 			PointLight* LoadLight(int lightId);
-			Scene::Node* LoadMesh(int meshId);
-			Scene::Node* LoadLevel(int rootNodeId);
+			//Scene::Node* LoadMesh(int meshId);
+			//std::shared_ptr<BaseEntity> LoadLevel(int id);
 
-            bool SaveSkybox(Scene::Node* skyboxSceneNode);
-			bool SaveMesh(Scene::Node* meshNode);
-			bool SavePointLight(Scene::Node* lightSceneNode);
-			bool SaveLevel(Scene::Node* sceneRootNode);
+   //         bool SaveSkybox(Scene::Node* skyboxSceneNode);
+			//bool SaveMesh(Scene::Node* meshNode);
+			//bool SavePointLight(Scene::Node* lightSceneNode);
+			//bool SaveLevel(Scene::Node* sceneRootNode);
         };
     }
 }

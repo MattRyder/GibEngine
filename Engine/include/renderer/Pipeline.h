@@ -3,12 +3,12 @@
 #include <map>
 
 #include "RenderPass.h"
-#include "RenderPassType.h"
 #include "ForwardRenderPass.h"
 #include "SkyboxRenderPass.h"
 #include "DeferredGeometryPass.h"
 #include "DeferredLightingPass.h"
 #include "RenderToTexturePass.h"
+#include "SsaoPass.h"
 
 #include "filesystem/IFileSystem.h"
 
@@ -18,7 +18,6 @@
 #include "api/GL420.h"
 #include "api/GLES3.h"
 
-#include "scene/Node.h"
 #include "scene/VisibleSet.h"
 
 namespace GibEngine
@@ -40,7 +39,7 @@ namespace GibEngine
 
 			Framebuffer* framebuffer;
 
-			RenderPass* passes[static_cast<int>(RenderPassType::RENDERPASSTYPE_LAST)] = {};
+			RenderPass* passes[static_cast<int>(RenderPass::Type::RENDERPASSTYPE_LAST)] = {};
 
 			std::vector<std::shared_ptr<CameraBase>> cameras;
 			std::shared_ptr<FileSystem::IFileSystem> fileSystem;
@@ -51,12 +50,12 @@ namespace GibEngine
 			~Pipeline();
 
 			void AddCamera(std::shared_ptr<CameraBase> camera);
-			void AddPass(RenderPassType type);
+			void AddPass(RenderPass::Type type);
 
 			void Render(const Scene::VisibleSet& visibleSet, const float deltaTime);
 
 			bool IsRenderPaused();
-			RenderPass* GetRenderPass(RenderPassType type);
+			RenderPass* GetRenderPass(RenderPass::Type type);
 			Framebuffer* GetFramebuffer();
 
 			void SetRenderPaused(bool renderingPaused);
