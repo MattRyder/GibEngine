@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 project(Editor CXX)
 
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-
 if(UNIX)
 	find_package(GTK3 REQUIRED)
 	if(GTK3_FOUND)
@@ -88,5 +86,12 @@ source_group("Shaders\\GL420" FILES ${GL420_SHADER_FILES})
 source_group("Components" FILES ${COMPONENT_FILES})
 
 target_link_libraries(GibEditor GibEngine ${GTK3_LIBRARIES})
+if(WIN32)
+  target_link_libraries(GibEditor opengl32)
+endif(WIN32)
 
 add_dependencies(GibEditor GibEngine)
+
+add_custom_command(TARGET GibEditor PRE_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                       ${CMAKE_SOURCE_DIR}/Assets $<TARGET_FILE_DIR:GibEditor>/Assets)

@@ -16,9 +16,9 @@
  * All definitions must be terminated with a forward-slash:
 */
 #ifdef __unix__
-#define ASSET_RELATIVE_PATH "/../Assets/"
+#define ASSET_RELATIVE_PATH "/Assets/"
 #else
-#define ASSET_RELATIVE_PATH "/../../Assets/"
+#define ASSET_RELATIVE_PATH "/Assets/"
 #endif
 
 #define SCREENSHOT_RELATIVE_PATH "/Screenshots/"

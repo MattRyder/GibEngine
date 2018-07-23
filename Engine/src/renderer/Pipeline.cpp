@@ -56,7 +56,7 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPass::Type type)
 	vertexSource = std::shared_ptr<std::string>(new std::string());
 	fragmentSource = std::shared_ptr<std::string>(new std::string());
 
-	const std::string shaderPath = fileSystem->GetWorkingDirectory() + "/../../Assets/Shaders";
+	const std::string shaderPath = fileSystem->GetWorkingDirectory() + "/Assets/Shaders";
 	const std::string vertexRelativePath = shaderPath + std::string("/") + glVersionDirectory + std::string("/") + shaderFileName + std::string("_vs.glsl");
 	const std::string fragmentRelativePath = shaderPath + std::string("/") + glVersionDirectory + std::string("/") + shaderFileName + std::string("_fs.glsl");
 	fileSystem->ReadFile(vertexRelativePath, vertexSource);

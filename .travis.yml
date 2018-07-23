@@ -19,6 +19,6 @@ install:
 script:
   - mkdir build
   - cd build
-  - cmake .. -DBUILD_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=/home/travis/vcpkg/scripts/buildsystems/vcpkg.cmake
+  - cmake .. -DBUILD_TESTS=ON -DBUILD_EDITOR=OFF -DCMAKE_TOOLCHAIN_FILE=/home/travis/vcpkg/scripts/buildsystems/vcpkg.cmake
   - make
   - ./Tests/GibTest

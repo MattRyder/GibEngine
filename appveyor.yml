@@ -12,16 +12,13 @@ platform:
 # specify custom environment variables
 environment:
   MSVC_DEFAULT_OPTIONS: ON
+  GIBENGINE_VCPKG_EXPORT_URL: http://s3.gibengine.xyz/gibengine-ci/vcpkg
+  GIBENGINE_VCPKG_NAME: gibengine-vcpkg
+  GIBENGINE_VCPKG_FILE: gibengine-vcpkg.7z
 
 # build configuration, i.e. Debug, Release, etc.
 configuration:
   - Debug
-
-# scripts that are called at very beginning, before repo cloning
-init:
-  - cmd: cmake --version
-  - cmd: msbuild /version
-
 
 # branches to build
 branches:
@@ -30,22 +27,16 @@ branches:
 
 # scripts to run before build
 before_build:
-  - cmd: cd c:\tools\vcpkg
-  - cmd: git pull
-  - cmd: .\bootstrap-vcpkg.bat
-  - cmd: git checkout 178517052f42d428bb2f304946e635d3c1f318e9 ports\fmt
-  - cmd: git checkout 2a0bf9c488d5291e82a37d19d4b0f81e79678f0d ports\spdlog
-  - cmd: git checkout 809eb64c97e6ec459cd1e1d601e916100395529e ports\cxxopts
-  - cmd: if "%platform%"=="Win32" set VCPKG_TARGET_TRIPLET=x86-windows
-  - cmd: if "%platform%"=="x64"   set VCPKG_TARGET_TRIPLET=x64-windows
-  - cmd: vcpkg install glfw3 assimp cxxopts json11 gtest sqlite3 spdlog glm --triplet %VCPKG_TARGET_TRIPLET%
-  - cmd: vcpkg integrate install
+  - ps: If ($env:PLATFORM -eq "Win32") { $env:VCPKG_TARGET_TRIPLET="x86-windows" }
+  - ps: If($env:PLATFORM -eq "x64") { $env:VCPKG_TARGET_TRIPLET="x64-windows" }
+  - ps: appveyor DownloadFile "$env:GIBENGINE_VCPKG_EXPORT_URL/$env:VCPKG_TARGET_TRIPLET/$env:GIBENGINE_VCPKG_FILE" -FileName "${env:GIBENGINE_VCPKG_FILE}" -Timeout 600000
+  - ps: 7z x ${env:GIBENGINE_VCPKG_FILE} -oc:\
   - cmd: cd c:\projects\gibengine
   - cmd: md build
   - cmd: cd build
   - cmd: if "%platform%"=="Win32" set CMAKE_GENERATOR_NAME=Visual Studio 15 2017
   - cmd: if "%platform%"=="x64"   set CMAKE_GENERATOR_NAME=Visual Studio 15 2017 Win64
-  - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET% -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=%configuration% -DBUILD_TESTS=ON  ..
+  - cmd: cmake -G "%CMAKE_GENERATOR_NAME%" -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET% -DCMAKE_TOOLCHAIN_FILE=c:\%GIBENGINE_VCPKG_NAME%\scripts\buildsystems\vcpkg.cmake -DCMAKE_BUILD_TYPE=%configuration%  -DBUILD_EDITOR=OFF -DBUILD_TESTS=ON  ..
 
 build:
   project: c:\projects\gibengine\build\GibEngine.sln

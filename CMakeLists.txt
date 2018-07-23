@@ -12,10 +12,10 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
 
 add_subdirectory(Engine/)
 
-#if(BUILD_EDITOR)
-#  add_subdirectory(Editor/)
-#endif()
+if(BUILD_EDITOR)
+  add_subdirectory(Editor/)
+endif()
 
-#if(BUILD_TESTS)
+if(BUILD_TESTS)
 	add_subdirectory(Tests/)
-#endif()
+endif()

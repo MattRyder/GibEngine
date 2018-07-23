@@ -271,7 +271,7 @@ std::shared_ptr<GibEngine::BaseEntity> GibEngine::Game::CreateWorld()
 	auto sceneNode = std::make_shared<BaseEntity>(BaseEntity::Type::ENTITY, "Scene Root");
 
 	auto skyboxMesh = MeshService::Generate(graphicsApi, MeshService::CUBE_GENERATION_JSON);
-	auto cubemap = MeshService::LoadCubemap(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Skybox/stormy", "png");
+	auto cubemap = MeshService::LoadCubemap(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Skybox/stormy", "png");
 	auto skybox = std::shared_ptr<Skybox>(new Skybox(skyboxMesh, cubemap));
 	skybox->RegisterEvents(eventManager.get());
 	
@@ -282,19 +282,19 @@ std::shared_ptr<GibEngine::BaseEntity> GibEngine::Game::CreateWorld()
 		1.0f); // 0.0 -- 1.0
 
 	// Attach the sphere mesh 
-	auto sphereNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/default/sphere/sphere.obj", forwardGenerationData);
+	auto sphereNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/default/sphere/sphere.obj", forwardGenerationData);
 	light->AddChild(sphereNode);
 
 	// Create a Model node:
-	auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/brickwall/brickwall.obj", deferredGenerationData);
+	auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/brickwall/brickwall.obj", deferredGenerationData);
 	meshNode->RegisterEvents(eventManager.get());
-	//auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/sponza/sponza.fbx", deferredGenerationData);
-	//auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/default/box/box.obj", deferredGenerationData);
-	meshNode->Translate(glm::vec3(0, 0.5, -10));
+	//auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/sponza/sponza.fbx", deferredGenerationData);
+	//auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/default/box/box.obj", deferredGenerationData);
+	meshNode->SetPosition(glm::vec3(0, 0.5, -10));
 	meshNode->AddChild(playerCamera);
 
-	auto floorNode =  MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/../../Assets/Models/default/box/box.obj", deferredGenerationData);
-	floorNode->Translate(glm::vec3(-230.0f, 0, -425.0f));
+	auto floorNode =  MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/default/box/box.obj", deferredGenerationData);
+	floorNode->SetPosition(glm::vec3(-230.0f, 0, -425.0f));
 	floorNode->Scale(glm::vec3(75.0f, 0.0f, 75.0f));
 	sceneNode->AddChild(meshNode);
 
@@ -302,6 +302,8 @@ std::shared_ptr<GibEngine::BaseEntity> GibEngine::Game::CreateWorld()
 	sceneNode->AddChild(light);
 
 	sceneNode->AddChild(floorNode);
+
+	sceneNode->RecalculateWorldTransform();
 
 	return sceneNode;
 }

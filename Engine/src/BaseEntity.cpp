@@ -26,10 +26,11 @@ GibEngine::BaseEntity::BaseEntity(Type type, std::string name)
 	: BaseEntity(type, name, glm::vec3()) { }
 
 GibEngine::BaseEntity::BaseEntity(Type type, std::string name, glm::vec3 position)
-	: id(_Id++), type(type), name(name), parent(nullptr), frontVector(-Z_AXIS), upVector(Y_AXIS), activeDirections(Direction::NONE)
+	: id(_Id++), type(type), name(name), parent(nullptr), frontVector(-Z_AXIS), upVector(Y_AXIS), activeDirections(Direction::NONE),
+		localTransform(glm::mat4(1.0)), worldTransform(glm::mat4(1.0)), rotationQuaternion()
 {
 	this->nameKey = GetTypeName() + "_" + std::to_string(GetID());
-	Translate(position);
+	SetPosition(position);
 }
 
 const std::string& GibEngine::BaseEntity::GetTypeName() const

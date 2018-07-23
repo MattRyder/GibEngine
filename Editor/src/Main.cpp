@@ -1,12 +1,13 @@
 #include "Main.h"
 
 int main(int argc, char** argv)
-{    
-    GibEditor::Editor* editor = new GibEditor::Editor(argc, argv);
+{
+	auto editor = std::make_unique<GibEditor::Editor>(argc, argv);
+	auto cwd = editor->GetFileSystem()->GetWorkingDirectory();
 
 	auto imguiCtx = ImGui::CreateContext();
     ImGui_ImplGlfwGL3_Init(editor->GetWindow(), false);
-	SetupImGuiStyle();
+	SetupImGuiStyle(cwd);
 
 	GibEditor::Components::Dock::Type lastSelectedDockType = GibEditor::Components::Dock::Type::GAME;
 
@@ -18,7 +19,6 @@ int main(int argc, char** argv)
 
 		ImGui::Render();
 		ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
-
 
 		glfwSwapBuffers(editor->GetWindow());
 
@@ -48,15 +48,14 @@ int main(int argc, char** argv)
 
 	ImGui_ImplGlfwGL3_Shutdown();
 	ImGui::DestroyContext(imguiCtx);
-
-	delete editor;
 }
 
-void SetupImGuiStyle()
+void SetupImGuiStyle(const std::string& currentWorkingDirectory)
 {
+	const std::string ttfLocation = currentWorkingDirectory + "\\Assets\\Fonts\\Arimo-Regular.ttf";
+	
 	ImGuiIO& io = ImGui::GetIO();
-
-	io.Fonts->AddFontFromFileTTF("../../Assets/Fonts/Arimo-Regular.ttf", 24.0f);
+	io.Fonts->AddFontFromFileTTF(ttfLocation.c_str(), 24.0f);
 
 	ImGuiStyle& style = ImGui::GetStyle();
 
