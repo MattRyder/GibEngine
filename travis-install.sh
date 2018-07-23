@@ -23,6 +23,14 @@ function installVcpkg() {
 }
 
 ##
+# Grabs the prebuilt linux dep-bins
+function grabVcpkgExport() {
+    cd $HOME
+    wget http://s3.gibengine.xyz/gibengine-ci/vcpkg/x64-linux/gibengine-vcpkg.7z
+    7z x gibengine-vcpkg.7z
+} 
+
+##
 # Installs the latest compatible version of Cmake
 function installCmake() {
     cd $HOME
@@ -36,7 +44,9 @@ function install() {
 
     installCmake
     
-    installVcpkg
+    # installVcpkg
+
+    grabVcpkgExport
 }
 
 install
