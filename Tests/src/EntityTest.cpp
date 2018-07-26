@@ -22,7 +22,7 @@ TEST_F(EntityTest, GetPosition)
 	glm::vec3 trajectory = glm::vec3(04.1975, 02.1991, 12.1998);
 	
 	entity->SetPosition(trajectory);
-	ASSERT_EQ(entity->GetPosition(), trajectory);
+	ASSERT_EQ(entity->GetLocalTransform().GetPosition(), trajectory);
 }
 
 TEST_F(EntityTest, GetName)

@@ -6,7 +6,7 @@ GibEngine::FreeCamera::FreeCamera(int cameraWidth, int cameraHeight, float nearP
 	: CameraBase(BaseEntity::Type::CAMERA, cameraWidth, cameraHeight, nearPlane, farPlane, fieldOfViewDegrees)
 {
 	this->cameraYaw = -90.0f;
-	LookAt(GetPosition() + frontVector);
+	LookAt(GetLocalTransform().GetPosition() + frontVector);
 }
 
 void GibEngine::FreeCamera::RegisterEvents(Event::EventManager* const eventManager)
@@ -23,12 +23,12 @@ void GibEngine::FreeCamera::OnTick(float deltaTime, Event::OnTickEvent & e)
 {
 	BaseEntity::OnTick(deltaTime, e);
 
-	auto back = parent->GetPosition();
+	auto back = parent->GetLocalTransform().GetPosition();
 	back -= parent->GetFront() * 20.0f;
 	back += upVector * 5.0f;
 	
 	SetPosition(back);
-	this->viewMatrix = glm::lookAt(GetPosition(), parent->GetPosition(), upVector);
+	this->viewMatrix = glm::lookAt(GetLocalTransform().GetPosition(), parent->GetLocalTransform().GetPosition(), upVector);
 }
 
 void GibEngine::FreeCamera::OnMouseMove(float deltaTime, Event::MouseMoveEvent& e)
@@ -52,5 +52,5 @@ void GibEngine::FreeCamera::OnMouseMove(float deltaTime, Event::MouseMoveEvent& 
 
 	frontVector = front;
 
-	LookAt(GetPosition() + frontVector);
+	LookAt(GetLocalTransform().GetPosition() + frontVector);
 }

@@ -160,6 +160,7 @@ set(ROOT_INCLUDES
   include/Shader.h
   include/Skybox.h
   include/Texture.h
+  include/Transform.h
   include/LightBase.h
   include/PointLight.h)
 

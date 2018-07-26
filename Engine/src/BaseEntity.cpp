@@ -76,12 +76,12 @@ GibEngine::BaseEntity::Type GibEngine::BaseEntity::GetType() const
 	return this->type;
 }
 
-const glm::mat4& GibEngine::BaseEntity::GetWorldTransform() const
+GibEngine::Transform GibEngine::BaseEntity::GetWorldTransform() const
 {
 	return worldTransform;
 }
 
-const glm::mat4& GibEngine::BaseEntity::GetLocalTransform() const
+GibEngine::Transform GibEngine::BaseEntity::GetLocalTransform() const
 {
 	return localTransform;
 }
@@ -93,7 +93,7 @@ const unsigned int GibEngine::BaseEntity::GetChildCount() const
 
 glm::vec3 GibEngine::BaseEntity::GetPosition() const
 {
-	return glm::vec3(GetLocalTransform()[3].x, GetLocalTransform()[3].y, GetLocalTransform()[3].z);
+	return glm::vec3();
 }
 
 std::string GibEngine::BaseEntity::GetName() const
@@ -110,9 +110,8 @@ void GibEngine::BaseEntity::AddChild(const std::shared_ptr<BaseEntity> childEnti
 
 void GibEngine::BaseEntity::SetPosition(const glm::vec3 position)
 {
-	auto lt = localTransform;
-	lt[3] = glm::vec4(position, 1.0);
-	SetLocalTransform(lt);
+	localTransform.SetPosition(position);
+	RecalculateWorldTransform();
 }
 
 void GibEngine::BaseEntity::SetName(const std::string name)
@@ -122,20 +121,26 @@ void GibEngine::BaseEntity::SetName(const std::string name)
 
 void GibEngine::BaseEntity::SetLocalTransform(const glm::mat4 localTransform)
 {
-	this->localTransform = localTransform;
+	this->localTransform.SetTransform(localTransform);
 	RecalculateWorldTransform();
 }
 
 void GibEngine::BaseEntity::RecalculateWorldTransform()
 {
+	const auto& rotationMatrix = glm::toMat4(rotationQuaternion);
+	const auto& localTransMatrix = localTransform.GetTransformMatrix();
+
 	if (parent != nullptr)
 	{
-		worldTransform = parent->GetWorldTransform() * glm::toMat4(rotationQuaternion) *  localTransform;
+		const auto& parentWorldTransMatrix = parent->GetWorldTransform().GetTransformMatrix();
+		worldTransform.SetTransform(parentWorldTransMatrix * rotationMatrix * localTransMatrix);
+		//worldTransform = parentWorldTransMatrix * glm::toMat4(rotationQuaternion) *  localTransform;
 	}
 	else
 	{
 		// Root node's word trans is the local trans:
-		worldTransform = glm::toMat4(rotationQuaternion) * localTransform;
+		worldTransform.SetTransform(rotationMatrix * localTransMatrix);
+		//worldTransform.SetTransform(glm::toMat4(rotationQuaternion) * localTransform;
 	}
 
 	for (auto child : children)
@@ -146,7 +151,6 @@ void GibEngine::BaseEntity::RecalculateWorldTransform()
 
 void GibEngine::BaseEntity::Translate(const glm::vec3& translation)
 {
-	SetLocalTransform(glm::translate(localTransform, translation));
 }
 
 void GibEngine::BaseEntity::Rotate(const float angle, const glm::vec3& axis)
@@ -172,7 +176,7 @@ void GibEngine::BaseEntity::RotateZ(const float angle)
 
 void GibEngine::BaseEntity::Scale(const glm::vec3& scale)
 {
-	SetLocalTransform(glm::scale(localTransform, scale));
+	localTransform.Scale(scale);
 }
 
 glm::vec3 GibEngine::BaseEntity::GetFront() const
@@ -183,7 +187,7 @@ glm::vec3 GibEngine::BaseEntity::GetFront() const
 void GibEngine::BaseEntity::OnTick(float deltaTime, Event::OnTickEvent & e)
 {
 	const float MOVEMENT_SPEED = 15.0f * deltaTime;
-	glm::vec3 position = GetPosition();
+	glm::vec3 position = GetWorldTransform().GetPosition();
 
 	bool positionChanged = false;
 	auto activeDir = static_cast<int>(activeDirections);
@@ -202,20 +206,20 @@ void GibEngine::BaseEntity::OnTick(float deltaTime, Event::OnTickEvent & e)
 		positionChanged = true;
 
 		// Rotate Left
-		Rotate(MOVEMENT_SPEED, upVector);
+		//Rotate(MOVEMENT_SPEED, upVector);
 
 		// Strafe Left
-		//position -= glm::normalize(glm::cross(frontVector, upVector)) * MOVEMENT_SPEED;
+		position -= glm::normalize(glm::cross(frontVector, upVector)) * MOVEMENT_SPEED;
 	}
 	if (activeDir & static_cast<int>(Direction::RIGHT))
 	{
 		positionChanged = true;
 
 		// Rotate Left
-		Rotate(-MOVEMENT_SPEED, upVector);
+		//Rotate(-MOVEMENT_SPEED, upVector);
 
 		// Strafe Left
-		//position += glm::normalize(glm::cross(frontVector, upVector)) * MOVEMENT_SPEED;
+		position += glm::normalize(glm::cross(frontVector, upVector)) * MOVEMENT_SPEED;
 	}
 
 	if (positionChanged)

@@ -21,7 +21,7 @@ void GibEngine::Renderer::SkyboxRenderPass::Render(const GibEngine::Scene::Visib
 		skyboxUniformLocation = graphicsApi->GetUniformLocation("skyboxModelMatrix");
 	}
 
-	glm::mat4 skyboxMatrix = skybox->GetWorldTransform();
+	glm::mat4 skyboxMatrix = skybox->GetWorldTransform().GetTransformMatrix();
 	glUniformMatrix4fv(skyboxUniformLocation, 1, GL_FALSE, glm::value_ptr(skyboxMatrix));
 
 	graphicsApi->BindTextureCubemap(0, skybox->GetTexture()->GetTextureId());

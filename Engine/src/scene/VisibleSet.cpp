@@ -20,7 +20,7 @@ void GibEngine::Scene::VisibleSet::AddMeshInstance(const std::shared_ptr<Mesh> m
 	}
 	else
 	{
-		meshInstances->insert(std::pair<const std::shared_ptr<Mesh>, std::vector<glm::mat4>>(meshNode, { meshNode->GetWorldTransform() }));
+		meshInstances->insert(std::pair<const std::shared_ptr<Mesh>, std::vector<Transform>>(meshNode, { meshNode->GetWorldTransform() }));
 	}
 }
 
@@ -97,7 +97,13 @@ void GibEngine::Scene::VisibleSet::Parse(std::shared_ptr<Renderer::API::IGraphic
 		const auto mesh = iter->first;
 		if (mesh->GetMeshUploadTicket())
 		{
-			graphicsApi->UpdateMeshInstances(*mesh->GetMeshUploadTicket(), iter->second);
+			auto instanceMatrixList = std::vector<glm::mat4>();
+			for (auto i = 0; i < iter->second.size(); i++)
+			{
+				instanceMatrixList.push_back(iter->second.at(i).GetTransformMatrix());
+			}
+
+			graphicsApi->UpdateMeshInstances(*mesh->GetMeshUploadTicket(), instanceMatrixList);
 		}
 	}
 }

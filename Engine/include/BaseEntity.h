@@ -9,6 +9,7 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Transform.h"
 #include "EnumFlags.h"
 #include "IEntity.h"
 #include "input/InputManager.h"
@@ -75,17 +76,14 @@ namespace GibEngine
 		const std::string& GetTypeName() const;
 
 		const std::string& GetNameKey() const;
-		const glm::mat4& GetWorldTransform() const;
-		const glm::mat4& GetLocalTransform() const;
+		Transform GetWorldTransform() const;
+		Transform GetLocalTransform() const;
 
 		const unsigned int GetChildCount() const;
 
 		void RecalculateWorldTransform();
 
 		static const std::string GetTypeString(Type type);
-
-		// Inherited from IEntity
-		virtual glm::vec3 GetPosition() const;
 
 		virtual void RegisterEvents(Event::EventManager* const eventManager) override;
 		virtual void OnTick(float deltaTime, Event::OnTickEvent& e);
@@ -107,14 +105,13 @@ namespace GibEngine
 		BaseEntity const* parent;
 		std::vector<std::shared_ptr<BaseEntity>> children;
 
-		//glm::vec3 position;
 		std::string name;
 		BaseEntity::Type type;
 
 		std::string nameKey;
 
-		glm::mat4 worldTransform;
-		glm::mat4 localTransform;
+		Transform worldTransform;
+		Transform localTransform;
 		glm::quat rotationQuaternion;
 
 		glm::vec3 upVector;
@@ -126,5 +123,9 @@ namespace GibEngine
 		static int _Id;
 
 		Direction activeDirections;
+
+		// Inherited from IEntity, unrequired
+		virtual glm::vec3 GetPosition() const;
+
 	};
 }

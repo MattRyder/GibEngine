@@ -81,10 +81,10 @@ namespace GibEditor
 		{
 			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
 
-			glm::mat4 matrix = entity->GetLocalTransform();
-			glm::vec3 pos = glm::vec3(matrix[3][0], matrix[3][1], matrix[3][2]);
+			glm::mat4 matrix = entity->GetLocalTransform().GetTransformMatrix();
+			glm::vec3 pos = entity->GetLocalTransform().GetPosition();
 			glm::quat rot = glm::quat();//entity->GetRotation();
-			glm::vec3 scale = glm::vec3(matrix[0][0], matrix[1][1], matrix[2][2]);
+			glm::vec3 scale = entity->GetLocalTransform().GetScale();
 
 			if (ImGui::DragFloat3("Position", glm::value_ptr(pos), INCREMENT_SLOW, -1000.0f, 1000.0f))
 			{

@@ -29,6 +29,7 @@ add_executable(GibTest
 	include/LightBaseTest.h
 	# include/MeshServiceTest.h
 	include/AABBTest.h
+	include/TransformTest.h
 	src/EntityTest.cpp
 	src/WorldDatabaseTest.cpp
 	src/ControllerTest.cpp
@@ -36,7 +37,8 @@ add_executable(GibTest
 	src/FreeCameraTest.cpp
 	src/LightBaseTest.cpp
 	#src/MeshServiceTest.cpp
-	src/AABBTest.cpp)
+	src/AABBTest.cpp
+	src/TransformTest.cpp)
 
 target_link_libraries(GibTest GibEngine ${GTEST_BOTH_LIBRARIES})
 

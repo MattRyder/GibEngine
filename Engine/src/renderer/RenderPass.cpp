@@ -95,8 +95,7 @@ void GibEngine::Renderer::RenderPass::BindLights(const GibEngine::Scene::Visible
 
 		if (light->GetType() != BaseEntity::Type::DIRECTIONAL_LIGHT)
 		{
-			auto lightWorldTrans = light->GetWorldTransform();
-			auto lightPosition = glm::vec3(lightWorldTrans[3][0], lightWorldTrans[3][1], lightWorldTrans[3][2]);
+			auto lightPosition = light->GetWorldTransform().GetPosition();
 			BindLightUniform3f(position.c_str(), lightPosition);
 		}
 

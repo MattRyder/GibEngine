@@ -11,7 +11,7 @@ namespace GibEngine
 	{
 		class VisibleSet
 		{
-			typedef std::map<const std::shared_ptr<Mesh>, std::vector<glm::mat4>> MeshInstanceMap;
+			typedef std::map<const std::shared_ptr<Mesh>, std::vector<Transform>> MeshInstanceMap;
 
 			std::shared_ptr<BaseEntity> rootEntity;
 			std::shared_ptr<Skybox> skyboxNode;

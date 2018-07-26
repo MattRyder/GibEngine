@@ -24,6 +24,5 @@ const glm::mat4& GibEngine::CameraBase::GetViewMatrix() const
 
 void GibEngine::CameraBase::LookAt(const glm::vec3& target)
 {
-	
-	this->viewMatrix = glm::mat4(glm::lookAt(GetPosition(), target, upVector));
+	this->viewMatrix = glm::mat4(glm::lookAt(GetLocalTransform().GetPosition(), target, upVector));
 }

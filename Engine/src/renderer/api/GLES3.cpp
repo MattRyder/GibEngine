@@ -27,7 +27,7 @@ void GibEngine::Renderer::API::GLES3::BindCamera(GibEngine::CameraBase *camera)
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera->GetViewMatrix()));
 
 	int posLoc = glGetUniformLocation(currentShaderID, "camera.CameraPosition");
-	glUniform3fv(posLoc, 1, glm::value_ptr(camera->GetPosition()));
+	glUniform3fv(posLoc, 1, glm::value_ptr(camera->GetLocalTransform().GetPosition()));
 }
 
 void GibEngine::Renderer::API::GLES3::BindFramebuffer(const GibEngine::Renderer::Framebuffer& framebuffer)
