@@ -34,7 +34,8 @@ void main() {
     float fragmentSpecular = texture(framebuffer_Albedo, VS.TexCoords).a;
     float fragmentSSAO = texture(framebuffer_SSAO, VS.TexCoords).r;
 
-    vec3 lightColor = fragmentDiffuse * 0.3; // * fragmentSSAO;
+    vec3 lightColor = fragmentDiffuse * 0.3 * fragmentSSAO;
+
     vec3 viewDirection = normalize(VS.CameraPosition - fragmentPosition);
 
     for(int i = 0; i < pointLightCount; i++) {

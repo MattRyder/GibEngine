@@ -24,13 +24,13 @@ namespace GibEngine
 			void BindLightUniform4fv(const char* lightUniformName, const glm::mat4 lightUniformValue);
 
 		protected:
-			Shader* shader;
+			std::shared_ptr<Shader> shader;
 			Framebuffer* framebuffer;
 			
 			std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi;
 
 			static GLfloat QuadTextureData[];
-			Mesh *quadMesh;
+			std::unique_ptr<Mesh> quadMesh;
 
 			void LoadQuadData();
 
@@ -46,14 +46,14 @@ namespace GibEngine
 				RENDERPASSTYPE_LAST,
 			};
 
-			RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader* shader);
-			RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader* shader, Framebuffer* framebuffer);
+			RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader);
+			RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, Framebuffer* framebuffer);
 
 			virtual ~RenderPass();
 
 			virtual void Render(const Scene::VisibleSet& visibleSet);
 
-			Shader* GetShader() const;
+			std::shared_ptr<Shader> GetShader() const;
 
 			bool IsEnabled() const;
 

@@ -1,14 +1,13 @@
 #include "renderer/SsaoPass.h"
 
 
-GibEngine::Renderer::SsaoPass::SsaoPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader* shader, Framebuffer* framebuffer)
+GibEngine::Renderer::SsaoPass::SsaoPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, Framebuffer* framebuffer)
 	: RenderPass(graphicsApi, shader, framebuffer)
 {
 	LoadQuadData();
 	InitializeKernel();
 
-	ssaoFramebuffer = std::shared_ptr<Framebuffer>(new Framebuffer(framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight()));
-
+	ssaoFramebuffer = std::make_shared<Framebuffer>(framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight());
 
 	auto ssaoFbuf = 0U;
 	glGenFramebuffers(1, &ssaoFbuf);
@@ -33,14 +32,12 @@ GibEngine::Renderer::SsaoPass::SsaoPass(std::shared_ptr<Renderer::API::IGraphics
 	ssaoFramebuffer->SetBuffer(ssaoFramebuffer->GetBufferWidth(), ssaoFramebuffer->GetBufferHeight(), buf);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	//graphicsApi->CreateFramebuffer(ssaoFramebuffer.get(), ssaoFramebuffer->GetBufferWidth(), ssaoFramebuffer->GetBufferHeight());
 }
 
 void GibEngine::Renderer::SsaoPass::Render(const Scene::VisibleSet& visibleSet)
 {
 	const std::string KERNEL_UNIFORM_NAME = "ssao_Kernel";
-	const std::string TEXTURE_NAMES[3] = { "texture_Position", "texture_Normal", "texture_Noise" };
+	const std::vector<std::string> TEXTURE_NAMES = { "texture_Position", "texture_Normal", "texture_Noise" };
 	const unsigned int TEXTURE_IDS[3] =
 	{
 		framebuffer->GetBuffer().textures[FramebufferType::POSITION],
@@ -54,9 +51,9 @@ void GibEngine::Renderer::SsaoPass::Render(const Scene::VisibleSet& visibleSet)
 
 	graphicsApi->ClearFramebuffer();
 
-	for (auto i = 0U; i < 3; i++)
+	for (auto i = 0U; i < TEXTURE_NAMES.size(); i++)
 	{
-		auto ssaoNoiseTextureLocation = graphicsApi->GetUniformLocation(TEXTURE_NAMES[i].c_str());
+		auto ssaoNoiseTextureLocation = graphicsApi->GetUniformLocation(TEXTURE_NAMES.at(i).c_str());
 		graphicsApi->BindUniform1f(ssaoNoiseTextureLocation, i);
 		graphicsApi->BindTexture2D(i, TEXTURE_IDS[i]);
 	}

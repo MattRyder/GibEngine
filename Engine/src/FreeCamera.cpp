@@ -3,7 +3,7 @@
 unsigned int GibEngine::FreeCamera::BUFFER_OBJECT_SIZE = sizeof(float) * 36;
 
 GibEngine::FreeCamera::FreeCamera(int cameraWidth, int cameraHeight, float nearPlane, float farPlane, float fieldOfViewDegrees)
-	: CameraBase(BaseEntity::Type::CAMERA, cameraWidth, cameraHeight, nearPlane, farPlane, fieldOfViewDegrees)
+	: CameraBase(BaseEntity::Type::CAMERA, cameraWidth, cameraHeight, nearPlane, farPlane, fieldOfViewDegrees), flags(FreeCamera::Flags::TRACKING)
 {
 	this->cameraYaw = -90.0f;
 	LookAt(GetLocalTransform().GetPosition() + frontVector);
@@ -23,12 +23,17 @@ void GibEngine::FreeCamera::OnTick(float deltaTime, Event::OnTickEvent & e)
 {
 	BaseEntity::OnTick(deltaTime, e);
 
-	auto back = parent->GetLocalTransform().GetPosition();
-	back -= parent->GetFront() * 20.0f;
-	back += upVector * 5.0f;
+	if (FlagMask(flags & Flags::TRACKING))
+	{
+		auto back = parent->GetLocalTransform().GetPosition();
+		back -= parent->GetFront() * 15.0f;
+		back += upVector * 4.0f;
+
+		SetPosition(back);
+
+		this->viewMatrix = glm::lookAt(GetLocalTransform().GetPosition(), parent->GetLocalTransform().GetPosition(), upVector);
+	}
 	
-	SetPosition(back);
-	this->viewMatrix = glm::lookAt(GetLocalTransform().GetPosition(), parent->GetLocalTransform().GetPosition(), upVector);
 }
 
 void GibEngine::FreeCamera::OnMouseMove(float deltaTime, Event::MouseMoveEvent& e)
@@ -53,4 +58,9 @@ void GibEngine::FreeCamera::OnMouseMove(float deltaTime, Event::MouseMoveEvent& 
 	frontVector = front;
 
 	LookAt(GetLocalTransform().GetPosition() + frontVector);
+}
+
+void GibEngine::FreeCamera::ToggleTrackingParent()
+{
+	flags ^= Flags::TRACKING;
 }

@@ -11,22 +11,16 @@ GLfloat GibEngine::Renderer::RenderPass::QuadTextureData[] = {
 	1.0f, -1.0f, 0.0f,		1.0f, 0.0f,
 };
 
-GibEngine::Renderer::RenderPass::RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader *shader)
+GibEngine::Renderer::RenderPass::RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader)
 	: graphicsApi(graphicsApi), shader(shader), quadMesh(nullptr), lightingBindRequired(false), passEnabled(true) { }
 
-GibEngine::Renderer::RenderPass::RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader *shader, Framebuffer *framebuffer)
+GibEngine::Renderer::RenderPass::RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, Framebuffer *framebuffer)
 	: RenderPass(graphicsApi, shader)
 {
 	this->framebuffer = framebuffer;
 }
 
-GibEngine::Renderer::RenderPass::~RenderPass()
-{
-	if (quadMesh != nullptr)
-	{
-		delete quadMesh;
-	}
-}
+GibEngine::Renderer::RenderPass::~RenderPass() { }
 
 void GibEngine::Renderer::RenderPass::LoadQuadData()
 {
@@ -42,14 +36,13 @@ void GibEngine::Renderer::RenderPass::LoadQuadData()
 	}
 
 	auto meshUploadTicket = graphicsApi->UploadMesh(quadVerts, std::vector<unsigned int>());
-	quadMesh = new Mesh("RenderPassQuad", meshUploadTicket, nullptr);
-	quadMesh->SetGenerationData(json11::Json::object{});
+	quadMesh = std::make_unique<Mesh>("RenderPassQuad", meshUploadTicket, nullptr);
 }
 
 void GibEngine::Renderer::RenderPass::Render(const GibEngine::Scene::VisibleSet& visibleSet) { }
 
 
-GibEngine::Shader* GibEngine::Renderer::RenderPass::GetShader() const
+std::shared_ptr<GibEngine::Shader> GibEngine::Renderer::RenderPass::GetShader() const
 {
 	return shader;
 }
@@ -134,14 +127,14 @@ void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot(const std::stri
 	unsigned char *frameBuffer = graphicsApi->ReadFramebufferTexture(this->framebuffer, FramebufferType::ALBEDO);
 	unsigned char *lastRow = frameBuffer + (framebuffer->GetBufferWidth() * 3 * (framebuffer->GetBufferHeight() - 1));
 
-	 if (!stbi_write_png(filePath.c_str(), framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 3, lastRow, -3 * framebuffer->GetBufferWidth()))
-	 {
-	 	Logger::Instance->error("Failed to write screenshot '{}'", filePath);
-	 }
-	 else
-	 {
-	 	Logger::Instance->info("Screenshot saved to '{}'", filePath);
-	 }
+	if (!stbi_write_png(filePath.c_str(), framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 3, lastRow, -3 * framebuffer->GetBufferWidth()))
+	{
+		Logger::Instance->error("Failed to write screenshot '{}'", filePath);
+	}
+	else
+	{
+		Logger::Instance->info("Screenshot saved to '{}'", filePath);
+	}
 
 	delete[] frameBuffer;
 }

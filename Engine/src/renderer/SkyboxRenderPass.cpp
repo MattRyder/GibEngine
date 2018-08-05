@@ -1,6 +1,6 @@
 #include "renderer/SkyboxRenderPass.h"
 
-GibEngine::Renderer::SkyboxRenderPass::SkyboxRenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader *shader)
+GibEngine::Renderer::SkyboxRenderPass::SkyboxRenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader)
 	: RenderPass(graphicsApi, shader), skyboxUniformLocation(-1) { }
 
 void GibEngine::Renderer::SkyboxRenderPass::Render(const GibEngine::Scene::VisibleSet& visibleSet)

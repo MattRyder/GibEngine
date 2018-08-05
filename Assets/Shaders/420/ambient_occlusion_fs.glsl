@@ -26,7 +26,7 @@ void main() {
   vec3 bitangent = cross(ssaoNormal, tangent);
   mat3 tbnMatrix = mat3(tangent, bitangent, ssaoNormal);
 
-  float occlusionRadius = 0.25;
+  float occlusionRadius = 0.33;
   float occlusion = 0.0;
   for(int i = 0; i < KERNEL_SIZE; i++) {
     vec3 ssaoSample = tbnMatrix * ssao_Kernel[i];

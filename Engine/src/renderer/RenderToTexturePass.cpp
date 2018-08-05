@@ -1,6 +1,6 @@
 #include "renderer/RenderToTexturePass.h"
 
-GibEngine::Renderer::RenderToTexturePass::RenderToTexturePass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader * shader, Framebuffer* framebuffer)
+GibEngine::Renderer::RenderToTexturePass::RenderToTexturePass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, Framebuffer* framebuffer)
 	: RenderPass(graphicsApi, shader, framebuffer)
 {
 	LoadQuadData();

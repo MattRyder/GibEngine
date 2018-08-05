@@ -2,7 +2,7 @@
 
 GibEngine::Renderer::DeferredLightingPass::DeferredLightingPass(
 	std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, 
-	Shader* shader,
+	std::shared_ptr<Shader> shader,
 	Framebuffer* framebuffer)
 	: RenderPass(graphicsApi, shader, framebuffer)
 {

@@ -11,7 +11,6 @@ GibEngine::Renderer::Pipeline::~Pipeline()
 {
 	for (auto renderPass : this->passes)
 	{
-		delete renderPass->GetShader();
 		delete renderPass;
 	}
 
@@ -62,7 +61,7 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPass::Type type)
 	fileSystem->ReadFile(vertexRelativePath, vertexSource);
 	fileSystem->ReadFile(fragmentRelativePath, fragmentSource);
 
-	Shader *shader = new Shader(vertexSource, fragmentSource);
+	auto shader = std::make_shared<Shader>(vertexSource, fragmentSource);
 
 	switch (type)
 	{

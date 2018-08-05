@@ -1,6 +1,6 @@
 #include "renderer/ForwardRenderPass.h"
 
-GibEngine::Renderer::ForwardRenderPass::ForwardRenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader *shader) : RenderPass(graphicsApi, shader) { }
+GibEngine::Renderer::ForwardRenderPass::ForwardRenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader) : RenderPass(graphicsApi, shader) { }
 
 void GibEngine::Renderer::ForwardRenderPass::Render(const GibEngine::Scene::VisibleSet& visibleSet)
 {

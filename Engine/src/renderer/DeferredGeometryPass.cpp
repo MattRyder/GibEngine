@@ -1,6 +1,6 @@
 #include "renderer/DeferredGeometryPass.h"
 
-GibEngine::Renderer::DeferredGeometryPass::DeferredGeometryPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, Shader* shader)
+GibEngine::Renderer::DeferredGeometryPass::DeferredGeometryPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader)
 	: RenderPass(graphicsApi, shader) { }
 
 void GibEngine::Renderer::DeferredGeometryPass::Render(const GibEngine::Scene::VisibleSet& visibleSet)
