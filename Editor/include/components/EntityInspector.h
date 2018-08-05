@@ -9,6 +9,7 @@
 #include "BaseEntity.h"
 #include "PointLight.h"
 #include "Skybox.h"
+#include "FreeCamera.h"
 
 namespace GibEditor
 {
@@ -40,6 +41,9 @@ namespace GibEditor
 					{
 						switch (entity->GetType())
 						{
+						case GibEngine::BaseEntity::Type::CAMERA:
+							RenderCamera();
+							break;
 						case GibEngine::BaseEntity::Type::MESH:
 							RenderMesh();
 							break;
@@ -72,6 +76,7 @@ namespace GibEditor
 			bool entityIsDirty = false;
 
 			void RenderTransformNode();
+			void RenderCamera();
 			void RenderMesh();
 			void RenderLight();
 			void RenderSkybox();
@@ -81,15 +86,15 @@ namespace GibEditor
 		{
 			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
 
-			glm::mat4 matrix = entity->GetLocalTransform().GetTransformMatrix();
 			glm::vec3 pos = entity->GetLocalTransform().GetPosition();
 			glm::quat rot = glm::quat();//entity->GetRotation();
 			glm::vec3 scale = entity->GetLocalTransform().GetScale();
 
 			if (ImGui::DragFloat3("Position", glm::value_ptr(pos), INCREMENT_SLOW, -1000.0f, 1000.0f))
 			{
-				matrix[3] = glm::vec4(pos[0], pos[1], pos[2], 1.0f);
-				entity->SetLocalTransform(matrix);
+				auto localTrans = entity->GetLocalTransform();
+				localTrans.SetPosition(pos);
+				entity->SetLocalTransform(localTrans.GetTransformMatrix());
 			}
 
 			if (ImGui::DragFloat("Rotation Y", &rot.y, INCREMENT_SLOWEST, 0, 0.1))
@@ -99,11 +104,20 @@ namespace GibEditor
 
 			if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), INCREMENT_SLOW, -1000.0f, 1000.0f))
 			{
-				matrix[0][0] = scale[0];
-				matrix[1][1] = scale[1];
-				matrix[2][2] = scale[2];
+				auto localTrans = entity->GetLocalTransform();
+				localTrans.Scale(scale);
+				entity->SetLocalTransform(localTrans.GetTransformMatrix());
+			}
+		}
 
-				entity->SetLocalTransform(matrix);
+		inline void EntityInspector::RenderCamera()
+		{
+			auto freeCamera = std::dynamic_pointer_cast<GibEngine::FreeCamera>(entity);
+
+			auto label = fmt::format("{} tracking Parent", freeCamera->FlagMask(freeCamera->GetFlags() & GibEngine::FreeCamera::Flags::TRACKING) ? "Stop" : "Start");
+			if (ImGui::Button(label.c_str()))
+			{
+				freeCamera->ToggleTrackingParent();
 			}
 		}
 
@@ -122,13 +136,13 @@ namespace GibEditor
 			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
 
 			float linearAttenuation = light->GetLinearAttenuation();
-			if (ImGui::DragFloat("Linear Attenuation", &linearAttenuation, INCREMENT_SLOW, 0, 50.0f))
+			if (ImGui::DragFloat("Linear Attenuation", &linearAttenuation, INCREMENT_SLOW, -50.0f, 50.0f))
 			{
 				light->SetLinearAttenuation(linearAttenuation);
 			}
 
 			float quadAttenuation = light->GetQuadraticAttenuation();
-			if (ImGui::DragFloat("Quadratic Attenuation", &quadAttenuation, INCREMENT_SLOW, 0, 50.0f))
+			if (ImGui::DragFloat("Quadratic Attenuation", &quadAttenuation, INCREMENT_SLOW, -50.0f, 50.0f))
 			{
 				light->SetQuadraticAttenuation(quadAttenuation);
 			}

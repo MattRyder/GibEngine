@@ -276,10 +276,10 @@ std::shared_ptr<GibEngine::BaseEntity> GibEngine::Game::CreateWorld()
 	skybox->RegisterEvents(eventManager.get());
 	
 	auto light = std::make_shared<PointLight>(
-		glm::vec3(0, 1.65f, 0),
-		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.7f, 0.7f, 0.7f), glm::vec3(0.9f, 0.9f, 0.9f),
-		1.5f, // -1.0 -- 1.0
-		1.0f); // 0.0 -- 1.0
+		glm::vec3(3.3f, 1.6f, 7.7f),
+		glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(1.0f), glm::vec3(0.7f),
+		-0.5f, // linear atten
+		1.2f); // quad atten
 
 	// Attach the sphere mesh 
 	auto sphereNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/default/sphere/sphere.obj", forwardGenerationData);
@@ -290,7 +290,6 @@ std::shared_ptr<GibEngine::BaseEntity> GibEngine::Game::CreateWorld()
 	meshNode->RegisterEvents(eventManager.get());
 	//auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/sponza/sponza.fbx", deferredGenerationData);
 	//auto meshNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/default/box/box.obj", deferredGenerationData);
-	meshNode->SetPosition(glm::vec3(0, 0.5, -10));
 	meshNode->AddChild(playerCamera);
 
 	auto floorNode =  MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/default/box/box.obj", deferredGenerationData);

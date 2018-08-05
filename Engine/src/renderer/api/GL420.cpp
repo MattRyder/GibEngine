@@ -333,7 +333,7 @@ void GibEngine::Renderer::API::GL420::RegisterCamera(std::shared_ptr<CameraBase>
 
 	memcpy(&cameraData[PROJECTION_MATRIX_INDEX], glm::value_ptr(camera->GetProjectionMatrix()), sizeof(float) * 16);
 	memcpy(&cameraData[VIEW_MATRIX_INDEX], glm::value_ptr(camera->GetViewMatrix()), sizeof(float) * 16);
-	memcpy(&cameraData[POSITION_INDEX], glm::value_ptr(camera->GetLocalTransform().GetPosition()), sizeof(float) * 3);
+	memcpy(&cameraData[POSITION_INDEX], glm::value_ptr(camera->GetWorldTransform().GetPosition()), sizeof(float) * 3);
 
 	cameraUBO->Update(cameraData);
 
