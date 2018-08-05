@@ -22,7 +22,7 @@ namespace GibEngine
 			}
 
 		public:
-			SsaoPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, Framebuffer* framebuffer);
+			SsaoPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, std::shared_ptr<Framebuffer> framebuffer);
 			void Render(const Scene::VisibleSet& visibleSet) override;
 
 			const std::shared_ptr<Framebuffer> GetFramebuffer() const;

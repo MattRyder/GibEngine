@@ -25,7 +25,7 @@ namespace GibEngine
 
 		protected:
 			std::shared_ptr<Shader> shader;
-			Framebuffer* framebuffer;
+			std::shared_ptr<Framebuffer> framebuffer;
 			
 			std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi;
 
@@ -47,7 +47,7 @@ namespace GibEngine
 			};
 
 			RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader);
-			RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, Framebuffer* framebuffer);
+			RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, std::shared_ptr<Framebuffer> framebuffer);
 
 			virtual ~RenderPass();
 

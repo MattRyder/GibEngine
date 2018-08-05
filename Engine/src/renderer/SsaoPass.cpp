@@ -1,7 +1,7 @@
 #include "renderer/SsaoPass.h"
 
 
-GibEngine::Renderer::SsaoPass::SsaoPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, Framebuffer* framebuffer)
+GibEngine::Renderer::SsaoPass::SsaoPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, std::shared_ptr<Framebuffer> framebuffer)
 	: RenderPass(graphicsApi, shader, framebuffer)
 {
 	LoadQuadData();

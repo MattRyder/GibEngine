@@ -3,8 +3,8 @@
 GibEngine::Renderer::Pipeline::Pipeline(int framebufferWidth, int framebufferHeight, std::shared_ptr<GibEngine::FileSystem::IFileSystem> fileSystem, std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi)
 	: fileSystem(fileSystem), graphicsApi(graphicsApi)
 {
-	this->framebuffer = new Framebuffer(framebufferWidth, framebufferHeight);
-	graphicsApi->CreateFramebuffer(framebuffer, framebufferWidth, framebufferHeight);
+	this->framebuffer = std::make_shared<Framebuffer>(framebufferWidth, framebufferHeight);
+	graphicsApi->CreateFramebuffer(framebuffer.get(), framebufferWidth, framebufferHeight);
 }
 
 GibEngine::Renderer::Pipeline::~Pipeline()
@@ -13,8 +13,6 @@ GibEngine::Renderer::Pipeline::~Pipeline()
 	{
 		delete renderPass;
 	}
-
-	delete framebuffer;
 }
 
 void GibEngine::Renderer::Pipeline::AddPass(RenderPass::Type type)
@@ -190,7 +188,7 @@ GibEngine::Renderer::RenderPass* GibEngine::Renderer::Pipeline::GetRenderPass(Re
 	return passes[val];
 }
 
-GibEngine::Renderer::Framebuffer* GibEngine::Renderer::Pipeline::GetFramebuffer()
+std::shared_ptr<GibEngine::Renderer::Framebuffer> GibEngine::Renderer::Pipeline::GetFramebuffer()
 {
 	return framebuffer;
 }
@@ -202,6 +200,6 @@ void GibEngine::Renderer::Pipeline::SetRenderPaused(bool renderingPaused)
 
 void GibEngine::Renderer::Pipeline::ResizeFramebuffer(int width, int height)
 {
-	graphicsApi->DeleteFramebuffer(framebuffer);
-	graphicsApi->CreateFramebuffer(framebuffer, width, height);
+	graphicsApi->DeleteFramebuffer(framebuffer.get());
+	graphicsApi->CreateFramebuffer(framebuffer.get(), width, height);
 }

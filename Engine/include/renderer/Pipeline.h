@@ -37,7 +37,7 @@ namespace GibEngine
 		{
 			bool renderingPaused = false;
 
-			Framebuffer* framebuffer;
+			std::shared_ptr<Framebuffer> framebuffer;
 
 			RenderPass* passes[static_cast<int>(RenderPass::Type::RENDERPASSTYPE_LAST)] = {};
 
@@ -56,7 +56,7 @@ namespace GibEngine
 
 			bool IsRenderPaused();
 			RenderPass* GetRenderPass(RenderPass::Type type);
-			Framebuffer* GetFramebuffer();
+			std::shared_ptr<Framebuffer> GetFramebuffer();
 
 			void SetRenderPaused(bool renderingPaused);
 

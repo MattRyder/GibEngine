@@ -12,13 +12,10 @@ GLfloat GibEngine::Renderer::RenderPass::QuadTextureData[] = {
 };
 
 GibEngine::Renderer::RenderPass::RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader)
-	: graphicsApi(graphicsApi), shader(shader), quadMesh(nullptr), lightingBindRequired(false), passEnabled(true) { }
+	: RenderPass(graphicsApi, shader, nullptr) { }
 
-GibEngine::Renderer::RenderPass::RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, Framebuffer *framebuffer)
-	: RenderPass(graphicsApi, shader)
-{
-	this->framebuffer = framebuffer;
-}
+GibEngine::Renderer::RenderPass::RenderPass(std::shared_ptr<Renderer::API::IGraphicsApi> graphicsApi, std::shared_ptr<Shader> shader, std::shared_ptr<Framebuffer> framebuffer)
+	: graphicsApi(graphicsApi), shader(shader), framebuffer(framebuffer), quadMesh(nullptr), lightingBindRequired(false), passEnabled(true) { }
 
 GibEngine::Renderer::RenderPass::~RenderPass() { }
 
@@ -124,7 +121,7 @@ void GibEngine::Renderer::RenderPass::RenderPass::SetPassEnabled(bool value) { t
 
 void GibEngine::Renderer::RenderPass::RenderPass::TakeScreenshot(const std::string& filePath)
 {
-	unsigned char *frameBuffer = graphicsApi->ReadFramebufferTexture(this->framebuffer, FramebufferType::ALBEDO);
+	unsigned char *frameBuffer = graphicsApi->ReadFramebufferTexture(this->framebuffer.get(), FramebufferType::ALBEDO);
 	unsigned char *lastRow = frameBuffer + (framebuffer->GetBufferWidth() * 3 * (framebuffer->GetBufferHeight() - 1));
 
 	if (!stbi_write_png(filePath.c_str(), framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight(), 3, lastRow, -3 * framebuffer->GetBufferWidth()))
