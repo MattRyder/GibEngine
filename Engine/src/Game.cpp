@@ -15,7 +15,7 @@ GibEngine::Game::Game(int argc, char** argv)
 
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-	this->playerCamera = std::shared_ptr<FreeCamera>(new FreeCamera(requestedWindowSize.x, requestedWindowSize.y, 0.1f, 2000.0f, glm::radians(66.0f)));
+	this->playerCamera = std::make_shared<FreeCamera>(requestedWindowSize.x, requestedWindowSize.y, 0.1f, 2000.0f, glm::radians(66.0f));
 	this->playerCamera->SetPosition(glm::vec3(20, 15, 0));
 	this->playerCamera->RegisterEvents(eventManager.get());
 
@@ -23,7 +23,7 @@ GibEngine::Game::Game(int argc, char** argv)
 
 	this->inputManager = std::make_shared<Input::InputManager>(window);
 
-	vset = std::shared_ptr<Scene::VisibleSet>(new Scene::VisibleSet(playerCamera, rootEntity));
+	vset = std::make_shared<Scene::VisibleSet>(playerCamera, rootEntity);
 
 #ifdef WIN32
 	this->fileSystem = std::shared_ptr<FileSystem::IFileSystem>(new FileSystem::WindowsFileSystem());
@@ -32,18 +32,6 @@ GibEngine::Game::Game(int argc, char** argv)
 #endif
 
 	SetupPipeline();
-
-	if(!true)
-	{
-		GibEngine::World::Database* worldDb = new World::Database("demo_nodes.gwo", fileSystem, graphicsApi);
-
-		std::shared_ptr<BaseEntity> rootNode = CreateWorld();
-
-		//if (worldDb->SaveLevel(rootNode.get()))
-		//{
-		//	// TODO: attach rootNode to new Level record
-		//}
-	}
 }
 
 GibEngine::Game::~Game()
@@ -282,7 +270,8 @@ std::shared_ptr<GibEngine::BaseEntity> GibEngine::Game::CreateWorld()
 		1.2f); // quad atten
 
 	// Attach the sphere mesh 
-	auto sphereNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/default/sphere/sphere.obj", forwardGenerationData);
+	auto sphereNode = MeshService::Load(graphicsApi, fileSystem->GetWorkingDirectory() + "/Assets/Models/default/hemisphere/hemisphere.obj", forwardGenerationData);
+	sphereNode->Scale(glm::vec3(0.2f));
 	light->AddChild(sphereNode);
 
 	// Create a Model node:
