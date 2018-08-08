@@ -2,6 +2,7 @@
 
 #include <map>
 #include <vector>
+#include <memory>
 
 #include "scene/VisibleSet.h"
 #include "Shader.h"
