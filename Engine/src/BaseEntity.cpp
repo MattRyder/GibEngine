@@ -27,7 +27,7 @@ GibEngine::BaseEntity::BaseEntity(Type type, std::string name)
 
 GibEngine::BaseEntity::BaseEntity(Type type, std::string name, glm::vec3 position)
 	: id(_Id++), type(type), name(name), parent(nullptr), frontVector(-Z_AXIS), upVector(Y_AXIS), activeDirections(Direction::NONE),
-		localTransform(glm::mat4(1.0)), worldTransform(glm::mat4(1.0)), rotationQuaternion()
+		localTransform(glm::mat4(1.0)), worldTransform(glm::mat4(1.0)), rotationQuaternion(glm::toQuat(glm::mat4(1.0)))
 {
 	this->nameKey = GetTypeName() + "_" + std::to_string(GetID());
 	SetPosition(position);
@@ -133,14 +133,12 @@ void GibEngine::BaseEntity::RecalculateWorldTransform()
 	if (parent != nullptr)
 	{
 		const auto& parentWorldTransMatrix = parent->GetWorldTransform().GetTransformMatrix();
-		worldTransform.SetTransform(parentWorldTransMatrix * rotationMatrix * localTransMatrix);
-		//worldTransform = parentWorldTransMatrix * glm::toMat4(rotationQuaternion) *  localTransform;
+		worldTransform.SetTransform(parentWorldTransMatrix * localTransMatrix * rotationMatrix);
 	}
 	else
 	{
 		// Root node's word trans is the local trans:
-		worldTransform.SetTransform(rotationMatrix * localTransMatrix);
-		//worldTransform.SetTransform(glm::toMat4(rotationQuaternion) * localTransform;
+		worldTransform.SetTransform(localTransMatrix * rotationMatrix );
 	}
 
 	for (auto child : children)
@@ -222,6 +220,18 @@ void GibEngine::BaseEntity::OnTick(float deltaTime, Event::OnTickEvent & e)
 		position += glm::normalize(glm::cross(frontVector, upVector)) * MOVEMENT_SPEED;
 	}
 
+	if (static_cast<int>(activeRotation) & static_cast<int>(InputRotation::LEFT))
+	{
+		rotationQuaternion = glm::rotate(rotationQuaternion, -MOVEMENT_SPEED, upVector);
+		positionChanged = true;
+	}
+
+	if (static_cast<int>(activeRotation) & static_cast<int>(InputRotation::RIGHT))
+	{
+		rotationQuaternion = glm::rotate(rotationQuaternion, MOVEMENT_SPEED, upVector);
+		positionChanged = true;
+	}
+
 	if (positionChanged)
 	{
 		SetPosition(position);
@@ -244,6 +254,13 @@ void GibEngine::BaseEntity::OnKeyDown(float deltaTime, Event::KeyDownEvent& e)
 	case GLFW_KEY_D:
 		activeDirections |= Direction::RIGHT;
 		break;
+	case GLFW_KEY_Q:
+		activeRotation = InputRotation::LEFT;
+		break;
+	case GLFW_KEY_E:
+		activeRotation = InputRotation::RIGHT;
+		break;
+
 	}
 }
 
@@ -262,6 +279,13 @@ void GibEngine::BaseEntity::OnKeyUp(float deltaTime, Event::KeyUpEvent& e)
 		break;
 	case GLFW_KEY_D:
 		activeDirections &= ~Direction::RIGHT;
+		break;
+	case GLFW_KEY_Q:
+		activeRotation = static_cast<InputRotation>(static_cast<int>(activeRotation) & ~static_cast<int>(InputRotation::LEFT));
+		break;
+	case GLFW_KEY_E:
+		activeRotation = static_cast<InputRotation>(static_cast<int>(activeRotation) & ~static_cast<int>(InputRotation::RIGHT));
+
 		break;
 	}
 }

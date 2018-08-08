@@ -25,6 +25,7 @@ namespace GibEngine
 		RIGHT = 8,
 		UP = 16,
 		DOWN = 32,
+
 	};
 	GIB_FLAGS(Direction);
 
@@ -78,6 +79,7 @@ namespace GibEngine
 		const std::string& GetNameKey() const;
 		Transform GetWorldTransform() const;
 		Transform GetLocalTransform() const;
+		glm::quat GetRotationQuaternion() const { return rotationQuaternion; }
 
 		const unsigned int GetChildCount() const;
 
@@ -123,6 +125,15 @@ namespace GibEngine
 		static int _Id;
 
 		Direction activeDirections;
+
+		enum class InputRotation
+		{
+			NONE = 1 << 0,
+			LEFT = 1 << 1,
+			RIGHT = 1 << 2
+		};
+
+		InputRotation activeRotation = InputRotation::NONE;
 
 		// Inherited from IEntity, unrequired
 		virtual glm::vec3 GetPosition() const;

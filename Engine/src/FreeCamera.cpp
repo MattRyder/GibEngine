@@ -26,7 +26,8 @@ void GibEngine::FreeCamera::OnTick(float deltaTime, Event::OnTickEvent & e)
 	if (FlagMask(flags & Flags::TRACKING))
 	{
 		auto back = parent->GetLocalTransform().GetPosition();
-		back -= parent->GetFront() * 15.0f;
+		auto rot = parent->GetRotationQuaternion() * frontVector;
+		back -=  rot * 15.0f;
 		back += upVector * 4.0f;
 
 		SetPosition(back);
