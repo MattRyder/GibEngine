@@ -45,7 +45,6 @@ void GibEngine::Renderer::Pipeline::AddPass(RenderPass::Type type)
 	}
 
 	Renderer::RenderPass *renderPass;
-
 	
 	std::shared_ptr<std::string> vertexSource, fragmentSource;
 	const std::string glVersionDirectory = graphicsApi->GetVersionString();
@@ -200,6 +199,9 @@ void GibEngine::Renderer::Pipeline::SetRenderPaused(bool renderingPaused)
 
 void GibEngine::Renderer::Pipeline::ResizeFramebuffer(int width, int height)
 {
-	graphicsApi->DeleteFramebuffer(framebuffer.get());
-	graphicsApi->CreateFramebuffer(framebuffer.get(), width, height);
+	auto renderPass = GetRenderPass(RenderPass::Type::DEFERRED_LIGHTING);
+	renderPass->OnResize(width, height);
+
+	auto ssaoPass = GetRenderPass(RenderPass::Type::AMBIENT_OCCLUSION);
+	ssaoPass->OnResize(width, height);
 }

@@ -26,6 +26,8 @@ namespace GibEngine
 			void Render(const Scene::VisibleSet& visibleSet) override;
 
 			const std::shared_ptr<Framebuffer> GetFramebuffer() const;
+
+			virtual void OnResize(int newWidth, int newHeight) override;
 		};
 	}
 }

@@ -95,7 +95,7 @@ void GibEditor::Editor::Render()
 		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiSetCond_Always);
 
 		auto framebuffer = GetRenderPipeline()->GetFramebuffer();
-		ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight() - ImGui::GetFontSize() * 2 + 5), ImGuiSetCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), framebuffer->GetBufferHeight() - ImGui::GetFontSize() * 1.5), ImGuiSetCond_Always);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
 		if (ImGui::Begin("MainMenuWindow", (bool*)0, ROOT_PANEL_FLAGS))
@@ -114,8 +114,8 @@ void GibEditor::Editor::Render()
 			ImGui::End();
 		}
 
-		ImGui::SetNextWindowPos(ImVec2(0, framebuffer->GetBufferHeight() - ImGui::GetFontSize() * 2 + 5));
-		ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), ImGui::GetFontSize() * 2));
+		ImGui::SetNextWindowPos(ImVec2(0, framebuffer->GetBufferHeight() - ImGui::GetFontSize() * 1.5));
+		ImGui::SetNextWindowSize(ImVec2(framebuffer->GetBufferWidth(), ImGui::GetFontSize() * 1.5));
 		if (ImGui::Begin("StatusBarWindow", 0, ROOT_PANEL_FLAGS))
 		{
 			if (ImGui::BeginMenuBar())
@@ -139,7 +139,6 @@ void GibEditor::Editor::Render()
 				ImGui::EndMenuBar();
 			}
 			ImGui::End();
-
 		}
 		ImGui::PopStyleVar();
 	}

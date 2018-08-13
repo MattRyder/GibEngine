@@ -31,11 +31,19 @@ namespace GibEditor
 
 				if (entity)
 				{
-					ImGui::Text("Name: %s", entity->GetName().c_str());
-					ImGui::Text("Type: %s", entity->GetTypeName().c_str());
-					ImGui::Text("GibEngine Entity UID: %s", entity->GetNameKey().c_str());
-					RenderTransformNode();
-					//ImGui::Dummy(ImVec2(ImGui::GetWindowSize().x, 30));
+					if (ImGui::CollapsingHeader("Information", ImGuiTreeNodeFlags_CollapsingHeader))
+					{
+						ImGui::Text("Name: %s", entity->GetName().c_str());
+						ImGui::Text("Type: %s", entity->GetTypeName().c_str());
+						ImGui::Text("GibEngine Entity UID: %s", entity->GetNameKey().c_str());
+						ImGui::Dummy(ImVec2(ImGui::GetWindowSize().x, 30));
+					}
+
+					if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_CollapsingHeader))
+					{
+						RenderTransformNode();
+						ImGui::Dummy(ImVec2(ImGui::GetWindowSize().x, 30));
+					}
 
 					if (entity)
 					{
@@ -84,8 +92,6 @@ namespace GibEditor
 
 		inline void EntityInspector::RenderTransformNode()
 		{
-			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
-
 			glm::vec3 pos = entity->GetLocalTransform().GetPosition();
 			glm::quat rot = glm::quat();//entity->GetRotation();
 			glm::vec3 scale = entity->GetLocalTransform().GetScale();
@@ -114,10 +120,13 @@ namespace GibEditor
 		{
 			auto freeCamera = std::dynamic_pointer_cast<GibEngine::FreeCamera>(entity);
 
-			auto label = fmt::format("{} tracking Parent", freeCamera->FlagMask(freeCamera->GetFlags() & GibEngine::FreeCamera::Flags::TRACKING) ? "Stop" : "Start");
-			if (ImGui::Button(label.c_str()))
+			if (freeCamera && ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_CollapsingHeader))
 			{
-				freeCamera->ToggleTrackingParent();
+				auto label = fmt::format("{} tracking Parent", freeCamera->FlagMask(freeCamera->GetFlags() & GibEngine::FreeCamera::Flags::TRACKING) ? "Stop" : "Start");
+				if (ImGui::Button(label.c_str()))
+				{
+					freeCamera->ToggleTrackingParent();
+				}
 			}
 		}
 
@@ -129,42 +138,44 @@ namespace GibEditor
 		inline void EntityInspector::RenderLight()
 		{
 			auto light = std::dynamic_pointer_cast<GibEngine::PointLight>(entity);
-
-			ImGui::Text((std::string("Light ID: ") + std::to_string(light->GetID())).c_str());
-			ImGui::Text((std::string("Type: ") + light->GetTypeName()).c_str());
-
-			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
-
-			float linearAttenuation = light->GetLinearAttenuation();
-			if (ImGui::DragFloat("Linear Attenuation", &linearAttenuation, INCREMENT_SLOW, -50.0f, 50.0f))
+			if (light && ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_CollapsingHeader))
 			{
-				light->SetLinearAttenuation(linearAttenuation);
-			}
+				ImGui::Text((std::string("Light ID: ") + std::to_string(light->GetID())).c_str());
+				ImGui::Text((std::string("Type: ") + light->GetTypeName()).c_str());
 
-			float quadAttenuation = light->GetQuadraticAttenuation();
-			if (ImGui::DragFloat("Quadratic Attenuation", &quadAttenuation, INCREMENT_SLOW, -50.0f, 50.0f))
-			{
-				light->SetQuadraticAttenuation(quadAttenuation);
-			}
+				ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
 
-			ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
+				float linearAttenuation = light->GetLinearAttenuation();
+				if (ImGui::DragFloat("Linear Attenuation", &linearAttenuation, INCREMENT_SLOW, -50.0f, 50.0f))
+				{
+					light->SetLinearAttenuation(linearAttenuation);
+				}
 
-			glm::vec3 amb = light->GetAmbientColor();
-			if (ImGui::ColorEdit3("Ambient", glm::value_ptr(amb)))
-			{
-				light->SetAmbientColor(amb);
-			}
+				float quadAttenuation = light->GetQuadraticAttenuation();
+				if (ImGui::DragFloat("Quadratic Attenuation", &quadAttenuation, INCREMENT_SLOW, -50.0f, 50.0f))
+				{
+					light->SetQuadraticAttenuation(quadAttenuation);
+				}
 
-			glm::vec3 diff = light->GetDiffuseColor();
-			if (ImGui::ColorEdit3("Diffuse", glm::value_ptr(diff)))
-			{
-				light->SetDiffuseColor(diff);
-			}
+				ImGui::Dummy(ImVec2(ImGui::GetWindowWidth(), 20));
 
-			glm::vec3 spec = light->GetSpecularColor();
-			if (ImGui::ColorEdit3("Specular", glm::value_ptr(spec)))
-			{
-				light->SetSpecularColor(spec);
+				glm::vec3 amb = light->GetAmbientColor();
+				if (ImGui::ColorEdit3("Ambient", glm::value_ptr(amb)))
+				{
+					light->SetAmbientColor(amb);
+				}
+
+				glm::vec3 diff = light->GetDiffuseColor();
+				if (ImGui::ColorEdit3("Diffuse", glm::value_ptr(diff)))
+				{
+					light->SetDiffuseColor(diff);
+				}
+
+				glm::vec3 spec = light->GetSpecularColor();
+				if (ImGui::ColorEdit3("Specular", glm::value_ptr(spec)))
+				{
+					light->SetSpecularColor(spec);
+				}
 			}
 		}
 
@@ -172,26 +183,30 @@ namespace GibEditor
 		{
 			auto skybox = std::dynamic_pointer_cast<GibEngine::Skybox>(entity);
 
-			const size_t SKYBOX_INPUT_LEN = 128;
-			char skyboxNameBuf[SKYBOX_INPUT_LEN] = { 0 };
-			char skyboxTextureExt[SKYBOX_INPUT_LEN] = { 0 };
-
-			memcpy(skyboxNameBuf, skybox->GetName().c_str(), SKYBOX_INPUT_LEN);
-			//memcpy(skyboxTextureExt, skybox->GetExtension().c_str(), SKYBOX_INPUT_LEN);
-
-			if (ImGui::InputText("Skybox Name", skyboxNameBuf, SKYBOX_INPUT_LEN))
+			if (skybox && ImGui::CollapsingHeader("Skybox", ImGuiTreeNodeFlags_CollapsingHeader))
 			{
-				skybox->SetName(strdup(skyboxNameBuf));
-				//sceneNode->ModifyEntity();
-			}
+				const size_t SKYBOX_INPUT_LEN = 128;
+				char skyboxNameBuf[SKYBOX_INPUT_LEN] = { 0 };
+				char skyboxTextureExt[SKYBOX_INPUT_LEN] = { 0 };
 
-			if (ImGui::InputText("Extension", skyboxTextureExt, SKYBOX_INPUT_LEN))
-			{
-			}
+				memcpy(skyboxNameBuf, skybox->GetName().c_str(), SKYBOX_INPUT_LEN);
+				//memcpy(skyboxTextureExt, skybox->GetExtension().c_str(), SKYBOX_INPUT_LEN);
 
-			if (ImGui::Button("Load Skybox"))
-			{
-				//skybox->LoadCubemap();
+				if (ImGui::InputText("Skybox Name", skyboxNameBuf, SKYBOX_INPUT_LEN))
+				{
+					skybox->SetName(strdup(skyboxNameBuf));
+					//sceneNode->ModifyEntity();
+				}
+
+				if (ImGui::InputText("Extension", skyboxTextureExt, SKYBOX_INPUT_LEN))
+				{
+				}
+
+				if (ImGui::Button("Load Skybox"))
+				{
+					//skybox->LoadCubemap();
+				}
+
 			}
 		}
 	}

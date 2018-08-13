@@ -147,3 +147,12 @@ void GibEngine::Renderer::RenderPass::BindLightUniform4fv(const char * lightUnif
 	unsigned int uniformLocation = graphicsApi->GetUniformLocation(lightUniformName);
 	graphicsApi->BindUniform4fv(uniformLocation, 1, glm::value_ptr(lightUniformValue));
 }
+
+void GibEngine::Renderer::RenderPass::OnResize(int newWidth, int newHeight)
+{
+	if (framebuffer)
+	{
+		graphicsApi->DeleteFramebuffer(framebuffer.get());
+		graphicsApi->CreateFramebuffer(framebuffer.get(), newWidth, newHeight);
+	}
+}

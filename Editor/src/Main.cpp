@@ -59,15 +59,16 @@ void SetupImGuiStyle(const std::string& currentWorkingDirectory)
 
 	ImGuiStyle& style = ImGui::GetStyle();
 
+	style.ChildBorderSize = 0;
 	style.WindowPadding = ImVec2(0, 0);
 	style.WindowRounding = 5;
 	style.ItemSpacing = ImVec2(10, 10);
 	style.ItemInnerSpacing = ImVec2(8, 4);
 	style.ScrollbarSize = 20;
 	style.ScrollbarRounding = 0;
-	style.IndentSpacing = 30;
+	style.IndentSpacing = 15;
 	style.TouchExtraPadding = ImVec2(10, 10);
-	style.FramePadding = ImVec2(10, 10);
+	style.FramePadding = ImVec2(5, 5);
 
 	style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
@@ -81,14 +82,14 @@ void SetupImGuiStyle(const std::string& currentWorkingDirectory)
 	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.15f, 0.15f, 0.13f, 0.67f);
 	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.27f, 0.27f, 0.54f, 0.83f);
 	style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.40f, 0.40f, 0.80f, 0.20f);
-	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.165f, 0.396f, 0.750f, 1.00f);
+	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.165f, 0.396f, 0.750f, 0.627f);
 	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.2f, 0.2f, 0.180f, 1.00f);
 	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.07f, 0.07f, 0.08f, 0.40f);
 	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.69f, 0.69f, 0.69f, 0.80f);
 	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.49f, 0.49f, 0.49f, 0.80f);
 	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.49f, 0.49f, 0.49f, 1.00f);
-	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
-	style.Colors[ImGuiCol_SliderGrab] = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
+	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.90f, 0.90f, 0.90f, 1.0f);
+	style.Colors[ImGuiCol_SliderGrab] = ImVec4(1.00f, 1.00f, 1.00f, 1.0f);
 	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
 	style.Colors[ImGuiCol_Button] = ImVec4(0.32f, 0.32f, 0.32f, 0.25f);
 	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.15f, 0.30f, 0.48f, 0.98f);

@@ -125,3 +125,9 @@ void GibEngine::Renderer::SsaoPass::InitializeKernel()
 
 	this->noiseTexture = std::shared_ptr<Texture>(new Texture(textureId, TextureType::DIFFUSE, { 4,4 }));
 }
+
+void GibEngine::Renderer::SsaoPass::OnResize(int newWidth, int newHeight)
+{
+	graphicsApi->DeleteFramebuffer(ssaoFramebuffer.get());
+	graphicsApi->CreateFramebuffer(ssaoFramebuffer.get(), newWidth, newHeight);
+}

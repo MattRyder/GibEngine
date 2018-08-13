@@ -57,30 +57,21 @@ void GibEditor::Components::Dock::Render(unsigned int gameWorldTextureId)
 
 		if (rootEntity)
 		{
-			// Render Scene Outline table header
-			ImGui::Columns(2);
-			ImGui::Text("Name");
-			ImGui::NextColumn();
-			ImGui::Text("Type");
-			ImGui::Columns(1);
-
 			RenderSceneTree(rootEntity);
 		}
 
 		ImGui::EndDock();
 
-		//ImGui::SetNextDock(ImGuiDockSlot_Bottom);
+		ImGui::SetNextDock(ImGuiDockSlot_Bottom);
 
-		//if (ImGui::BeginDock("Content Explorer", (bool*)0, ImGuiWindowFlags_MenuBar))
-		//{
-		//	cbrowser.Render();
+		if (ImGui::BeginDock("Content Browser", (bool*)0, ImGuiWindowFlags_MenuBar))
+		{
+			cbrowser.Render();
 
-		//	ImGui::EndDock();
-		//}
+			ImGui::EndDock();
+		}
 	}
 	ImGui::PopStyleVar();
-
-
 
 	ImGui::EndDockspace();
 }
@@ -95,27 +86,37 @@ void GibEditor::Components::Dock::RenderSceneTree(const std::shared_ptr<GibEngin
 	auto isSelected = selectedSceneOutlineItem == entity->GetNameKey();
 	auto entityName = entity->GetName();
 
-	ImGui::Columns(2, NULL, false);
-	if (ImGui::Selectable(entityName.c_str(), isSelected))
+	if (entity->GetChildCount() > 0)
 	{
-		selectedSceneOutlineItem = entity->GetNameKey();
-
-		// Show entity in Details pane
-		entityInspector->SetEntity(entity);
-	}
-	ImGui::NextColumn();
-	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7, 0.7, 0.7, 1.0));
-	ImGui::Text("%s", entity->GetTypeName().c_str());
-	ImGui::PopStyleColor();
-	ImGui::Columns(1);
-
-	for (auto iter = entity->ChildrenBegin(); iter != entity->ChildrenEnd(); ++iter)
-	{
-		if (entity->GetType() == GibEngine::BaseEntity::Type::MESH && iter->get()->GetType() == GibEngine::BaseEntity::Type::MESH)
+		if (ImGui::TreeNodeEx(entityName.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow))
 		{
-			continue;
-		}
+			if (ImGui::IsMouseDoubleClicked(0))
+			{
+				selectedSceneOutlineItem = entity->GetNameKey();
 
-		RenderSceneTree(*iter);
+				entityInspector->SetEntity(entity);
+			}
+
+			for (auto iter = entity->ChildrenBegin(); iter != entity->ChildrenEnd(); ++iter)
+			{
+				if (entity->GetType() == GibEngine::BaseEntity::Type::MESH && iter->get()->GetType() == GibEngine::BaseEntity::Type::MESH)
+				{
+					continue;
+				}
+
+				RenderSceneTree(*iter);
+			}
+
+			ImGui::TreePop();
+		}
+	}
+	else
+	{
+		if (ImGui::Selectable(entityName.c_str()))
+		{
+			selectedSceneOutlineItem = entity->GetNameKey();
+
+			entityInspector->SetEntity(entity);
+		}
 	}
 }

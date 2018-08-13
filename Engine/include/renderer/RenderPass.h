@@ -64,6 +64,10 @@ namespace GibEngine
 			void TakeScreenshot(const std::string& filePath);
 
 			void SetPassEnabled(bool value);
+
+			virtual void OnResize(int newWidth, int newHeight);
+
+
 		};
 	}
 }
